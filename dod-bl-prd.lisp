@@ -1,0 +1,85 @@
+(in-package :dairyondemand)
+(clsql:file-enable-sql-reader-syntax)
+
+
+(defun initialize-products (company-instance)
+    (progn
+      
+(defun get-products (tenant-id)
+  (clsql:select 'dod-prd-master  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching nil :flatp t ))
+
+(defun initialize-products-cache ()
+  :documentation "Save the products for this company in a local cache as a list."
+  (let ((products (select-products-by-company)))
+    products))
+
+
+(defun select-products-by-company ()
+  (let ((tenant-id (slot-value company-instance 'row-id)))
+ (clsql:select 'dod-prd-master  :where
+		[and [= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]]
+		:caching nil :flatp t )))
+
+(defun select-product-by-id (id)
+  (let ((tenant-id (slot-value company-instance 'row-id)))
+ (car (clsql:select 'dod-prd-master  :where
+		[and [= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[=[:row-id] id]]    :caching nil :flatp t ))))
+
+
+  (defun select-product-by-name (name-like-clause)
+      (let ((tenant-id (slot-value company-instance 'row-id)))
+  (car (clsql:select 'dod-prd-master :where [and
+		[= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[like  [:prd-name] name-like-clause]]
+		:caching nil :flatp t))))
+
+
+(defun update-prd-details (prd-instance); This function has side effect of modifying the database record.
+  (clsql:update-records-from-instance prd-instance))
+
+(defun delete-product( id )
+    (let ((tenant-id (slot-value company-instance 'row-id)))
+  (let ((dodproduct (car (clsql:select 'dod-prd-master :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+    (setf (slot-value dodproduct 'deleted-state) "Y")
+    (clsql:update-record-from-slot dodproduct 'deleted-state))))
+
+
+
+(defun delete-products ( list)
+    (let ((tenant-id (slot-value company-instance 'row-id)))
+  (mapcar (lambda (id)  (let ((dodproduct (car (clsql:select 'dod-vend-profile :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+			  (setf (slot-value dodproduct 'deleted-state) "Y")
+			  (clsql:update-record-from-slot dodproduct  'deleted-state))) list )))
+
+
+(defun restore-deleted-products ( list  )
+    (let ((tenant-id (slot-value company-instance 'row-id)))
+(mapcar (lambda (id)  (let ((dodproduct (car (clsql:select 'dod-vend-profile :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+    (setf (slot-value dodproduct 'deleted-state) "N")
+    (clsql:update-record-from-slot dodproduct 'deleted-state))) list )))
+
+   
+
+  
+(defun persist-product(prdname vendor-id qtyperunit unitprice img-file-path tenant-id )
+ (clsql:update-records-from-instance (make-instance 'dod-prd-master
+				    :prd-name prdname
+				    :vendor-id vendor-id
+				    :qty-per-unit qtyperunit
+				    :unit-price unitprice
+				    :prd-image-path img-file-path
+				    :tenant-id tenant-id
+				    :deleted-state "N")))
+ 
+
+
+(defun create-product (prdname vendor-instance qty-per-unit unit-price img-file-path)
+  (let ((vendor-id (slot-value vendor-instance 'row-id))
+	(tenant-id (slot-value company-instance 'row-id)))
+ (persist-product prdname vendor-id qty-per-unit unit-price img-file-path  tenant-id)))
+
+))
