@@ -40,7 +40,7 @@ $.ajaxSetup({
 	}
 })
 
-    
+
 $formsignin.submit ( function() {
     $formsignin.hide();
     $.ajax({
@@ -50,13 +50,17 @@ $formsignin.submit ( function() {
 	error:function(){
 	$error.show();
 	},
-   	success: function(data){ window.location="/dodcustindex";}
+   	success: function(response){
+	    console.log("Signin successful");
+	    window.location = "/dodcustindex"; 
+
+	}
     })
     return false;
     
 })
-
-/*$form.submit ( function() {
+/*
+$form.submit ( function() {
     
     $.ajax({
 	type: "POST",
@@ -72,16 +76,17 @@ $formsignin.submit ( function() {
 })*/
 
 
-$('form').on('submit', function (e) {
+$(".form-product").on('submit', function (e) {
     var theForm = $(this);
-
+    $(theForm).find("button[type='submit']").hide(); //prop('disabled',true);
       $.ajax({
             type: 'POST',
           url: $(theForm).attr("action"), 
             data: $(theForm).serialize(),
-            success: function () {
-		console.log("success in form");
-		location.reload();                   
+            success: function (response) {
+		console.log("Added a product to cart");
+		location.reload();
+
             }
       });
       e.preventDefault();});

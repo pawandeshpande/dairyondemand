@@ -10,7 +10,6 @@
    
 (order-id
     :accessor get-order-order
-    :DB-CONSTRAINTS :NOT-NULL
     :TYPE integer
     :initarg :order-id)
 

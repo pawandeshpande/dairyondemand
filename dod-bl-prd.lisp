@@ -21,6 +21,15 @@
 		[= [:tenant-id] tenant-id]]
 		:caching nil :flatp t )))
 
+(defun search-prd-in-list (row-id list)
+    (if (not (equal row-id (slot-value (car list) 'row-id))) (search-prd-in-list row-id (cdr list))
+    (car list)))
+
+(defun prdinlist-p  (prd-id list)
+(member prd-id  (mapcar (lambda (item)
+		(slot-value item 'prd-id)) list)))
+
+
 (defun select-product-by-id (id)
   (let ((tenant-id (slot-value company-instance 'row-id)))
  (car (clsql:select 'dod-prd-master  :where

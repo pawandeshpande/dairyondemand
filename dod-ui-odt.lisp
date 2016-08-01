@@ -34,20 +34,20 @@
 
 (defun ui-list-shop-cart (data)
     :documentation "A function used for rendering the shopping cart data in HTML format."
-    (cl-who:with-html-output (*standard-output* nil)
-	(:form :class "form-shopcart" :role "form" :method "POST" :action "/dodcustaddorder"
+   (time (cl-who:with-html-output (*standard-output* nil)
 	    ; Header section.
 	    (:div :class "row"
-	    (:div :class "col-md-6" 
+	    (:div :class "col-md-3" 
 		(:h4 (str (format nil "Shopping Cart (~A Items)" (length data)))))
-	    (:div :class "col-md-6" :align "right"
-		(:div :class "form-group"  (htm (:a :class "btn btn-primary" :role "button" :href (format nil "/dodcustcheckout") "Place Order")))))
+	(:div :class "col-md-9" :align "right"
+		(htm  (:a :class "btn btn-primary" :role "button" :href "/dodcustindex" "Back To Shopping"  )))
+		)
 	    ; Data section.
 	    (:div :class "row-fluid" 
 		(mapcar (lambda (product)
-				      (htm (:div :class "col-lg-4 col-md-4 col-sm-12 col-xs-12" 
+				      (htm (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-4" 
 					       (:div :class "thumbnail" (product-card-shopcart product)))))
-			      data)))))
+		    data)) )))
 									  
 
      

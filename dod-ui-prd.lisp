@@ -32,20 +32,17 @@
 											    ))))) data)))))
 
 
-
+(defun dod-controller-order-confirmation ()
+    (cl-who:with-html-output (*standard-output* nil)
+      (:div :class "row-fluid" )))
 
 
 (defun ui-list-customer-products (header data lstshopcart)
  (cl-who:with-html-output (*standard-output* nil)
      (:div :class "row-fluid"	  (mapcar (lambda (product)
-				      (htm (:div :class "col-sm-4 col-xs-6 col-md-6 col-lg-3" 
-					       (:div :class "thumbnail" (product-card product (member (slot-value product 'row-id) lstshopcart))))))
+				      (htm (:div :class "col-sm-12 col-xs-12 col-md-3 col-lg-3" 
+					       (:div :class "thumbnail" (product-card product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))))
 			      data))))
-
-
-
-
-
 
 
 (defun product-card-shopcart (product-instance)
@@ -57,39 +54,34 @@
 	   (prd-vendor (get-prd-vendor product-instance))
 	   (nprdqty 0)
 	(shopcart (hunchentoot:session-value :login-shopping-cart)))
-
-
-      
     (cl-who:with-html-output (*standard-output* nil)
-      (:div :class "card"
-
+	(:form :class "form-shopcart" :method "POST" :action "dodcustupdatecart" 
+	(:div :class "card"
 	  (:div :class "row card-block"
-	      (:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6"
+	      ; Product image
+	      (:div :class "col-sm-3 col-xs-3 col-md-3 col-lg-3"
 		  (:img :class "card-img-top img-responsive" :src  prd-image-path :alt prd-name " "))
-	      (:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6"
+	      ;Product name and other details
+	      (:div :class "col-sm-3 col-xs-3 col-md-3 col-lg-3"
+	  (:h5 :class "card-title" (str prd-name) )
+	  (:p :class "cart-text" (str (format nil "  ~A.    Fulfilled By: ~A" qty-per-unit (vendor-name prd-vendor)))))
+
+	          (:div :class "col-sm-3 col-xs-3 col-md-3 col-lg-3"
+		      (:div :class "form-group" :align "right"  (:h4(:span :class "label label-primary" (str unit-price)) )))
+					
+	      ;Remove button.
+	      (:div :class "col-sm-3 col-xs-3 col-md-3 col-lg-3"
 	  (:div :class "form-group" :align "right" (htm (:a :href (str(format nil "/dodcustremshctitem?action=remitem&id=~A" prd-id)) (:span :class "glyphicon glyphicon-remove"))))) )
 
-	  (:div :class "row card-block"
-	      (:div :class "col-xs-6"
-	  (:h5 :class "card-title" (str prd-name) )
-	  (:p :class "card-text" (str qty-per-unit))
-	  (:p :class "cart-text" (str (format nil "Fulfilled By: ~A" (vendor-name prd-vendor)))))
-
-	          (:div :class "col-sm-6"
-		  (:div :class "form-group"  (:h4(:span :class "label label-primary" (str unit-price)) ))))
-
-	  (:div :class "form-group"
-	      (:label :for "nprdqty" "Qty")
-	      (:select :class "form-control" :id="nprdqty"
-		  (:option "1")(:option "2")(:option "3")(:option "4")(:option "5")(:option "6")(:option "7")(:option "8")(:option "9") ))
-	 ; (:div :class "form-group" (:input :class "form-control" :name (format nil "prdqty~A" (incf nprdqty)) :placeholder "1"  :type "text"))
+	  (:div :class "row card-block" 
+	  (:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6 form-group"
+	     (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
+	      ;(:select :class "form-control" :id="nprdqty"
+	;	  (:option "1")(:option "2")(:option "3")(:option "4")(:option "5")(:option "6")(:option "7")(:option "8")(:option "9") ))
+	  (:div :class "form-group" (:input :class "form-control" :name "nprdqty" :value ""  :type "text")))
 	     
-(:div :class "form-group"  (htm (:a :class "btn btn-primary" :role "button" :href (format nil "/dodcustupdshctitem?action=upditem&id=~A" prd-id) "Update"))))
-
+(:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6 form-group"   (htm (:a :class "btn btn-primary" :role "button" :href (format nil "/dodcustupdshctitem?action=upditem&id=~A" prd-id) "Update"))))))
 	  )))
-		  
-
-
 
 (defun product-card (product-instance prdincart-p)
   (let ((prd-name (slot-value product-instance 'prd-name))

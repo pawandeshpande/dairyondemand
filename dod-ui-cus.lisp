@@ -34,7 +34,7 @@
 (defun dod-controller-my-orderprefs ()
   :documentation "A callback function which prints daily order preferences for a logged in customer in HTML format."
 (if (is-dod-cust-session-valid?)
-   (let (( dodorderprefs (get-opreflist-for-customer  (get-login-customer)))
+   (let (( dodorderprefs (hunchentoot:session-value :login-customer-opreflist))
 	 (header (list   "Product" "Product Qty" "Action")))
       (ui-list-cust-orderprefs header dodorderprefs))
      (hunchentoot:redirect "/customer-login.html")))
@@ -297,25 +297,27 @@
 (defun dod-controller-cust-add-to-cart ()
   :documentation "This function is responsible for adding the product and product quantity to the shopping cart."
   (if (is-dod-cust-session-valid?)
-  (let ((action (hunchentoot:parameter "action"))
-	(prd-id (hunchentoot:parameter "prd-id"))
-	(myshopcart (hunchentoot:session-value :login-shopping-cart)))
-      (progn (if (equal action "addtocart" ) (setf (hunchentoot:session-value :login-shopping-cart) (append  (list (parse-integer prd-id)) myshopcart  )))
+  (let* ((action (hunchentoot:parameter "action"))
+	    (prd-id (hunchentoot:parameter "prd-id"))
+	    (productlist (hunchentoot:session-value :login-products-cache))
+	    (myshopcart (hunchentoot:session-value :login-shopping-cart))
+	    (product (search-prd-in-list (parse-integer prd-id) productlist))
+	   (odt (create-odtinst-shopcart nil product  1 (slot-value product 'unit-price) (hunchentoot:session-value :login-customer-company))))
+      (progn (if (equal action "addtocart" ) (setf (hunchentoot:session-value :login-shopping-cart) (append (list odt)  myshopcart  )))
+	  (format T "Added to Shopcart")
       (if (length (hunchentoot:session-value :login-shopping-cart)) (hunchentoot:redirect "/dodcustindex"))))))
-
 
 
 (defun dod-controller-cust-index () 
   (if (is-dod-cust-session-valid?)
       (standard-customer-page (:title "Welcome to Dairy Ondemand - customer")
 	  (let ((lstshopcart (hunchentoot:session-value :login-shopping-cart)))
-	  (htm 
-	   (:div :class "row"
-		 (:div :class "col-md-12" :align "right"
-		     (:a :class "btn btn-primary" :role "button" :href "/dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " Checkout " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))) ))))
-	      (:hr)
-		       
-	    (let ( (dodproducts (select-products-by-company))
+	 (htm 
+	  ; (:div :class "row"
+		 ;(:div :class "col-md-12" :align "right"
+		  ;   (:a :class "btn btn-primary" :role "button" :href "/dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " Checkout " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))) ))))
+	      (:hr)		       
+	    (let ( (dodproducts (hunchentoot:session-value :login-products-cache))
 		      (header (list  "Name" )))
 		(ui-list-customer-products header dodproducts lstshopcart))))
 (:script :src "/js/dod.js")      
@@ -328,11 +330,26 @@
     (if (is-dod-cust-session-valid?)
   (standard-customer-page (:title "My Shopping Cart")
       (let* ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
-	       (lstcount (length lstshopcart)))
+		(lstcount (length lstshopcart))
+		(total   (reduce #'+  (mapcar (lambda (odt)
+						  (slot-value odt 'unit-price)) lstshopcart))))
 	(if (> lstcount 0)
-	    (let ((products (mapcar (lambda (prd-id)
-					 (select-product-by-id prd-id )) lstshopcart)))
-		     (ui-list-shop-cart products))
+	    (let ((products (mapcar (lambda (odt)
+					(let ((prd-id (slot-value odt 'prd-id)))
+					(select-product-by-id  prd-id ))) lstshopcart))) ; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
+		(ui-list-shop-cart products)
+		
+		(htm
+		    (:hr)
+		    (:div :class "row" 
+			(:div :class "col-md-12" :align "right" 
+			    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~A" total)))))
+		
+		(:div :class "col-md-12" :align "right"
+	 (htm (:a :class "btn btn-primary" :role "button" :href (format nil "/dodcustcheckout") "Checkout")))
+	)))
+
+
 	    (htm
 		(:div :class "row"  "Shopping cart is empty")
 		(:div (str (format nil "shop cart count ~A" lstcount)))
@@ -340,15 +357,18 @@
 	      ))))
           (hunchentoot:redirect "/customer-login.html")))
 
+
+
 (defun dod-controller-remove-shopcart-item ()
   :documentation "This is a function to remove an item from shopping cart."
 (if (is-dod-cust-session-valid?)
   (let ((action (hunchentoot:parameter "action"))
-	(prd-id (hunchentoot:parameter "id"))
+	(prd-id (parse-integer (hunchentoot:parameter "id")))
 	(myshopcart (hunchentoot:session-value :login-shopping-cart)))
-    (progn (if (equal action "remitem" ) (setf (hunchentoot:session-value :login-shopping-cart) (remove  (parse-integer prd-id) myshopcart  )))
+    (progn (if (equal action "remitem" ) (setf (hunchentoot:session-value :login-shopping-cart) (remove (search-odt-by-prd-id  prd-id  myshopcart  ) myshopcart)))
 	       (hunchentoot:redirect "/dodcustshopcart")))))
 
+   
      
 		    
 (defun print-web-session-timeout ()
@@ -390,7 +410,8 @@
 		  (setf (hunchentoot:session-value :login-customer-company-name) customer-company-name)
 		  (setf (hunchentoot:session-value :login-customer-company) customer-company)
 		  (setf (hunchentoot:session-value :login-shopping-cart) login-shopping-cart)
-		  (initialize-products customer-company)
+		    (initialize-products customer-company)
+		    (setf (hunchentoot:session-value :login-customer-opreflist) (get-opreflist-for-customer  customer)) 
 		  (setf (hunchentoot:session-value :login-products-cache ) (initialize-products-cache))
 
 		  ))))

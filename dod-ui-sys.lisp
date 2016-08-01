@@ -347,6 +347,7 @@
        (hunchentoot:create-regex-dispatcher "^/dodcustaddtocart" 'dod-controller-cust-add-to-cart)
        (hunchentoot:create-regex-dispatcher "^/dodcustshopcart" 'dod-controller-cust-show-shopcart)
        (hunchentoot:create-regex-dispatcher "^/dodcustremshctitem" 'dod-controller-remove-shopcart-item )
+       (hunchentoot:create-regex-dispatcher "^/dodcustplaceorder" 'dod-controller-cust-placeorder )
 
        
        (hunchentoot:create-regex-dispatcher "^/list-companies" 'dod-controller-list-companies)))
