@@ -114,12 +114,12 @@
 
 
 
-(defun create-order-from-details (order-details-list order-date request-date ship-date ship-address customer-instance company-instance)
+(defun create-order-from-shopcart (order-details-list products  order-date request-date ship-date ship-address customer-instance company-instance)
   (let ((uuid (uuid:make-v1-uuid )))
     (progn 	(create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) company-instance)
 		(let ((order (get-order-by-context-id (print-object uuid nil) company-instance)))
 		      (mapcar (lambda (odt)
-				(let* ((prd (get-odt-product odt))
+				(let* ((prd (search-prd-in-list (slot-value odt 'prd-id) products))
 				       (unit-price (slot-value odt 'unit-price))
 				      (prd-qty (slot-value odt 'prd-qty)))
 				  (create-order-details order prd  prd-qty unit-price company-instance))) order-details-list)))))

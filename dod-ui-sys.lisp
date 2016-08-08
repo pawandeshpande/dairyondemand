@@ -335,7 +335,10 @@
        (hunchentoot:create-regex-dispatcher "^/dodcustlogin" 'dod-controller-cust-login)
        (hunchentoot:create-regex-dispatcher "^/dodcustindex" 'dod-controller-cust-index)
        (hunchentoot:create-regex-dispatcher "^/dodcustlogout" 'dod-controller-customer-logout)
-       (hunchentoot:create-regex-dispatcher "^/dodmyorders" 'dod-controller-my-orders)
+	  (hunchentoot:create-regex-dispatcher "^/dodmyorders" 'dod-controller-my-orders)
+	  (hunchentoot:create-regex-dispatcher "^/delorder" 'dod-controller-del-order)
+  	  (hunchentoot:create-regex-dispatcher "^/dodcustordsuccess" 'dod-controller-cust-ordersuccess)
+
        (hunchentoot:create-regex-dispatcher "^/dodcustorderprefs" 'dod-controller-my-orderprefs)
        (hunchentoot:create-regex-dispatcher "^/dodmyorderdetails" 'dod-controller-my-orderdetails)
        (hunchentoot:create-regex-dispatcher "^/dodcustaddorderpref" 'dod-controller-cust-add-orderpref-page)

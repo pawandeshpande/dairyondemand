@@ -41,9 +41,6 @@
     :type (number)
     :initarg :units-in-stock)
 
-
-
-   
    (deleted-state
     :type (string 1)
     :void-value "N"

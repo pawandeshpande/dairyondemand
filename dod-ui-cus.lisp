@@ -45,15 +45,23 @@
   :documentation "A callback function which prints orders for a logged in customer in HTML format."
   (if (is-dod-cust-session-valid?)
        (standard-customer-page (:title "List DOD Customer orders")   
-   (let (( dodorders (get-orders-for-customer  (get-login-customer)));
+   (let (( dodorders (hunchentoot:session-value :login-customer-orders))
 	 (header (list  "Order No" "Order Date" "Customer" "Request Date"  "Ship Date" "Ship Address" "Action")))
      (if dodorders (ui-list-customer-orders header dodorders) "No orders")))
-   (hunchentoot:redirect "/customer-login.html")))
+      (hunchentoot:redirect "/customer-login.html")))
+
+(defun dod-controller-del-order()
+      (if (is-dod-cust-session-valid?)
+ (standard-customer-page (:title "Delete Customer orders")   
+    (let (order-id (hunchentoot:parameter "id"))
+	(htm (:div :class "row"
+	    (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
+		 (:h2 "NOT IMPLEMENTED"))))))))
 
 
 ;(defun dod-controller-my-orders ()
 ;  (if (is-dod-cust-session-valid?)
-;        (standard-page (:title "List DOD Customers")
+					;        (standard-page (:title "List DOD Customers")
 ;      (ui-list-cust-orders-with-details (get-login-customer)));
 ;	(hunchentoot:redirect "/customer-login.html")))
 
@@ -102,7 +110,7 @@
 
 
 	   (:ul :class "nav navbar-nav navbar-right"
-		(:li :align "center" (:a :href "/dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart " (:span :class "badge" (str (format nil " ~A " (length (hunchentoot:session-value :login-shopping-cart)))) )))
+		;(:li :align "center" (:a :href "/dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart " (:span :class "badge" (str (format nil " ~A " (length (hunchentoot:session-value :login-shopping-cart)))) )))
 		(:li :align "center" (:a :href "/dodcustlogout" (:span :class "glyphicon glyphicon-log-out") " Logout "  ))))))))
 
 
@@ -121,11 +129,13 @@
 	     (:link :rel "icon" :href "favicon.ico")
 	     (:title ,title )
 	  
-	     (:link :href "css/style.css" :rel "stylesheet")
+		(:link :href "css/style.css" :rel "stylesheet")
+		(:link :href "css/rangeslider.css" :rel "stylesheet")
 	     (:link :href "css/bootstrap.min.css" :rel "stylesheet")
-	     (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
-		(:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
-		(:script :src "js/spin.min.js")
+		(:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
+		(:link :href "css/nouislider.min.css" :rel "stylesheet")
+	     (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
+	     (:script :src "js/spin.min.js")
 	     );; Header completes here.
 	 (:body
 	     (:div :id "dod-error" (:h2 "Error..."))
@@ -135,7 +145,11 @@
 		   (:div :class "container theme-showcase" :role "main" 
 			 (:div :id "header"	 ; DOD System header
 			       ,@body))	;container div close
-		   ;; bootstrap core javascript
+	     ;; Rangeslider
+
+	     (:script :src "js/nouislider.min.js")
+	     	     (:script :src "js/dod.js")
+	              ;; bootstrap core javascript
 		   (:script :src "js/bootstrap.min.js")))))
 
 
@@ -199,10 +213,7 @@
 			  (:div :class "form-group"
 			   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Login"))
 			  ))))
-(:script :src "/js/dod.js")      
-      )
-
-    )
+(:script :src "/js/dod.js")))
 
 
 (defun dod-controller-cust-add-orderpref-page ()
@@ -229,15 +240,15 @@
 	  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 		(:div :class "orderpref"
 		      (:h1 :class "text-center login-title"  "Customer - Add order ")
-		      (:form :class "form-order" :role "form" :method "POST" :action "/dodcustaddorderaction"
+		      (:form :class "form-order" :role "form" :method "POST" :action "/dodmyorderaddaction"
 			     (:div :class "form-group" (:label :for "orddate" "Order Date" )
    				   (:input :class "form-control" :name "orddate" :placeholder "DD/MM/YYYY" :type "text"))
 			     (:div :class "form-group" (:label :for "reqdate" "Required On" )
    				   (:input :class "form-control" :name "reqdate" :placeholder "DD/MM/YYYY" :type "text"))
-			     (:div :class "form-group" (:label :for "shipaddress" "Required On" )
-   				   (:input :class "form-control" :name "shipaddress" :type "text"))
+			     (:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
+   				   (:textarea :class "form-control" :name "shipaddress" :rows "4"))
 
-			     (:input :type "submit"  :class "btn btn-primary" :value "Add      "))))))
+			     (:input :type "submit"  :class "btn btn-primary" :value "Confirm"))))))
   (hunchentoot:redirect "/customer-login.html")))
 
 
@@ -292,7 +303,35 @@
 	    ( or (null cname) (zerop (length cname)))
 	    ( or (null phone) (zerop (length phone))))
       (if (equal (dod-cust-login :company-name cname :phone phone) NIL) (hunchentoot:redirect "/customer-login.html") (hunchentoot:redirect  "/dodcustindex")))))
-   
+
+(defun dod-controller-cust-ordersuccess ()
+    (if (is-dod-cust-session-valid?)
+	(standard-customer-page (:title "Welcome to Dairy ondemand- Add Customer Order")
+	    (:div :class "row"
+		(:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
+		    (htm (:h1 "Your order has been successfully placed"))
+    		    (:a :class "btn btn-primary" :role "button" :href (format nil "/dodmyorders") " My Orders Page"))
+		    ))))
+
+
+(defun dod-controller-cust-add-order-action ()
+(if (is-dod-cust-session-valid?)
+    (let ((odts (hunchentoot:session-value :login-shopping-cart))
+	     (products (hunchentoot:session-value :login-products-cache))
+	     (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
+	     (cust (hunchentoot:session-value :login-customer))
+	     (custcomp (hunchentoot:session-value :login-customer-company))
+	     (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
+	     (shipaddr (hunchentoot:parameter "shipaddress")))
+	(progn (create-order-from-shopcart  odts products odate reqdate reqdate  shipaddr cust custcomp)
+	    (setf (hunchentoot:session-value :login-customer-orders) (get-orders-for-customer cust))
+	    (setf (hunchentoot:session-value :login-shopping-cart ) nil)
+	    (hunchentoot:redirect "/dodcustordsuccess"))
+	    )))
+
+
+
+
 
 (defun dod-controller-cust-add-to-cart ()
   :documentation "This function is responsible for adding the product and product quantity to the shopping cart."
@@ -313,14 +352,13 @@
       (standard-customer-page (:title "Welcome to Dairy Ondemand - customer")
 	  (let ((lstshopcart (hunchentoot:session-value :login-shopping-cart)))
 	 (htm 
-	  ; (:div :class "row"
-		 ;(:div :class "col-md-12" :align "right"
-		  ;   (:a :class "btn btn-primary" :role "button" :href "/dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " Checkout " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))) ))))
+	   (:div :class "row"
+		 (:div :class "col-md-12" :align "right"
+		     (:a :class "btn btn-primary" :role "button" :href "/dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))) ))))
 	      (:hr)		       
 	    (let ( (dodproducts (hunchentoot:session-value :login-products-cache))
 		      (header (list  "Name" )))
 		(ui-list-customer-products header dodproducts lstshopcart))))
-(:script :src "/js/dod.js")      
 	  )
       (hunchentoot:redirect "/customer-login.html")))
 
@@ -330,30 +368,31 @@
     (if (is-dod-cust-session-valid?)
   (standard-customer-page (:title "My Shopping Cart")
       (let* ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
+		(prd-cache (hunchentoot:session-value :login-products-cache))
 		(lstcount (length lstshopcart))
 		(total   (reduce #'+  (mapcar (lambda (odt)
 						  (slot-value odt 'unit-price)) lstshopcart))))
 	(if (> lstcount 0)
 	    (let ((products (mapcar (lambda (odt)
 					(let ((prd-id (slot-value odt 'prd-id)))
-					(select-product-by-id  prd-id ))) lstshopcart))) ; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
-		(ui-list-shop-cart products)
-		
-		(htm
-		    (:hr)
-		    (:div :class "row" 
+					(search-prd-in-list prd-id prd-cache ))) lstshopcart))) ; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
+		; This function is responsible for displaying the shopping cart. 
+		(ui-list-shop-cart products lstshopcart)
+
+	(htm
+		(:div :class "row" 
 			(:div :class "col-md-12" :align "right" 
 			    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~A" total)))))
 		
 		(:div :class "col-md-12" :align "right"
-	 (htm (:a :class "btn btn-primary" :role "button" :href (format nil "/dodcustcheckout") "Checkout")))
-	)))
-
-
+		    (:a :class "btn btn-primary" :role "button" :href (format nil "/dodmyorderaddpage") "Checkout"))
+	      )))
+	  
+	    ;If condition ends here. 
 	    (htm
-		(:div :class "row"  "Shopping cart is empty")
-		(:div (str (format nil "shop cart count ~A" lstcount)))
-	      (:a :class "btn btn-primary" :role "button" :href "/dodcustindex" "Shop Now"  )
+		(:div :class "row" 
+		(:div :class "col-md-12" (:span :class "label label-info"  (str (format nil " ~A Items in cart.   " lstcount)))
+		    (:a :class "btn btn-primary" :role "button" :href "/dodcustindex" "Shop Now"  )))
 	      ))))
           (hunchentoot:redirect "/customer-login.html")))
 
@@ -412,7 +451,8 @@
 		  (setf (hunchentoot:session-value :login-shopping-cart) login-shopping-cart)
 		    (initialize-products customer-company)
 		    (setf (hunchentoot:session-value :login-customer-opreflist) (get-opreflist-for-customer  customer)) 
-		  (setf (hunchentoot:session-value :login-products-cache ) (initialize-products-cache))
+		    (setf (hunchentoot:session-value :login-products-cache ) *app-products-cache*)
+		    (setf (hunchentoot:session-value :login-customer-orders) (get-orders-for-customer customer))
 
 		  ))))
 		 

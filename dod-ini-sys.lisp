@@ -50,6 +50,7 @@ Database type: Supported type is ':odbc'"
 (defvar *http-server* nil)
 (defvar *dod-debug-mode* nil)
 (defvar *dod-database-caching* nil)
+(defvar *app-products-cache* nil) 
 
 (defun init-dairyondemand ()
   (cond  (*dod-debug-mode* (setf *dod-database-caching* NIL))
@@ -59,12 +60,13 @@ Database type: Supported type is ':odbc'"
 
 (defun start-dairyondemand () 
 (setf *dod-debug-mode* T)
-  (setf *js-string-delimiter* #\")
+
   (setf  *http-server* (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port 4243 :document-root #p"~/dairyondemand/")))
 (setf (hunchentoot:acceptor-access-log-destination *http-server* ) #p"~/dairyondemand-access.log")
 (setf (hunchentoot:acceptor-message-log-destination *http-server*) #p"~/dairyondemand-messages.log")
 (progn (init-dairyondemand) 
-  (crm-db-connect :strdb "dairyondemand" :strusr "TestCRMCore" :strpwd "TestCRMCore" :strdbtype :odbc))
+    (crm-db-connect :strdb "dairyondemand" :strusr "TestCRMCore" :strpwd "TestCRMCore" :strdbtype :odbc)
+    (setf *app-products-cache* (initialize-products-cache)) )
 
 ;(defparameter *ACCOUNT-BC* (make-instance 'crm-business-component
 ;		 :name "Account"

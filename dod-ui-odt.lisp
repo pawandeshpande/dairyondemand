@@ -32,7 +32,7 @@
 											    ))))) (if (not (typep data 'list)) (list data) data) )))))
 
 
-(defun ui-list-shop-cart (data)
+(defun ui-list-shop-cart (data shopcart)
     :documentation "A function used for rendering the shopping cart data in HTML format."
    (time (cl-who:with-html-output (*standard-output* nil)
 	    ; Header section.
@@ -43,11 +43,11 @@
 		(htm  (:a :class "btn btn-primary" :role "button" :href "/dodcustindex" "Back To Shopping"  )))
 		)
 	    ; Data section.
-	    (:div :class "row-fluid" 
-		(mapcar (lambda (product)
+	     (:div :class "row-fluid"
+		(mapcar (lambda (product odt)
 				      (htm (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-4" 
-					       (:div :class "thumbnail" (product-card-shopcart product)))))
-		    data)) )))
+					       (:div :class "thumbnail" (product-card-shopcart product odt)))))
+		    data shopcart )) )))
 									  
 
      

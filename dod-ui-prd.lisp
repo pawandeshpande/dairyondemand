@@ -45,42 +45,45 @@
 			      data))))
 
 
-(defun product-card-shopcart (product-instance)
+(defun product-card-shopcart (product-instance odt-instance)
   (let ((prd-name (slot-value product-instance 'prd-name))
 	(qty-per-unit (slot-value product-instance 'qty-per-unit))
 	(unit-price (slot-value product-instance 'unit-price))
 	(prd-image-path (slot-value product-instance 'prd-image-path))
 	(prd-id (slot-value product-instance 'row-id))
-	   (prd-vendor (get-prd-vendor product-instance))
-	   (nprdqty 0)
-	(shopcart (hunchentoot:session-value :login-shopping-cart)))
+	   (prd-vendor (get-prd-vendor product-instance)))
     (cl-who:with-html-output (*standard-output* nil)
-	(:form :class "form-shopcart" :method "POST" :action "dodcustupdatecart" 
+
 	(:div :class "card"
 	  (:div :class "row card-block"
 	      ; Product image
-	      (:div :class "col-sm-3 col-xs-3 col-md-3 col-lg-3"
+	      (:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6"
 		  (:img :class "card-img-top img-responsive" :src  prd-image-path :alt prd-name " "))
+
+	        ;Remove button.
+	      (:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6"
+		  (:div :class "form-group" :align "right" (htm (:a :href (str(format nil "/dodcustremshctitem?action=remitem&id=~A" prd-id)) (:span :class "glyphicon glyphicon-remove"))))) )
+
+	    (:div :class "row card-block"
 	      ;Product name and other details
-	      (:div :class "col-sm-3 col-xs-3 col-md-3 col-lg-3"
+	      (:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6"
 	  (:h5 :class "card-title" (str prd-name) )
 	  (:p :class "cart-text" (str (format nil "  ~A.    Fulfilled By: ~A" qty-per-unit (vendor-name prd-vendor)))))
 
-	          (:div :class "col-sm-3 col-xs-3 col-md-3 col-lg-3"
-		      (:div :class "form-group" :align "right"  (:h4(:span :class "label label-primary" (str unit-price)) )))
-					
-	      ;Remove button.
-	      (:div :class "col-sm-3 col-xs-3 col-md-3 col-lg-3"
-	  (:div :class "form-group" :align "right" (htm (:a :href (str(format nil "/dodcustremshctitem?action=remitem&id=~A" prd-id)) (:span :class "glyphicon glyphicon-remove"))))) )
+	          (:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6"
+		      (:div :class "form-group" :align "right"  (:h3(:span :class "label label-default" (str (format nil "Rs. ~A"  unit-price))) ))))
 
-	  (:div :class "row card-block" 
-	  (:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6 form-group"
-	     (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
-	      ;(:select :class "form-control" :id="nprdqty"
-	;	  (:option "1")(:option "2")(:option "3")(:option "4")(:option "5")(:option "6")(:option "7")(:option "8")(:option "9") ))
-	  (:div :class "form-group" (:input :class "form-control" :name "nprdqty" :value ""  :type "text")))
-	     
-(:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6 form-group"   (htm (:a :class "btn btn-primary" :role "button" :href (format nil "/dodcustupdshctitem?action=upditem&id=~A" prd-id) "Update"))))))
+
+	  (:div :class "row"
+	      (:form :class "form-shopcart" :role "form" :method "POST" :action "dodcustupdatecart" 
+   	      (:input :class "form-control" :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
+	      (:div :class "form-group col-sm-9 col-xs-9 col-md-9 col-lg-9"
+		  (:input :class "form-control" :name "nprdqty" :value (slot-value odt-instance 'prd-qty) :type "text" ))
+      	      (:div :class "form-group col-sm-2 col-xs-2 col-md-2 col-lg-2"
+		  (:button :class "btn btn-sm btn-primary" :type "submit" "Update"))
+        	      (:div :class "form-group col-sm-1 col-xs-1 col-md-1 col-lg-1" " ")
+
+	      )))
 	  )))
 
 (defun product-card (product-instance prdincart-p)
@@ -107,7 +110,7 @@
 		 ; (princ shopcart)
 		 ; (princ prd-id)
 		 ; (princ (find prd-id shopcart))
-		  (if  prdincart-p (htm (:a :class "btn btn-success" :role "button"  :onclick "return false;" :href (format nil "javascript:void(0);") "Added"))
+		  (if  prdincart-p (htm (:a :class "btn btn-success" :role "button"  :onclick "return false;" :href (format nil "javascript:void(0);") (:span :class "glyphicon glyphicon-ok"  )))
 		      (htm (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
 			  (:input :type "hidden" :name "action" :value "addtocart")
 		      (:button :class "btn btn-primary" :type "submit" "Add"))))

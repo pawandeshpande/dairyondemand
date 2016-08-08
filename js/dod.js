@@ -28,12 +28,10 @@ var opts = {
 var $busyindicator = document.getElementById('busy-indicator')
 spinner = new Spinner(opts).spin();
 
-
-
-
 $.ajaxSetup({
     	beforeSend: function(){
 	    $busyindicator.appendChild(spinner.el);
+
 	},
 	complete: function(){
    	    $busyindicator.removeChild(spinner.el);
@@ -59,22 +57,6 @@ $formsignin.submit ( function() {
     return false;
     
 })
-/*
-$form.submit ( function() {
-    
-    $.ajax({
-	type: "POST",
-	url: $formproduct.attr("action"),
-	data: $formproduct.serialize(),
-	error:function(){
-	$error.show();
-	},
-   	success: function(data){  window.location="/dodcustindex";}
-    })
-    return false;
-    
-})*/
-
 
 $(".form-product").on('submit', function (e) {
     var theForm = $(this);

@@ -14,7 +14,7 @@
     :initarg :order-id)
 
 (prd-id
-    :accessor get-order-product
+    :accessor get-odt-prd-id
     :DB-CONSTRAINTS :NOT-NULL
     :TYPE integer
     :initarg :prd-id)
