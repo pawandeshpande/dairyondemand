@@ -1,7 +1,7 @@
 
 
 var $error = $("#dod-error");
-var $dodbusyindicator = $(".dod-busy-indicator"), $formsignin = $(".form-signin"), spinner;
+var $dodbusyindicator = $(".dod-busy-indicator"), $formcustsignin = $(".form-custsignin"), spinner, $formvendsignin = $(".form-vendorsignin");
 
 var opts = {
   lines: 13 // The number of lines to draw
@@ -23,13 +23,14 @@ var opts = {
 , left: '50%' // Left position relative to parent
 , shadow: false // Whether to render a shadow
 , hwaccel: false // Whether to use hardware acceleration
-, position: 'absolute' // Element positioning
+, position: 'fixed' // Element positioning
 };
 var $busyindicator = document.getElementById('busy-indicator')
 spinner = new Spinner(opts).spin();
 
 $.ajaxSetup({
     	beforeSend: function(){
+            $('<div class=loadingDiv>loading...</div>').prependTo(document.body);
 	    $busyindicator.appendChild(spinner.el);
 
 	},
@@ -38,25 +39,52 @@ $.ajaxSetup({
 	}
 })
 
+$('a').click(function(){
+    $('<div class=loadingDiv>loading...</div>').prependTo(document.body);
+    	    $busyindicator.appendChild(spinner.el);
+});
 
-$formsignin.submit ( function() {
-    $formsignin.hide();
+$formcustsignin.submit ( function() {
+    $formcustsignin.hide();
     $.ajax({
 	type: "POST",
-	url: $formsignin.attr("action"),
-	data: $formsignin.serialize(),
+	url: $formcustsignin.attr("action"),
+	data: $formscustignin.serialize(),
 	error:function(){
 	$error.show();
 	},
    	success: function(response){
-	    console.log("Signin successful");
+	    console.log("Custome Signin successful");
 	    window.location = "/dodcustindex"; 
+	    location.reload(); 
 
 	}
     })
     return false;
     
 })
+
+$formvendsignin.submit ( function() {
+    $formvendsignin.hide();
+    $.ajax({
+	type: "POST",
+	url: $formsignin.attr("action"),
+	data: $formvendsignin.serialize(),
+	error:function(){
+	$error.show();
+	},
+   	success: function(response){
+	    console.log("Vendor Signin successful");
+	    window.location = "/dodvendindex";  
+	    location.reload(); 
+
+	}
+    })
+    return false;
+    
+})
+
+
 
 $(".form-product").on('submit', function (e) {
     var theForm = $(this);
@@ -68,11 +96,23 @@ $(".form-product").on('submit', function (e) {
             success: function (response) {
 		console.log("Added a product to cart");
 		location.reload();
-
             }
       });
       e.preventDefault();});
 
 	    
-	
+$(".form-shopcart").on('submit', function (e) {
+    var theForm = $(this);
+    $(theForm).find("button[type='submit']").hide(); //prop('disabled',true);
+      $.ajax({
+            type: 'POST',
+          url: $(theForm).attr("action"), 
+            data: $(theForm).serialize(),
+            success: function (response) {
+		console.log("Updated shopping cart");
+		location.reload();
+
+            }
+      });
+      e.preventDefault();});	
 	

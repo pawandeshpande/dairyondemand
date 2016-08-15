@@ -29,7 +29,7 @@
     :type integer
     :initarg :tenant-id)
    (COMPANY
-    :ACCESSOR customer-company
+    :ACCESSOR vendor-company
     :DB-KIND :JOIN
     :DB-INFO (:JOIN-CLASS dod-company
 	                  :HOME-KEY tenant-id

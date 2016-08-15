@@ -24,14 +24,9 @@
 										       (:td  :height "12px" (str (slot-value order 'req-date)))
 										       (:td  :height "12px" (str (slot-value order 'shipped-date)))
 										       (:td  :height "12px" (str (slot-value order 'ship-address)))
-										       (:td :height "12px" (:a :href  (format nil  "/delorder?id=~A" (slot-value order 'row-id)) "Delete")
-											    (:a :href  (format nil  "/editorder?id=~A" (slot-value order 'row-id)) :onclick "return false"  "Edit")
-											    (:a :href  (format nil  "/orderdetails?id=~A" (slot-value order 'row-id))  "Details")
-											    ))))) (if (not (typep data 'list)) (list data) data))))))
-
-
-
-
+										       (:td :height "12px" (:a :class "btn btn-primary" :role "button" :href  (format nil  "/delorder?id=~A" (slot-value order 'row-id)) "Delete")
+											    (:a  :class "btn btn-primary" :role "button" :href  (format nil  "/orderdetails?id=~A" (slot-value order 'row-id)) "Details"))
+											    )))) (if (not (typep data 'list)) (list data) data))))))
 
 (defun ui-list-customer-orders (header data)
   (cl-who:with-html-output (*standard-output* nil)
@@ -40,19 +35,14 @@
       (:table :class "table table-striped"  (:thead (:tr
  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
 								  (mapcar (lambda (order)
-									    (let ((ord-customer  (get-ord-customer order)))
 									      (htm (:tr (:td  :height "12px" (str (slot-value order 'row-id)))
 											(:td  :height "12px" (str (slot-value order 'ord-date)))
-											(:td :height "12px" (:a :href  (format nil  "/dodmyorderdetails?id=~A" (slot-value order 'row-id))(str (concat-ord-dtl-name order))))
-											;(:td  :height "12px" (str (slot-value ord-customer 'name)))
 										       (:td  :height "12px" (str (slot-value order 'req-date)))
 										       (:td  :height "12px" (str (slot-value order 'shipped-date)))
 										       (:td  :height "12px" (str (slot-value order 'ship-address)))
-										       (:td :height "12px" (:a :href  (format nil  "/delorder?id=~A" (slot-value order 'row-id)) "Delete")
-											    (:a :href  (format nil  "/editorder?id=~A" (slot-value order 'row-id)) :onclick "return false"  "Edit")
-											    (:a :href  (format nil  "/dodmyorderdetails?id=~A" (slot-value order 'row-id))  "Details")
-											    ))))) (if (not (typep data 'list)) (list data) data) )))))
-
+										       (:td :height "12px" (:a :href  (format nil  "/delorder?id=~A" (slot-value order 'row-id)) (:b :class "label label-primary"  "Delete")) "&nbsp;&nbsp;"
+											   (:a :href  (format nil  "/dodmyorderdetails?id=~A" (slot-value order 'row-id)) (:span :class "label label-primary" "Details" )))
+											    ))) (if (not (typep data 'list)) (list data) data) )))))
 
 (defun concat-ord-dtl-name (order-instance)
   (let ((odt ( get-order-details order-instance)))
