@@ -50,11 +50,13 @@
 	(:table :class "table table-striped"  (:thead (:tr
 							  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
 														       (mapcar (lambda (odt)
-																   (let ((odt-product  (get-odt-product odt)))
+																   (let ((odt-product  (get-odt-product odt))
+																	    (unit-price (slot-value odt 'unit-price))
+																	    (prd-qty (slot-value odt 'prd-qty)))
 																	    (htm (:tr (:td  :height "12px" (str (slot-value odt-product 'prd-name)))
-																		(:td  :height "12px" (str (slot-value odt 'prd-qty)))
-																		(:td  :height "12px" (str (slot-value odt 'unit-price)))
-																		(:td  :height "12px" (str (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))))
+																		(:td  :height "12px" (str (format nil  "~d" prd-qty)))
+																		(:td  :height "12px" (str (format nil  "Rs. ~$" unit-price)))
+																		(:td  :height "12px" (str (format nil "Rs. ~$" (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty)))))
 																		)))) (if (not (typep data 'list)) (list data) data))))))
 
 
@@ -63,7 +65,7 @@
 	(:div :class "jumbotron"
 	    (:div :class "row" (:div :class "col-md-4"
 				   (:h5 "Order No:") (:h4 (str (slot-value order-instance 'row-id)))
-				   (:h5 "Order Date:") (:h4 (str (slot-value order-instance 'ord-date))))
+				   (:h5 "Order Date:") (:h4 (str (get-date-string (slot-value order-instance 'ord-date)))))
 		(:div :class "col-md-4"
-		    (:h5 "Requested On:")(:h4 (str (slot-value order-instance 'req-date)))
-		    (:h5 "Shipped On:")(:h4 (str (slot-value order-instance 'shipped-date))))))))
+		    (:h5 "Requested On:")(:h4 (str (get-date-string (slot-value order-instance 'req-date))))
+		    (:h5 "Shipped On:")(:h4 (str (get-date-string (slot-value order-instance 'shipped-date)))))))))

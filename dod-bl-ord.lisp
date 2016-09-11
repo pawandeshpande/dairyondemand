@@ -22,7 +22,8 @@
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[=[:context-id] context-id]]    :caching nil :flatp t ))))
-  
+
+
 
 (defun get-orders-for-customer (customer)
 (let ((tenant-id (slot-value customer 'tenant-id))
@@ -31,6 +32,14 @@
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[=[:cust-id] cust-id ]]
+		:caching nil :flatp t )))
+
+(defun get-orders-by-date (ord-date company-instance)
+(let ((tenant-id (slot-value company-instance 'row-id)))
+(clsql:select 'dod-order  :where
+    [and [= [:deleted-state] "N"]
+    [= [:tenant-id] tenant-id]
+    [=[:ord-date] ord-date]]
 		:caching nil :flatp t )))
 
 
@@ -101,9 +110,8 @@
 
 
 
-(defun create-order-from-pref (order-pref-list order-date request-date ship-date ship-address company-instance)
-  (let ((customer-instance (get-opf-customer (car order-pref-list)))
-	(uuid (uuid:make-v1-uuid )))
+(defun create-order-from-pref (order-pref-list order-date request-date ship-date ship-address customer-instance company-instance)
+  (let ((uuid (uuid:make-v1-uuid )))
     (progn 	(create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) company-instance)
 		(let ((order (get-order-by-context-id (print-object uuid nil) company-instance)))
 		      (mapcar (lambda (preference)

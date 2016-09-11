@@ -44,7 +44,12 @@
    (deleted-state
     :type (string 1)
     :void-value "N"
-    :initarg :deleted-state)
+       :initarg :deleted-state)
+
+      (subscribe-flag
+	  :type (string 1)
+	  :void-value "N"
+	  :initarg :subscribe-flag)
 
     (tenant-id
     :type integer

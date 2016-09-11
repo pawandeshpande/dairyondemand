@@ -11,7 +11,29 @@
 		[= [:tenant-id] tenant-id]
 		[=[:order-id] order-id]]    :caching nil :flatp t )))
 
+(defun get-order-details-for-vendor (order-instance vendor-instance)
+    (let* ((tenant-id (slot-value order-instance 'tenant-id))
+	     (vendor-id (slot-value vendor-instance 'row-id))
+	     (order-id (slot-value order-instance 'row-id))
+	(odtlist (clsql:select 'dod-order-details  :where
+		[and [= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		     [=[:order-id] order-id]]    :caching nil :flatp t )))
+	(delete nil (mapcar (lambda (odt)
+		    (let ((product  (get-odt-product odt)))
+			(if (equal vendor-id (slot-value product 'vendor-id)) odt))) odtlist))))
 
+
+
+(defun get-order-details-by-prd (prd-id order-instance)
+ (let ((tenant-id (slot-value order-instance 'tenant-id))
+	(order-id (slot-value order-instance 'row-id)))
+ (car (clsql:select 'dod-order-details  :where
+		[and [= [:deleted-state] "N"]
+     [= [:tenant-id] tenant-id]
+     [= [:prd-id] prd-id]
+		[=[:order-id] order-id]]    :caching nil :flatp t ))))
+    
 
 
 

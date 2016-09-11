@@ -19,7 +19,54 @@
     :accessor phone
     :type (string 30)
     :initarg :phone)
-   
+
+(email
+	  :accessor email
+	  :type (string 255)
+	  :initarg email)
+      (firstname
+	  :accessor firstname
+	  :type (string 50)
+	  :initarg :firstname)
+      (lastname
+	  :accessor lastname
+	  :type (string 50)
+	  :initarg :lastname)
+      (salutation
+	  :accessor salutation
+	  :type (string 10)
+	  :initarg :salutation)
+      (title
+	  :accessor title
+	  :type (string 255)
+	  :initarg :title)
+      (birthdate
+	  :accessor birthdate
+	  :type clsql:date
+	  :initarg :birthdate)
+      (city
+	  :accessor city
+	  :type (string 256)
+	  :initarg :city)
+      (state
+	  :accessor city
+	  :type (string 256)
+	  :initarg :state)
+      (country
+	  :accessor city
+	  :type (string 256)
+	  :initarg :country)
+      (zipcode
+	  :accessor zipcode
+	  :type (string 10)
+	  :initarg :zipcode)
+      
+      (picture-path
+	  :accessor picture-path
+	  :type (string 256)
+	  :initarg :picture-path)
+      
+      
    (deleted-state
     :type (string 1)
     :void-value "N"

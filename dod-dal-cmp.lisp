@@ -12,6 +12,25 @@
     :type (string 512)
     :initarg :address)
 
+
+      (city
+	  :accessor city
+	  :type (string 256)
+	  :initarg :city)
+      (state
+	  :accessor city
+	  :type (string 256)
+	  :initarg :state)
+      (country
+	  :accessor city
+	  :type (string 256)
+	  :initarg :country)
+      (zipcode
+	  :accessor zipcode
+	  :type (string 10)
+	  :initarg :zipcode)
+      
+      
  (created-by
     :TYPE INTEGER
     :INITARG :created-by)

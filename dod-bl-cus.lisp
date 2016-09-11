@@ -77,7 +77,7 @@
 						    :name name
 						    :address address
 						    :phone phone
-						    :tenant-id tenant-id
+					 :tenant-id tenant-id
 						    :deleted-state "N"))))
  
 

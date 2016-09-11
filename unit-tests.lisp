@@ -2,7 +2,7 @@
 (clsql:file-enable-sql-reader-syntax)
 					;**********Get the company***********
 (defparameter dod-company (select-company-by-name "Gopalan Atlantis"))
-(initialize-products dod-company)
+
 
 ;******Create the customer ******
 (defparameter *customer-params* nil)
@@ -24,8 +24,8 @@
 (defparameter OrderDate (make-date :year 2016 :month 5 :day 29))
 (defparameter RequestDate (make-date :year 2016 :month 5 :day 29))
 (defparameter ShipDate (make-date :year 2016 :month 5 :day 29))
-(defparameter NandiniBlue (select-product-by-name "%Nandini Blue" ))
-(defparameter NandiniGreen (select-product-by-name "%Nandini-Green" ))
+(defparameter NandiniBlue (select-product-by-name "%Nandini Blue" dod-company))
+(defparameter NandiniGreen (select-product-by-name "%Nandini-Green" dod-company))
 (create-order OrderDate Testcustomer1 RequestDate ShipDate "GA Bangalore" nil dod-company  )
 (defparameter TestOrder1 (get-latest-order-for-customer Testcustomer1 ))
 ;;****** Create order details ********
@@ -46,10 +46,10 @@
 
 (defparameter dod-company (select-company-by-name "Gopalan Atlantis"))
 (defparameter Rajesh (Select-vendor-by-name "%Rajesh" dod-company))
-(defparameter NandiniPurple (list (format nil "Nandini Sumrudhi (Purple packet)") Rajesh "500 ml" 18.50 "/resources/nandini-purple.png"))
-(defparameter NandiniSTM (list (format nil "Nandini Special Toned Milk") Rajesh "500 ml" 18.50 "/resources/nandini-stm.png"))
-(defparameter NandiniYellow (list (format nil "Nandini Double Toned Milk (Yellow packet)") Rajesh "500 ml" 46.00 "/resources/nandini-yellow.png"))
-(apply #'create-product NandiniPurple)
+(defparameter NandiniPurple (list (format nil "Nandini Sumrudhi (Purple packet)") Rajesh "500 ml" 18.50 "/resources/nandini-purple.png" dod-company))
+(defparameter NandiniSTM (list (format nil "Nandini Special Toned Milk") Rajesh "500 ml" 18.50 "/resources/nandini-stm.png" dod-company))
+(defparameter NandiniYellow (list (format nil "Nandini Double Toned Milk (Yellow packet)") Rajesh "500 ml" 46.00 "/resources/nandini-yellow.png" dod-company))
+; (apply #'create-product NandiniPurple)
 
 
 
@@ -57,11 +57,11 @@
 
 
 (defparameter *product-params* nil)
-(setf *product-params* (list (format nil "Test Product ~a" (random 200)) TestVendor1 "1 Litre" 20.00 ))
+(setf *product-params* (list (format nil "Test Product ~a" (random 200)) TestVendor1 "1 Litre" 20.00 "/resources/test-product.png" nil dod-company))
 ;Create the customer now.
 (apply #'create-product *product-params*)
 ;Get the customer which we have created in the above steps. 
-(defparameter Testproduct (select-product-by-name (car *product-params*) ))
+(defparameter Testproduct (select-product-by-name (car *product-params*) dod-company ))
 
 ;*************************************************************************
 ;********************** create order preferences  ****************************
@@ -70,7 +70,7 @@
 (create-opref Testcustomer1 NandiniGreen 1 dod-company)
 
 (defparameter opflist (get-opreflist-for-customer Testcustomer1))
-(create-order-from-pref opflist orderdate requestdate shipdate "Gopalan Atlantis Bangalore" dod-company)
+(create-order-from-pref opflist orderdate requestdate shipdate "Gopalan Atlantis Bangalore" Testcustomer1  dod-company)
 
 
 ;*************************************************************************
@@ -92,8 +92,8 @@
 (defun prepare-test-orders (customer-id company-name)
   (let* ((dod-company (select-company-by-name company-name))
 	 (customer (select-customer-by-id customer-id dod-company))
-	 (order (get-orders-for-customer customer))
-	 (details-func-list (list nil)))
+	 (order (get-orders-for-customer customer)))
+	 
 
     (defun test-order-details ()
      (let ((order-details (get-order-details order)))
@@ -104,8 +104,26 @@
 
 (defparameter Testvendor1(select-vendor-by-name "%Rajesh" dod-company))
 (defparameter *product-params* nil)
-(setf *product-params* (list "Nandini Ghee"  TestVendor1 "500 Grams" 200.00 ))
+(setf *product-params* (list "Nandini Ghee"  TestVendor1 "500 Grams" 200.00 nil dod-company))
 ;Create the customer now.
-(apply #'create-product *product-params*)
+;(apply #'create-product *product-params*)
 ;Get the customer which we have created in the above steps. 
-(defparameter Testproduct (select-product-by-name (car *product-params*) ))
+(defparameter Testproduct (select-product-by-name (car *product-params*) dod-company ))
+
+
+  (defparameter OrderDate (make-date :year 2016 :month 8 :day 17))
+  (defparameter RequestDate (make-date :year 2016 :month 8 :day 17))
+
+ 
+
+(defun create-daily-orders (&key company-id odtstr reqstr)
+    :documentation "odtstr and reqstr are of the format \"dd/mm/yyyy\" "
+    (let* ((orderdate (get-date-from-string odtstr))
+	      (requestdate (get-date-from-string reqstr))
+	      (dodcompany (select-company-by-id company-id))
+	      (customers (list-cust-profiles dodcompany)))
+					;Get a list of all the customers belonging to the current company. 
+					; For each customer, get the order preference list and pass to the below function.
+	      (mapcar (lambda (customer)
+			  (let ((custopflist (get-opreflist-for-customer customer)))
+			      (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) customer dodcompany) )) customers)))

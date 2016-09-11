@@ -36,6 +36,35 @@
     :TYPE integer
     :initarg :prd-qty)
 
+   (sun
+    :type (string 1)
+    :void-value "N"
+    :initarg :sun)
+   (mon
+    :type (string 1)
+    :void-value "N"
+    :initarg :mon)
+   (tue
+    :type (string 1)
+    :void-value "N"
+    :initarg :wed)
+   (wed
+    :type (string 1)
+    :void-value "N"
+    :initarg :wed)
+   (thu
+    :type (string 1)
+    :void-value "N"
+    :initarg :thu)
+   (fri
+    :type (string 1)
+    :void-value "N"
+    :initarg :fri)
+   (sat
+    :type (string 1)
+    :void-value "N"
+    :initarg :sat)
+
 
     (tenant-id
     :type integer

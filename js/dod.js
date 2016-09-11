@@ -39,10 +39,14 @@ $.ajaxSetup({
 	}
 })
 
+/*
 $('a').click(function(){
     $('<div class=loadingDiv>loading...</div>').prependTo(document.body);
     	    $busyindicator.appendChild(spinner.el);
-});
+});*/
+
+
+
 
 $formcustsignin.submit ( function() {
     $formcustsignin.hide();
@@ -116,3 +120,24 @@ $(".form-shopcart").on('submit', function (e) {
       });
       e.preventDefault();});	
 	
+
+
+
+$(document).ready(function () {
+
+    $(window).scroll(function () {
+        if ($(this).scrollTop() > 100) {
+            $('.scrollup').fadeIn();
+        } else {
+            $('.scrollup').fadeOut();
+        }
+    });
+
+    $('.scrollup').click(function () {
+        $("html, body").animate({
+            scrollTop: 0
+        }, 600);
+        return false;
+    });
+
+});

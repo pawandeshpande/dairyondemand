@@ -11,7 +11,18 @@
  (clsql:select 'dod-prd-master  :where
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]]
-		:caching nil :flatp t )))
+     :caching nil :flatp t )))
+
+(defun select-products-by-vendor (vendor company-instance)
+    (let ((tenant-id (slot-value company-instance 'row-id))
+	     (vendor-id (slot-value vendor 'row-id)))
+ (clsql:select 'dod-prd-master  :where
+		[and [= [:deleted-state] "N"]
+     [= [:tenant-id] tenant-id]
+     [=[:vendor-id] vendor-id]]
+     :caching nil :flatp t )))
+
+
 
 (defun search-prd-in-list (row-id list)
     (if (not (equal row-id (slot-value (car list) 'row-id))) (search-prd-in-list row-id (cdr list))
@@ -66,21 +77,22 @@
    
 
   
-(defun persist-product(prdname vendor-id qtyperunit unitprice img-file-path tenant-id )
+(defun persist-product(prdname vendor-id qtyperunit unitprice img-file-path subscribe-flag tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-prd-master
 				    :prd-name prdname
 				    :vendor-id vendor-id
 				    :qty-per-unit qtyperunit
 				    :unit-price unitprice
-				    :prd-image-path img-file-path
+					 :prd-image-path img-file-path
+					 :subscribe-flag subscribe-flag
 				    :tenant-id tenant-id
 				    :deleted-state "N")))
  
 
 
-(defun create-product (prdname vendor-instance qty-per-unit unit-price img-file-path company-instance)
+(defun create-product (prdname vendor-instance qty-per-unit unit-price img-file-path subscribe-flag company-instance)
   (let ((vendor-id (slot-value vendor-instance 'row-id))
 	(tenant-id (slot-value company-instance 'row-id)))
- (persist-product prdname vendor-id qty-per-unit unit-price img-file-path  tenant-id)))
+ (persist-product prdname vendor-id qty-per-unit unit-price img-file-path subscribe-flag  tenant-id)))
 
 

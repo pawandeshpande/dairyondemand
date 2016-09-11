@@ -341,6 +341,7 @@
 	(hunchentoot:create-regex-dispatcher "^/dodmyorderdetails" 'dod-controller-my-orderdetails)
 	(hunchentoot:create-regex-dispatcher "^/dodcustaddorderpref" 'dod-controller-cust-add-orderpref-page)
 	(hunchentoot:create-regex-dispatcher "^/dodcustaddopfaction" 'dod-controller-cust-add-orderpref-action)
+	(hunchentoot:create-regex-dispatcher "^/delopref" 'dod-controller-del-opref)
 	(hunchentoot:create-regex-dispatcher "^/dodmyorderaddpage" 'dod-controller-cust-add-order-page)
 	(hunchentoot:create-regex-dispatcher "^/dodmyorderaddaction" 'dod-controller-cust-add-order-action)
 	(hunchentoot:create-regex-dispatcher "^/dodmyorderdetailaddpage" 'dod-controller-cust-add-order-detail-page)
@@ -351,6 +352,8 @@
 	(hunchentoot:create-regex-dispatcher "^/dodcustremshctitem" 'dod-controller-remove-shopcart-item )
 	(hunchentoot:create-regex-dispatcher "^/dodcustplaceorder" 'dod-controller-cust-placeorder )
 	(hunchentoot:create-regex-dispatcher "^/list-companies" 'dod-controller-list-companies)
+	(hunchentoot:create-regex-dispatcher "^/dodvendordetails" 'dod-controller-vendor-details)
+	(hunchentoot:create-regex-dispatcher "^/dodprddetails" 'dod-controller-prd-details)
 
 ;************VENDOR RELATED ********************
 	(hunchentoot:create-regex-dispatcher "^/vendor-login.html" 'dod-controller-vendor-loginpage)

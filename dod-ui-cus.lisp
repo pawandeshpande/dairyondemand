@@ -1,3 +1,4 @@
+;; -*- mode: common-lisp; coding: utf-8 -*-
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
@@ -35,8 +36,20 @@
     :documentation "A callback function which prints daily order preferences for a logged in customer in HTML format."
     (if (is-dod-cust-session-valid?)
 	(let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
-		 (header (list   "Product" "Product Qty" "Action")))
+		 (header (list   "Product" "Product Qty" "Qty Per Unit" "Unit Price"  "Action")))
 	    (ui-list-cust-orderprefs header dodorderprefs))
+	(hunchentoot:redirect "/customer-login.html")))
+
+(defun dod-controller-del-opref ()
+    :documentation "Delete order preference"
+    (if (is-dod-cust-session-valid?)
+	(let ((ordpref-id (parse-integer (hunchentoot:parameter "id")))
+		     (cust (hunchentoot:session-value :login-customer))
+		 (company (hunchentoot:session-value :login-customer-company)))
+	    (delete-opref (get-opref-by-id ordpref-id company))
+	    (setf (hunchentoot:session-value :login-cusopf-cache) (get-opreflist-for-customer cust))
+	(hunchentoot:redirect "/dodcustorderprefs"))
+					;else
 	(hunchentoot:redirect "/customer-login.html")))
 
 (defun dod-controller-my-orders ()
@@ -44,17 +57,30 @@
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "List DOD Customer orders")   
 	    (let (( dodorders (hunchentoot:session-value :login-cusord-cache))
-		     (header (list  "Order No" "Order Date" "Request Date"  "Ship Date" "Ship Address" "Action")))
+		     (header (list  "Order No" "Order Date" "Request Date"  "Action")))
 		(if dodorders (ui-list-customer-orders header dodorders) "No orders")))
 	(hunchentoot:redirect "/customer-login.html")))
 
 (defun dod-controller-del-order()
     (if (is-dod-cust-session-valid?)
-	(standard-customer-page (:title "Delete Customer orders")   
-	    (let (order-id (hunchentoot:parameter "id"))
-		(htm (:div :class "row"
-			 (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
-			     (:h2 "NOT IMPLEMENTED"))))))))
+	    (let ((order-id (parse-integer (hunchentoot:parameter "id")))
+		     (cust (hunchentoot:session-value :login-customer))
+		     (company (hunchentoot:session-value :login-customer-company)))
+		(delete-order (get-order-by-id order-id company))
+		(setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
+		(hunchentoot:redirect "/dodmyorders"))
+					;else
+	(hunchentoot:redirect "/customer-login.html")))
+
+
+(defun dod-controller-vendor-details ()
+    (if (is-dod-cust-session-valid?)
+	(standard-customer-page (:title "Vendor Details")
+	    (let ((vendor (select-vendor-by-id  (hunchentoot:parameter "id") (hunchentoot:session-value :login-customer-company))))
+		(vendor-details-card vendor)))
+	(hunchentoot:redirect "/customer-login.html")))
+
+	    
 
 (defun dod-controller-my-orderdetails ()
     (if (is-dod-cust-session-valid?)
@@ -68,7 +94,7 @@
 		(if odtlst (ui-list-cust-orderdetails header odtlst) "No order details")
 					    (htm(:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
-				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~A" total)))))))
+				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))
 		))
 	(hunchentoot:redirect "/customer-login.html")))
 
@@ -99,13 +125,17 @@
 		     (:a :class "navbar-brand" :href "#" :title "DAS" (:img :style "width: 30px; height: 30px;" :src "/resources/demand&supply.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
-			 (:li :class "active" :align "center" (:a :href "/dodcustindex" "Home"))
-			 (:li :align "center" (:a :href "/dodcustorderprefs" "My Order Preferences"))
+			 (:li :class "active" :align "center" (:a :href "/dodcustindex" (:span :class "glyphicon glyphicon-home")  " Home"))
+			 (:li :align "center" (:a :href "/dodcustorderprefs" "Daily Subscriptions"))
 			 (:li :align "center" (:a :href "/dodmyorders" "My Orders"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     (:ul :class "nav navbar-nav navbar-right"
+			 
+			 
+			 (:li :align "center" (:a :href "https://goo.gl/forms/XaZdzF30Z6K43gQm2" "Feedback" ))
+			 (:li :align "center" (:a :href "https://goo.gl/forms/SGizZXYwXDUiTgVY2" (:span :class "glyphicon glyphicon-bug") "Bug" ))
 	;(:li :align "center" (:a :href "/dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart " (:span :class "badge" (str (format nil " ~A " (length (hunchentoot:session-value :login-shopping-cart)))) )))
-			 (:li :align "center" (:a :href "/dodcustlogout" (:span :class "glyphicon glyphicon-log-out") " Logout "  ))))))))
+			 (:li :align "center" (:a :href "/dodcustlogout" (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
 
 
 
@@ -126,12 +156,14 @@
 		 (:link :href "css/rangeslider.css" :rel "stylesheet")
 		 (:link :href "css/bootstrap.min.css" :rel "stylesheet")
 		 (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
+		 (:link :href "css/theme.css" :rel "stylesheet")
 		 (:link :href "css/nouislider.min.css" :rel "stylesheet")
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
 		 (:script :src "js/spin.min.js")
 		 ) ;; Header completes here.
 	     (:body
 		 (:div :id "dod-main-container"
+		     (:a :href "#" :class "scrollup" :style "display: none;") 
 		 (:div :id "dod-error" (:h2 "Error..."))
 		 (:div :id "busy-indicator")
 		 (if (is-dod-cust-session-valid?) (customer-navigation-bar))
@@ -171,34 +203,46 @@
 (defun dod-controller-cust-add-orderpref-page ()
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "Welcome to Dairy ondemand- Add Customer Order preference")
-	    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
-		(:div :class "col-sm-6 col-md-4 col-md-offset-4"
-		    (:div :class "orderpref"
-			(:h1 :class "text-center login-title"  "Customer - Add order preference")
+	    (:div :class "row" 
+		(:div :class "col-sm-12  col-xs-12 col-md-12 col-lg-12"
+		   (:h1 :class "text-center login-title"  "Customer - Add order preference")
 			(:form :class "form-signin" :role "form" :method "POST" :action "/dodcustaddopfaction"
 			    (:div :class "form-group" (:label :for "product-id" "Select Product" )
 				(products-dropdown "product-id"  (hunchentoot:session-value :login-prd-cache)))
 			    (:div :class "form-group" (:label :for "prdqty" "Product Quantity")
-				(:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :type "text"))
-			    (:input :type "submit"  :class "btn btn-primary" :value "Add      "))))))
+				(:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :maxlength "2" :type "text"))
+			    (:div :class "form-group" 
+			    (:label :class "checkbox-inline"  (:input :type "checkbox" :name  :value "" "Sunday"))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Monday"))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Tuesday")))
+			    (:div :class "form-group" 
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Wednesday"))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Thursday"))
+				(:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Friday")))
+			    (:div :class "form-group" 
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Saturday")))
+			    
+			    (:div :class "form-group" 
+			    (:input :type "submit"  :class "btn btn-primary" :value "Add      "))
+			    ))))
 	(hunchentoot:redirect "/customer-login.html")))
 
 
 
 (defun dod-controller-cust-add-order-page ()
     (if (is-dod-cust-session-valid?)
+	(let ((customer (hunchentoot:session-value :login-customer)))
 	(standard-customer-page (:title "Welcome to Dairy ondemand- Add Customer Order")
-	    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
+	    (:div :class "row" 
 		(:div :class "col-sm-6 col-md-4 col-md-offset-4"
-		    (:div :class "orderpref"
 			(:h1 :class "text-center login-title"  "Customer - Add order ")
 			(:form :class "form-order" :role "form" :method "POST" :action "/dodmyorderaddaction"
-			    (:div :class "form-group" (:label :for "orddate" "Order Date" )
-				(:input :class "form-control" :name "orddate" :placeholder "DD/MM/YYYY" :type "text"))
+			    (:div  :class "form-group" (:label :for "orddate" "Order Date" )
+				(:input :class "form-control" :name "orddate" :value (str (get-date-string (get-date))) :type "text"  :readonly "true"  ))
 			    (:div :class "form-group" (:label :for "reqdate" "Required On" )
-				(:input :class "form-control" :name "reqdate" :placeholder "DD/MM/YYYY" :type "text"))
+				(:input :class "form-control" :name "reqdate" :value (str (get-date-string (get-date))) :type "text"))
 			    (:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
-				(:textarea :class "form-control" :name "shipaddress" :rows "4"))
+				(:textarea :class "form-control" :name "shipaddress" :rows "4"  (str (format nil "~A" (slot-value customer 'address)))  ))
 			    (:input :type "submit"  :class "btn btn-primary" :value "Confirm"))))))
 	(hunchentoot:redirect "/customer-login.html")))
 
@@ -234,6 +278,7 @@
 		 (prd-qty (parse-integer (hunchentoot:parameter "prdqty"))))
 	    (progn (format t "creating order preference now") 
 		(create-opref login-cust  (select-product-by-id product-id login-cust-comp ) prd-qty login-cust-comp)
+		(setf (hunchentoot:session-value :login-cusopf-cache) (get-opreflist-for-customer login-cust))
 		(hunchentoot:redirect "/dodcustorderprefs")))
 	(hunchentoot:redirect "/customer-login.html")))
 
@@ -243,7 +288,7 @@
   (cl-who:with-html-output (*standard-output* nil)
      (htm (:select :class "form-control"  :name dropdown-name  
       (loop for prd in products
-	 do (htm  (:option :value  (slot-value prd 'row-id) (str (slot-value prd 'prd-name)))))))))
+	 do (if (equal (slot-value prd 'subscribe-flag) "Y")  (htm  (:option :value  (slot-value prd 'row-id) (str (slot-value prd 'prd-name))))))))))
 
 
 
@@ -308,6 +353,15 @@
 	(hunchentoot:redirect "/customer-login.html")))
 
 
+(defun dod-controller-prd-details ()
+    (if (is-dod-cust-session-valid?)
+	(standard-customer-page (:title "Product Details")
+	    (let* ((company (hunchentoot:session-value :login-customer-company))
+		      (lstshopcart (hunchentoot:session-value :login-shopping-cart))
+		      (product (select-product-by-id (parse-integer (hunchentoot:parameter "id")) company)))
+		(product-card-with-details product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))
+	(hunchentoot:redirect "/customer-login.html")))
+
 (defun dod-controller-cust-index () 
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "Welcome to Dairy Ondemand - customer")
@@ -343,7 +397,7 @@
 			(htm
 			    (:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
-				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~A" total)))))
+				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))
 				(:div :class "col-md-12" :align "right"
 				    (:a :class "btn btn-primary" :role "button" :href (format nil "/dodmyorderaddpage") "Checkout"))
 				)))

@@ -27,6 +27,10 @@
 (defun get-login-cust-tenant-id ()
   (hunchentoot:session-value :login-customer-tenant-id))
 
+(defun get-login-vend-tenant-id ()
+  (hunchentoot:session-value :login-vendor-tenant-id))
+
+
 
 (defun get-login-company ()
   (let ((tenant-id (get-login-tenant-id)))
@@ -35,4 +39,9 @@
 
 (defun get-login-customer-company ()
   (let ((tenant-id (get-login-cust-tenant-id)))
+    (select-company-by-id tenant-id)))
+
+
+(defun get-login-vendor-company ()
+  (let ((tenant-id (get-login-vend-tenant-id)))
     (select-company-by-id tenant-id)))

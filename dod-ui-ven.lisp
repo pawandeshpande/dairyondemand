@@ -108,8 +108,6 @@
 		; Else
 		(hunchentoot:redirect  "/dodvendindex")))))
 
-
-
 (defun dod-vend-login (&key company-name phone)
  (let* ((vendor (car (clsql:select 'dod-vend-profile :where [and
 			      [= [slot-value 'dod-vend-profile 'phone] phone]
@@ -134,20 +132,44 @@
 		(setf (hunchentoot:session-value :login-vendor-tenant-id) vendor-tenant-id)
 		(setf (hunchentoot:session-value :login-vendor-company-name) vendor-company-name)
 		(setf (hunchentoot:session-value :login-vendor-company) vendor-company)
+		(setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company vendor-company))
 		))))
 
 
 (defun dod-controller-vend-index () 
     (if (is-dod-vend-session-valid?)
-	(standard-vendor-page (:title "Welcome to Dairy Ondemand - vendor")
-	    (:h1 "Welcome")
+	(let (( dodorders (get-orders-by-date (hunchentoot:parameter "orderdate") (get-login-vendor-company)))
+		 (btnordprd (hunchentoot:parameter "btnordprd"))
+		 (orderdate (hunchentoot:parameter "orderdate"))
+		 (btnordcus (hunchentoot:parameter "btnordcus")))
 
-	    )))
+	(standard-vendor-page (:title "Welcome to Dairy Ondemand - vendor")
+	    (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
+	   
+	    (:div :class "row"
+		(:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12" 
+		    (:form :class "form-venorders" :method "POST" :action "dodvendindex"
+			(:input :type "text" :name "orderdate" :placeholder "dd/mm/yyyy")
+			(:button :class "btn btn-primary" :type "submit" :name "btnordprd" "Get Orders by Products")
+			(:button :class "btn btn-primary" :type "submit" :name "btnordcus" "Get Orders by Customers")
+			(:button :class "btn btn-primary"  :type "submit" :name "btnprint" :onclick "javascript:window.print();" "Print") 
+			)
+		    ))
+	    (cond ((and dodorders btnordprd) (ui-list-vendor-orders dodorders))
+		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers dodorders (get-login-vendor)))
+		(T ()) )))
+					; Else
+	(hunchentoot:redirect "/vendor-login.html")))
+
+
 
 
 (defun get-login-vendor ()
     :documentation "Get the login session for vendor"
     (hunchentoot:session-value :login-vendor ))
+(defun get-login-vendor-name ()
+    :documentation "Get the login vendor name"
+    (hunchentoot:session-value :login-vendor-name))
 
 (defun get-login-vend-company ()
     :documentation "Get the login vendor company."
@@ -166,3 +188,21 @@
     :documentation "Vendor logout."
     (progn (hunchentoot:remove-session *current-vendor-session*)
 	(hunchentoot:redirect "/vendor-login.html")))
+
+
+
+
+(defun vendor-details-card (vendor-instance)
+    (let ((vend-name (slot-value vendor-instance 'name))
+	     (vend-address  (slot-value vendor-instance 'address))
+	     (phone (slot-value vendor-instance 'phone)))
+	(cl-who:with-html-output (*standard-output* nil)
+		(:h4 (str vend-name) )
+	    (:div (str vend-address))
+		(:div  (str phone)))))
+		  
+
+
+
+
+
