@@ -41,6 +41,7 @@
 		[=[:row-id] id]]    :caching nil :flatp t ))))
 
 
+
   (defun select-product-by-name (name-like-clause company-instance )
       (let ((tenant-id (slot-value company-instance 'row-id)))
   (car (clsql:select 'dod-prd-master :where [and
@@ -93,6 +94,16 @@
 (defun create-product (prdname vendor-instance qty-per-unit unit-price img-file-path subscribe-flag company-instance)
   (let ((vendor-id (slot-value vendor-instance 'row-id))
 	(tenant-id (slot-value company-instance 'row-id)))
- (persist-product prdname vendor-id qty-per-unit unit-price img-file-path subscribe-flag  tenant-id)))
+      (persist-product prdname vendor-id qty-per-unit unit-price img-file-path subscribe-flag  tenant-id)))
+
+(defun copy-products (src-company dst-company)
+    (let ((prdlist (select-products-by-company src-company)))
+	(mapcar (lambda (prd)
+		    (let ((temp  (setf (product-company prd) dst-company)))
+		    (clsql:update-records-from-instance prd ))) prdlist)))
+	     
+	      
+
+
 
 

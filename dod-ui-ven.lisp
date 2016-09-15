@@ -61,6 +61,7 @@
 		 (:link :href "css/style.css" :rel "stylesheet")
 		 (:link :href "css/bootstrap.min.css" :rel "stylesheet")
 		 (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
+ 		 (:link :href "css/theme.css" :rel "stylesheet")
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
 		 (:script :src "js/spin.min.js")
 		 ) ;; Header completes here.
@@ -140,7 +141,8 @@
     (if (is-dod-vend-session-valid?)
 	(let (( dodorders (get-orders-by-date (hunchentoot:parameter "orderdate") (get-login-vendor-company)))
 		 (btnordprd (hunchentoot:parameter "btnordprd"))
-		 (orderdate (hunchentoot:parameter "orderdate"))
+		 (orddate (hunchentoot:parameter "orderdate"))
+		 (btnexpexl (hunchentoot:parameter "btnexpexl"))
 		 (btnordcus (hunchentoot:parameter "btnordcus")))
 
 	(standard-vendor-page (:title "Welcome to Dairy Ondemand - vendor")
@@ -149,18 +151,36 @@
 	    (:div :class "row"
 		(:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12" 
 		    (:form :class "form-venorders" :method "POST" :action "dodvendindex"
-			(:input :type "text" :name "orderdate" :placeholder "dd/mm/yyyy")
+			(:input :type "text" :name "orderdate" :placeholder "yyyy/mm/dd")
 			(:button :class "btn btn-primary" :type "submit" :name "btnordprd" "Get Orders by Products")
 			(:button :class "btn btn-primary" :type "submit" :name "btnordcus" "Get Orders by Customers")
+			(if (and orddate dodorders)
+			(htm (:a :href (format nil "/dodvenexpexl?orddate=~A" (cl-who:escape-string orddate)) :class "btn btn-primary" "Export To Excel")))
 			(:button :class "btn btn-primary"  :type "submit" :name "btnprint" :onclick "javascript:window.print();" "Print") 
 			)
 		    ))
 	    (cond ((and dodorders btnordprd) (ui-list-vendor-orders dodorders))
+		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/dodvenexpexl?orddate=~A" orddate)))
 		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers dodorders (get-login-vendor)))
 		(T ()) )))
 					; Else
 	(hunchentoot:redirect "/vendor-login.html")))
 
+
+
+
+
+
+(defun dod-controller-ven-expexl ()
+    (if (is-dod-vend-session-valid?)
+	(let ((header (list "Product " "Quantity" "Qty per unit" "Unit Price" ""))
+		 (orddate (hunchentoot:parameter "orddate"))
+		 (vendor-instance (get-login-vendor))
+		 ( dodorders (get-orders-by-date (hunchentoot:parameter "orddate") (get-login-vendor-company))))
+	    (setf (hunchentoot:content-type*) "application/vnd.ms-excel")
+	    (setf (header-out "Content-Disposition" ) (format nil "inline; filename=Orders_~A.csv" orddate))
+	(ui-list-orders-for-excel header dodorders vendor-instance))
+    (hunchentoot:redirect "/vendor-login.html")))
 
 
 

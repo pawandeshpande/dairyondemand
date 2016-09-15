@@ -33,7 +33,7 @@
 (defun ui-list-customer-products (header data lstshopcart)
     (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "row-fluid"	  (mapcar (lambda (product)
-						      (htm (:div :class "col-sm-6 col-xs-12 col-md-4 col-lg-3" 
+						      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
 							       (:div :class "product-box"   (product-card product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))))
 					      data))))
 
@@ -57,8 +57,8 @@
 					;Product name and other details
 		(:div :class "row"
 		    (:div :class "col-sm-6"
-		(:h5  (str prd-name) )
-			(:p  (str (format nil "  ~A.    Fulfilled By: ~A" qty-per-unit (vendor-name prd-vendor)))))
+		(:h5 :class "product-name"  (str prd-name) )
+			(:p  (str (format nil "  ~A. Fulfilled By: ~A" qty-per-unit (vendor-name prd-vendor)))))
 					    (:div :class "col-sm-6"
 			(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))) ))))
 		
@@ -68,7 +68,7 @@
 			(:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
 			(:input :class "form-control" :name "nprdqty" :value (slot-value odt-instance 'prd-qty) :type "text" :maxlength "2" ))
 		    (:div :class "col-sm-6" 
-			(:button :class "btn btn-primary" :type "submit" "Update")))))))
+			(:button :class "btn btn-sm btn-primary" :type "submit" "Update")))))))
 	  
 
 (defun product-card (product-instance prdincart-p)
@@ -81,17 +81,26 @@
 	(cl-who:with-html-output (*standard-output* nil)
 	    (:form :class "form-product" :method "POST" :action "dodcustaddtocart" 
 		(:div :class "row"
-		    (:div :class "col-sm-12"
-		(:h4 :class "product-name" :alt (str prd-name)   (str prd-name) ))
+		    
 		(:div :class "col-sm-12"  (:a :href (format nil "/dodprddetails?id=~A" prd-id) (:img :src  (format nil "~A.png" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
 
-		    (:div :class "col-sm-12"  (str qty-per-unit))
-		(:div :class "col-sm-12"  (str (format nil "Supplier - "))  (:a :href (format nil  "/dodvendordetails?id=~A" (slot-value prd-vendor 'row-id)) (str (vendor-name prd-vendor))))
-		(:div :class "col-sm-12"  (:h4(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))) ))
-		    (if  prdincart-p (htm 	(:div :class "col-sm-12" (:a :class "btn btn-success" :role "button"  :onclick "return false;" :href (format nil "javascript:void(0);") (:span :class "glyphicon glyphicon-ok"  ))))
+		    (:div :class "row"
+		    (:div :class "col-sm-6"
+		(:h5 :class "product-name"  (str prd-name) )
+			(:p :class "vendor-name"  (str (format nil "Supplier - "))  (:a :href (format nil  "/dodvendordetails?id=~A" (slot-value prd-vendor 'row-id)) (str (vendor-name prd-vendor))))
+			)
+					    (:div :class "col-sm-6"
+			(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))) ))))
+
+
+		    
+		    
+		
+
+		    (if  prdincart-p (htm 	(:div :class "col-sm-12" (:a :class "btn btn-sm btn-success" :role "button"  :onclick "return false;" :href (format nil "javascript:void(0);") (:span :class "glyphicon glyphicon-ok"  ))))
 		    (htm (:div :class "col-sm-12" (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
 			(:input :type "hidden" :name "action" :value "addtocart")
-			(:button :class "btn btn-primary" :type "submit" "Add To Cart")))))))))
+			(:button :class "btn btn-sm btn-primary" :type "submit" "Add To Cart")))))))))
 
 (defun product-card-with-details (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))

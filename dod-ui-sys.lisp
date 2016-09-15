@@ -360,6 +360,7 @@
 	(hunchentoot:create-regex-dispatcher "^/dodvendlogin" 'dod-controller-vend-login)
 	(hunchentoot:create-regex-dispatcher "^/dodvendindex" 'dod-controller-vend-index)
 	(hunchentoot:create-regex-dispatcher "^/dodvendlogout" 'dod-controller-vendor-logout)
+	(hunchentoot:create-regex-dispatcher "^/dodvenexpexl" 'dod-controller-ven-expexl)
 
 	))
 

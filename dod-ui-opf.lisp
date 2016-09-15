@@ -17,7 +17,7 @@
     (standard-customer-page (:title "List DOD Order Preferences")
 
       (:a :class "btn btn-primary" :role "button" :href (format nil "/dodcustaddorderpref") "Add")
-      (:h3 "My Daily Subscriptions.")      
+      (:h3 "My Subscriptions.")      
       (:table :class "table table-striped"  (:thead (:tr
  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
 								  (mapcar (lambda (orderpref)

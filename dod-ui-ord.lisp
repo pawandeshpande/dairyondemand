@@ -29,9 +29,28 @@
 											    )))) (if (not (typep data 'list)) (list data) data))))))
 
 
+
+(defun ui-list-orders-for-excel (header ordlist vendor-instance)
+  (cl-who:with-html-output-to-string (*standard-output* nil)
+      (mapcar (lambda (item) (str (format nil "~A," item ))) header)
+      (str (format nil " ~C~C" #\return #\linefeed))
+           (mapcar (lambda (ord )
+	 (let ((odtlst (get-order-details-for-vendor  ord vendor-instance))
+		  (customer (get-ord-customer ord)))
+	     (if (>  (length odtlst) 0) 
+	    (progn  (str (format nil "~A. ~A. ~C~C " (slot-value customer 'name) (slot-value customer 'address) #\return #\linefeed )) 
+		 (mapcar (lambda (odt)
+			     (let ((prd (get-odt-product odt)))
+			(str (format nil "~a,~a,~a,Rs ~$ Each,~C~C"  (slot-value prd 'prd-name)  (slot-value odt 'prd-qty) (slot-value prd 'qty-per-unit)  (slot-value odt 'unit-price) #\return #\linefeed  ) ))) odtlst))))) ordlist)
+
+      ))
+
+
+
+
 (defun ui-list-vendor-orders (ordlist)
     (let*  ((vendor (hunchentoot:session-value :login-vendor))
-	       (products  (select-products-by-vendor vendor  (select-company-by-id 2)))
+	       (products  (select-products-by-vendor vendor  (vendor-company vendor)))
 	     (odtlst (mapcar (lambda (prd)
 			(delete nil (mapcar (lambda (ord)
 				    (get-order-details-by-prd (slot-value prd 'row-id) ord))  ordlist) :test #'equal))
@@ -64,7 +83,8 @@
      (mapcar (lambda (ord )
 	 (let ((odtlst (get-order-details-for-vendor  ord vendor-instance))
 		  (customer (get-ord-customer ord)))
-	     (htm (:div :class "row"
+	     (if (>  (length odtlst) 0) 
+	    (progn (htm (:div :class "row"
 		      (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
 			  (:h3 (:span :class "label label-primary" (str (format nil "~A. ~A. " (slot-value customer 'name) (slot-value customer 'address)))       )))))
 		 (mapcar (lambda (odt)
@@ -77,7 +97,7 @@
     			(:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
     			    (str (slot-value prd 'qty-per-unit)))
 		       (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
-			   (:h5 (str (format nil "Rs ~$ Each" (slot-value odt 'unit-price))) )))))) odtlst))) ordlist)))
+			   (:h5 (str (format nil "Rs ~$ Each" (slot-value odt 'unit-price))) )))))) odtlst))))) ordlist)))
 	
 
     

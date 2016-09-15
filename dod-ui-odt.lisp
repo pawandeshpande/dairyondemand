@@ -32,15 +32,16 @@
     (time (cl-who:with-html-output (*standard-output* nil)
 					; Header section.
 	      (:div :class "row"
-		  (:div :class "col-md-3" 
+		  (:div :class "col-sm-6" 
 		      (:h4 (str (format nil "Shopping Cart (~A Items)" (length data)))))
-		  (:div :class "col-md-9" :align "right"
+		  (:div :class "col-sm-6" :align "right"
 		      (htm  (:a :class "btn btn-primary" :role "button" :href "/dodcustindex" "Back To Shopping"  ))))
+	      (:hr)
 					; Data section.
-	      (:div :class "row-fluid"
+	      (:div :class "row"
 		  (mapcar (lambda (product odt)
-			      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-3" 
-				       (:div :class "thumbnail" (product-card-shopcart product odt)))))      data shopcart )) )))
+			      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
+				       (:div :class "product-box" (product-card-shopcart product odt)))))      data shopcart )) )))
 
 
 (defun ui-list-cust-orderdetails (header data)

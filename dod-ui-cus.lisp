@@ -115,7 +115,7 @@
 (defmacro customer-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
     `(cl-who:with-html-output (*standard-output* nil)
-	 (:div :class "navbar navbar-default navbar-inverse navbar-static-top"
+	 (:div :class "navbar navbar-inverse  navbar-static-top"
 	     (:div :class "container-fluid"
 		 (:div :class "navbar-header"
 		     (:button :type "button" :class "navbar-toggle" :data-toggle "collapse" :data-target "#navHeaderCollapse"
@@ -126,7 +126,7 @@
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/dodcustindex" (:span :class "glyphicon glyphicon-home")  " Home"))
-			 (:li :align "center" (:a :href "/dodcustorderprefs" "Daily Subscriptions"))
+			 (:li :align "center" (:a :href "/dodcustorderprefs" "My Subscriptions"))
 			 (:li :align "center" (:a :href "/dodmyorders" "My Orders"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     (:ul :class "nav navbar-nav navbar-right"
@@ -212,15 +212,15 @@
 			    (:div :class "form-group" (:label :for "prdqty" "Product Quantity")
 				(:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :maxlength "2" :type "text"))
 			    (:div :class "form-group" 
-			    (:label :class "checkbox-inline"  (:input :type "checkbox" :name  :value "" "Sunday"))
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Monday"))
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Tuesday")))
+			    (:label :class "checkbox-inline"  (:input :type "checkbox" :name "subs-sun" :value "Sunday" "Sunday"))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-mon" :value "Monday" "Monday"))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-tue" :value "Tuesday" "Tuesday")))
 			    (:div :class "form-group" 
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Wednesday"))
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Thursday"))
-				(:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Friday")))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-wed" :value "Wednesday" "Wednesday"))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-thu" :value "Thursday" "Thursday"))
+				(:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-fri" :value "Friday" "Friday")))
 			    (:div :class "form-group" 
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :value "" "Saturday")))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-sat" :value "Saturday" "Saturday")))
 			    
 			    (:div :class "form-group" 
 			    (:input :type "submit"  :class "btn btn-primary" :value "Add      "))
@@ -395,12 +395,15 @@
 			    (:div :class "col-md-12" 
 			(ui-list-shop-cart products lstshopcart))))
 			(htm
+			    (:hr)
 			    (:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
 				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))
 				(:div :class "col-md-12" :align "right"
 				    (:a :class "btn btn-primary" :role "button" :href (format nil "/dodmyorderaddpage") "Checkout"))
-				)))
+				)
+			    (:hr)
+			    ))
 					;If condition ends here. 
 		    (htm(:div :class "row" 
 			    (:div :class "col-md-12" (:span :class "label label-info"  (str (format nil " ~A Items in cart.   " lstcount)))
