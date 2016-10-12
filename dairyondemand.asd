@@ -32,46 +32,45 @@
   :serial t
   :description "Dairy ondemand is an application to calculate demand for dairy in an apartment. It can be extended to more than one apartment in a city or vendors can register their own areas as supply areas. Backend is MYSQL database and it is a web application."
   :author "Pawan Deshpande <pawan.deshpande@gmail.com>"
-  :license ";;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
-;;; OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-;;; WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-;;; DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-;;; GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-;;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-;;; WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-;;; NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
-  :depends-on (#:hunchentoot
-               #:cl-who
-	       #:clsql)
+  :license "THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
+    :version "0.0.1"
+
   :components ((:file "packages")
-		  (:file "dod-ui-utl")
+		  (:file "dod-ui-utl" :depends-on ("packages") )
 		  (:file "dod-bl-utl")
-		  (:file "dod-ui-sys" )
-	       (:file "dod-ui-usr"  )
-	       (:file "dod-bl-usr" )
-		  (:file "dod-dal-usr")
-		  (:file "dod-ui-cus")
-	       (:file "dod-bl-cus" )
-	       (:file "dod-dal-cus")
-	       (:file "dod-dal-prd")
-		  (:file "dod-bl-prd" )
-	       (:file "dod-ui-prd")
-	       (:file "dod-ui-ven" )
-	       (:file "dod-bl-ven")
-	       (:file "dod-dal-ven" )
-	       (:file "dod-bl-ord" )
-	       (:file "dod-ui-ord")
-	       (:file "dod-dal-ord")
-	       (:file "dod-bl-odt" )
-	       (:file "dod-ui-odt")
-	       (:file "dod-dal-odt" )
-	       (:file "dod-dal-cmp")
-	       (:file "dod-bl-cmp")
-	       (:file "dod-ui-cmp")
-	       (:file "dod-ui-opf")
-	       (:file "dod-dal-opf")
-	       (:file "dod-bl-opf")
-	       (:file "dod-ini-sys")))
+		  (:file "dod-ui-sys" :depends-on ("packages") )
+	       (:file "dod-ui-usr" :depends-on ("packages") )
+	       (:file "dod-bl-usr" :depends-on ("packages") )
+		  (:file "dod-dal-usr" :depends-on ("packages"))
+		  (:file "dod-ui-cus":depends-on ("packages") )
+	       (:file "dod-bl-cus" :depends-on ("packages") )
+	       (:file "dod-dal-cus" :depends-on ("packages"))
+	       (:file "dod-dal-prd" :depends-on ("packages"))
+		  (:file "dod-bl-prd" :depends-on ("packages"))
+	       (:file "dod-ui-prd" :depends-on ("packages"))
+	       (:file "dod-ui-ven" :depends-on ("packages"))
+	       (:file "dod-bl-ven" :depends-on ("packages"))
+	       (:file "dod-dal-ven" :depends-on ("packages"))
+	       (:file "dod-bl-ord" :depends-on ("packages"))
+	       (:file "dod-ui-ord" :depends-on ("packages"))
+	       (:file "dod-dal-ord" :depends-on ("packages"))
+	       (:file "dod-bl-odt" :depends-on ("packages"))
+	       (:file "dod-ui-odt" :depends-on ("packages"))
+	       (:file "dod-dal-odt"  :depends-on ("packages"))
+	       (:file "dod-dal-cmp" :depends-on ("packages"))
+	       (:file "dod-bl-cmp" :depends-on ("packages"))
+	       (:file "dod-ui-cmp" :depends-on ("packages"))
+	       (:file "dod-ui-opf" :depends-on ("packages"))
+	       (:file "dod-dal-opf" :depends-on ("packages"))
+	       (:file "dod-bl-opf" :depends-on ("packages"))
+	       (:file "dod-ini-sys" :depends-on ("packages"))))
 

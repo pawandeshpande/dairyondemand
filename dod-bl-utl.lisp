@@ -1,3 +1,8 @@
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :dairyondemand)
+
+
+(in-package :dairyondemand)
 
 (defun get-ht-val (key hash-table)
     :documentation "If the key is found in the hash table, then return the value. Otherwise it returns nil in two cases. One- the key was present and value was nil. Second - key itself is not present"
@@ -13,6 +18,7 @@ corresponding universal time."
     (encode-universal-time 0 0 0 date month year)))
 
 
+
 (defun get-date-from-string (datestr)
     :documentation  "Read a date string of the form \"DD/MM/YYYY\" and return the corresponding date object."
 (let ((date (parse-integer datestr :start 0 :end 2))
@@ -21,11 +27,12 @@ corresponding universal time."
     (make-date :year year :month month :day date :hour 0 :minute 0 :second 0 )))
 
 (defun current-date-string ()
-  "Returns current date as a string."
+  "Returns current date as a string in YYYY/MM/DD format"
   (multiple-value-bind (sec min hr day mon yr dow dst-p tz)
                        (get-decoded-time)
     (declare (ignore sec min hr dow dst-p tz))
-      (format nil "~2,'0d-~2,'0d-~4,'0d" day mon yr)))
+      (format nil "~4,'0d/~2,'0d/~2,'0d" yr mon day)))
+
 
 (defun get-date-string (dateobj)
   "Returns current date as a string in DD/MM/YYYY format."

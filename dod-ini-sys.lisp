@@ -1,4 +1,4 @@
-
+;; -*- mode: common-lisp; coding: utf-8 -*-
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 ;; You must set these variables to appropriate values.

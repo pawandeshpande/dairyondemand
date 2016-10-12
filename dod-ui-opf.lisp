@@ -1,3 +1,4 @@
+;; -*- mode: common-lisp; coding: utf-8 -*-
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
@@ -30,7 +31,7 @@
 											 (:td  :height "12px" (str (slot-value orderpref 'prd-qty)))
 											 (:td  :height "12px" (str (slot-value opf-product  'qty-per-unit)))
 											 (:td  :height "12px" (str (format nil "Rs. ~$"  (slot-value opf-product  'unit-price))))     
-
+											 
 										       (:td :height "12px" (:a :href  (format nil  "/delopref?id=~A" opf-id ) "Delete" )))))) data)))))
 
 

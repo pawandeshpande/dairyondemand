@@ -361,7 +361,8 @@
 	(hunchentoot:create-regex-dispatcher "^/dodvendindex" 'dod-controller-vend-index)
 	(hunchentoot:create-regex-dispatcher "^/dodvendlogout" 'dod-controller-vendor-logout)
 	(hunchentoot:create-regex-dispatcher "^/dodvenexpexl" 'dod-controller-ven-expexl)
-
+	(hunchentoot:create-regex-dispatcher "^/dodvenordfulfilled" 'dod-controller-ven-order-fulfilled)
+	(hunchentoot:create-regex-dispatcher "^/dodvendororderdetails" 'dod-controller-vendor-orderdetails)
 	))
 
 

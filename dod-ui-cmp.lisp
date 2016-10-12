@@ -2,16 +2,16 @@
 (clsql:file-enable-sql-reader-syntax)
 
 (defun crm-controller-delete-company ()
-(if (is-crm-session-valid?)
+(if (is-dod-session-valid?)
     (let ((id (hunchentoot:parameter "id")) )
-      (delete-crm-company id)
+      (delete-dod-company id)
       (hunchentoot:redirect "/list-companies"))
      (hunchentoot:redirect "/login")))
 
 
 (defun crm-controller-list-companies ()
-(if (is-crm-session-valid?)
-   (let (( companies (list-crm-companies)))
+(if (is-dod-session-valid?)
+   (let (( companies (list-dod-companies)))
     (standard-page (:title "List companies")
       (:table :cellpadding "0" :cellspacing "0" :border "1"
      (loop for company in companies

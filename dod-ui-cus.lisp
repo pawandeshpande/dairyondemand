@@ -184,6 +184,8 @@
 
 
 (defun dod-controller-customer-loginpage ()
+    (if (is-dod-cust-session-valid?)
+	(hunchentoot:redirect "/dodcustindex")
     (standard-customer-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
 	(:div :class "row" 
 	    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
@@ -197,7 +199,8 @@
 			    (:input :class "form-control" :name "phone" :placeholder "Phone" :type "text" ))
 			(:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Login"))))))
-	(:script :src "/js/dod.js")))
+	(:script :src "/js/dod.js"))))
+
 
 
 (defun dod-controller-cust-add-orderpref-page ()
@@ -318,7 +321,7 @@
 		 (custcomp (hunchentoot:session-value :login-customer-company))
 		 (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
 		 (shipaddr (hunchentoot:parameter "shipaddress")))
-	    (progn (create-order-from-shopcart  odts products odate reqdate reqdate  shipaddr cust custcomp)
+	    (progn (create-order-from-shopcart  odts products odate reqdate nil  shipaddr cust custcomp)
 		(setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 		(setf (hunchentoot:session-value :login-shopping-cart ) nil)
 		(hunchentoot:redirect "/dodcustordsuccess")))))

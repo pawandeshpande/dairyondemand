@@ -2,17 +2,29 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
-(defun get-orders-by-company (company-instance)
-  (let ((tenant-id (slot-value company-instance 'row-id)))
-(clsql:select 'dod-order  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching nil :flatp t )))
+(defun set-order-fulfilled ( value order-instance company-instance)
+    :documentation "value should be Y or N, followed by order instance and company instance"
+    (if (eq (order-company order-instance) company-instance)
+	(progn (setf (slot-value order-instance 'order-fulfilled) value)
+	    (setf (slot-value order-instance 'shipped-date) (get-date))
+	    (update-order order-instance))))
 
+
+(defun get-orders-by-company (company-instance &optional (fulfilled "N"))
+  (let ((tenant-id (slot-value company-instance 'row-id)))
+      (clsql:select 'dod-order  :where [and [= [:deleted-state] "N"]
+	  [= [:tenant-id] tenant-id]
+	  [= [:order-fulfilled] fulfilled]]    :caching *dod-debug-mode* :flatp t )))
+
+
+    
 
 (defun get-order-by-id (id company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
   (car (clsql:select 'dod-order  :where
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
-		[=[:row-id] id]]    :caching nil :flatp t ))))
+		[=[:row-id] id]]    :caching *dod-debug-mode* :flatp t ))))
 
 
 
@@ -34,12 +46,12 @@
 		[=[:cust-id] cust-id ]]
 		:caching nil :flatp t )))
 
-(defun get-orders-by-date (ord-date company-instance)
+(defun get-orders-by-date (req-date company-instance)
 (let ((tenant-id (slot-value company-instance 'row-id)))
 (clsql:select 'dod-order  :where
     [and [= [:deleted-state] "N"]
     [= [:tenant-id] tenant-id]
-    [=[:ord-date] ord-date]]
+    [=[:req-date] req-date]]
 		:caching nil :flatp t )))
 
 
@@ -92,14 +104,15 @@
   
 (defun persist-order(order-date customer-id request-date ship-date ship-address context-id tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-order
-						    :ord-date order-date
-						    :cust-id customer-id
-						    :req-date request-date
-						    :shipped-date ship-date
-						    :ship-address ship-address
-						    :context-id context-id
-						    :tenant-id tenant-id
-						    :deleted-state "N")))
+					 :ord-date order-date
+					 :cust-id customer-id
+					 :req-date request-date
+					 :shipped-date ship-date
+					 :ship-address ship-address
+					 :context-id context-id
+					 :tenant-id tenant-id
+					 :order-fulfilled "N"
+					 :deleted-state "N")))
 
 
 

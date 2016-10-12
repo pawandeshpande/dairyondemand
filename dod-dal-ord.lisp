@@ -31,6 +31,12 @@
     :type (string 100)
     :initarg :ship-address)
 
+   (order-fulfilled
+    :type (string 1)
+    :void-value "N"
+    :initarg :order-fulfilled)
+
+
  (context-id
     :ACCESSOR get-context-id 
     :type (string 100)
@@ -58,7 +64,7 @@
     :type integer
     :initarg :tenant-id)
    (COMPANY
-    :ACCESSOR customer-company
+    :ACCESSOR order-company
     :DB-KIND :JOIN
     :DB-INFO (:JOIN-CLASS dod-company
 	                  :HOME-KEY tenant-id

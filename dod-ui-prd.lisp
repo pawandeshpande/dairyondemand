@@ -91,12 +91,6 @@
 			)
 					    (:div :class "col-sm-6"
 			(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))) ))))
-
-
-		    
-		    
-		
-
 		    (if  prdincart-p (htm 	(:div :class "col-sm-12" (:a :class "btn btn-sm btn-success" :role "button"  :onclick "return false;" :href (format nil "javascript:void(0);") (:span :class "glyphicon glyphicon-ok"  ))))
 		    (htm (:div :class "col-sm-12" (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
 			(:input :type "hidden" :name "action" :value "addtocart")
