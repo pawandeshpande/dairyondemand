@@ -136,7 +136,7 @@
 											   (if (equal (slot-value order 'order-fulfilled) "Y")
 											      (htm  (:td :height "12px" (:span :class "label label-info" "FULFILLED")))
 											       ; ELSE
-										       	  (htm  (:td :height "12px" (:a :href  (format nil  "/delorder?id=~A" (slot-value order 'row-id)) (:b :class "label label-primary"  "Cancel Order")) "&nbsp;&nbsp;"
+										       	  (htm  (:td :height "12px" (:a :onclick "return DeleteConfirm();" :href (format nil  "/delorder?id=~A" (slot-value order 'row-id)) (:b :class "label label-primary"  "Cancel Order")) "&nbsp;&nbsp;"
 											   (:a :href  (format nil  "/dodmyorderdetails?id=~A" (slot-value order 'row-id)) (:span :class "label label-primary" "Details" ))))
 											    )))) (if (not (typep data 'list)) (list data) data) )))))
 
@@ -149,10 +149,10 @@
 
 (defun ui-list-vendor-orders-by-customers-tiles (data)
     (cl-who:with-html-output (*standard-output* nil)
-	(:div :class "row-fluid"	  (mapcar (lambda (order)
+	(:div :class "row-fluid"	 (if data (mapcar (lambda (order)
 						      (htm (:div :class "col-sm-4 col-xs-3 col-md-1 col-lg-1" 
 							       (:div :class "order-box"   (vendor-order-card order )))))
-					      data))))
+					      data)))))
 
 
 (defun vendor-order-card (order-instance)

@@ -6,16 +6,18 @@
     :db-constraints :not-null
     :type integer
     :initarg row-id)
-   (prd-name
+
+      (prd-name
     :accessor prd-name
     :DB-CONSTRAINTS :NOT-NULL
     :TYPE (string 70)
     :INITARG :prd-name)
-   (vendor-id
+
+      (vendor-id
     :type integer 
     :initarg :vendor-id)
    (vendor
-    :ACCESSOR get-prd-vendor
+    :ACCESSOR product-vendor
     :DB-KIND :JOIN
     :DB-INFO (:JOIN-CLASS dod-vend-profile
 	                  :HOME-KEY vendor-id

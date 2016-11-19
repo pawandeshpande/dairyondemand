@@ -44,7 +44,7 @@
 	     (unit-price (slot-value product-instance 'unit-price))
 	     (prd-image-path (slot-value product-instance 'prd-image-path))
 	     (prd-id (slot-value product-instance 'row-id))
-	     (prd-vendor (get-prd-vendor product-instance)))
+	     (prd-vendor (product-vendor product-instance)))
 	(cl-who:with-html-output (*standard-output* nil)
 	    (:form :class "form-shopcart"  :method "POST" :action "dodcustupdatecart" 
 		(:div :class "row"
@@ -77,7 +77,7 @@
 	     (unit-price (slot-value product-instance 'unit-price))
 	     (prd-image-path (slot-value product-instance 'prd-image-path))
 	     (prd-id (slot-value product-instance 'row-id))
-	     (prd-vendor (get-prd-vendor product-instance)))
+	     (prd-vendor (product-vendor product-instance)))
 	(cl-who:with-html-output (*standard-output* nil)
 	    (:form :class "form-product" :method "POST" :action "dodcustaddtocart" 
 		(:div :class "row"

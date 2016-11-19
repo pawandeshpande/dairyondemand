@@ -22,7 +22,7 @@
 		[= [:tenant-id] tenant-id]
 		[=[:cust-id] cust-id ]]
 		:caching nil :flatp t )))
-
+    
 
 (defun get-latest-opref-for-customer (customer)
   (let ((tenant-id (slot-value customer 'tenant-id))
@@ -71,21 +71,29 @@
   
 
   
-(defun persist-orderpref( customer-id product-id prd-qty  tenant-id )
+(defun persist-orderpref( customer-id product-id prd-qty mon tue wed thu fri sat sun tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-ord-pref
 						    :cust-id customer-id
 						    :prd-id product-id
-						    :prd-qty prd-qty
+					 :prd-qty prd-qty
+					 :sun (if sun "Y" "N")
+					 :mon (if mon "Y" "N")
+					 :tue  (if tue "Y" "N")
+					 :wed  (if wed "Y" "N")
+					 :thu  (if thu "Y" "N")
+					 :fri  (if fri "Y" "N")
+					 :sat  (if sat "Y" "N") 
 						    :tenant-id tenant-id
 						    :deleted-state "N")))
 
 
 
-(defun create-opref (customer product prd-qty  company-instance)
+(defun create-opref (customer product prd-qty wdlist company-instance)
   (let ((customer-id (slot-value  customer 'row-id) )
 	(tenant-id (slot-value company-instance 'row-id))
-	(product-id (slot-value product 'row-id)))
-    (persist-orderpref customer-id product-id prd-qty tenant-id )))
+	   (product-id (slot-value product 'row-id)))
+	 
+    (persist-orderpref customer-id product-id prd-qty (nth 0 wdlist) (nth 1 wdlist) (nth 2 wdlist) (nth 3 wdlist) (nth 4 wdlist) (nth 5 wdlist) (nth 6 wdlist)  tenant-id )))
 
 
 

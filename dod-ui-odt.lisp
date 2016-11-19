@@ -62,11 +62,13 @@
 
 
 (defun display-order-header (order-instance)
+    (let ((shipped-date (slot-value order-instance 'shipped-date)))
     (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "jumbotron"
 	    (:div :class "row" (:div :class "col-md-4"
 				   (:h5 "Order No:") (:h4 (str (slot-value order-instance 'row-id)))
+				   (:h5 "Status: " ) (:h4 (str (slot-value order-instance 'status)))
 				   (:h5 "Order Date:") (:h4 (str (get-date-string (slot-value order-instance 'ord-date)))))
 		(:div :class "col-md-4"
 		    (:h5 "Requested On:")(:h4 (str (get-date-string (slot-value order-instance 'req-date))))
-		    (:h5 "Shipped On:")(:h4 (str (get-date-string (slot-value order-instance 'shipped-date)))))))))
+		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date))))))))))

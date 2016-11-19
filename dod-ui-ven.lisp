@@ -144,18 +144,15 @@
 
 (defun dod-controller-vend-index () 
     (if (is-dod-vend-session-valid?)
-	(let (( dodorders (get-orders-by-company (get-login-vendor-company)))
+	(let (( dodorders (get-orders-for-vendor (get-login-vendor)))
 		 (btnordprd (hunchentoot:parameter "btnordprd"))
 		 (reqdate (hunchentoot:parameter "reqdate"))
 		 (btnexpexl (hunchentoot:parameter "btnexpexl"))
 		 (context (hunchentoot:parameter "context"))
 		 (btnordcus (hunchentoot:parameter "btnordcus")))
-
 	(standard-vendor-page (:title "Welcome to Dairy Ondemand - vendor")
 	    (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
 	    (:form :class "form-venorders" :method "POST" :action "dodvendindex"
-
-		
 		(:div :class "row" :style "display: none"
 		(:div :class "btn-group" :role "group" :aria-label "..."
 		(:button  :name "btnpendord" :type "submit" :class "btn btn-default active" "Pending Orders" )
@@ -163,22 +160,19 @@
 	   ; (:hr)
 	    (:div :class "row" :style "display: none"
 		(:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12" 
-		    
 			(:input :type "text" :name "reqdate" :placeholder "yyyy/mm/dd")
 			(:button :class "btn btn-primary" :type "submit" :name "btnordprd" "Get Orders by Products")
 			(:button :class "btn btn-primary" :type "submit" :name "btnordcus" "Get Orders by Customers")
 			(if (and reqdate dodorders)
 			(htm (:a :href (format nil "/dodvenexpexl?reqdate=~A" (cl-who:escape-string reqdate)) :class "btn btn-primary" "Export To Excel")))
 			(:button :class "btn btn-primary"  :type "submit" :name "btnprint" :onclick "javascript:window.print();" "Print") 
-			
-		    )))
+		   )))
 	   ; (:hr)
-	   
 	    (cond ((and dodorders btnordprd) (ui-list-vendor-orders dodorders))
 		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/dodvenexpexl?reqdate=~A" reqdate)))
 		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers-tiles dodorders))
 		((equal context "pendingorders") (ui-list-vendor-orders-by-customers-tiles dodorders))
-		( (equal context "completedorders") (let ((orders (get-orders-by-company (get-login-vendor-company) "Y")))
+		((equal context "completedorders") (let ((orders (get-orders-for-vendor (get-login-vendor) "Y")))
 						(ui-list-vendor-orders-by-customers-tiles orders)))
 		(T ()) )))
 					; Else
@@ -256,7 +250,7 @@
 	(standard-vendor-page (:title "List Vendor Order Details")   
 	    (let* (( dodorder (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
 		      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
-		      (odtlst (get-order-details dodorder) )
+		      (odtlst (get-order-details-for-vendor dodorder (get-login-vendor)) )
       		      (total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst))))
 		(display-order-header dodorder) 

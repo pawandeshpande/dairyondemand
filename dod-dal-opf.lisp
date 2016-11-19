@@ -47,7 +47,7 @@
    (tue
     :type (string 1)
     :void-value "N"
-    :initarg :wed)
+    :initarg :tue)
    (wed
     :type (string 1)
     :void-value "N"

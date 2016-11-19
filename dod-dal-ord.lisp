@@ -36,6 +36,15 @@
     :void-value "N"
     :initarg :order-fulfilled)
 
+   (order-amt
+    :type (number)
+    :initarg :order-amt)
+
+
+(comments
+    :accessor comments
+    :type (string 70)
+    :initarg :comments)
 
  (context-id
     :ACCESSOR get-context-id 
@@ -54,7 +63,10 @@
                           :FOREIGN-KEY row-id
                           :SET nil))
 
-  
+(status
+    :type (string 3)
+    :initarg :status)
+
    (deleted-state
     :type (string 1)
     :void-value "N"
@@ -73,3 +85,63 @@
 
    
   (:BASE-TABLE dod_order))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;; CLASS - DOD-VENDOR-ORDERS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(clsql:def-view-class dod-vendor-orders ()
+  ((row-id
+    :db-kind :key
+    :db-constraints :not-null
+    :type integer
+    :initarg :row-id)
+   
+(order-id
+    :accessor odt-order-id
+    :TYPE integer
+    :initarg :order-id)
+
+
+(vendor-id
+    :accessor odt-vendor-id
+    :db-constraints :NOT-NULL
+    :type integer
+    :initarg :vendor-id)
+
+(vendorobject
+	:accessor odt-vendorobject
+	:db-kind :join
+	:db-info (:join-class dod-vend-master
+		     :home-key vendor-id
+		     :foreign-key row-id
+		     :set nil))
+
+(fulfilled
+    :type (string 1)
+    :void-value "N"
+    :initarg :fulfilled)
+
+
+(status 
+    :accessor odt-status
+    :DB-CONSTRAINTS :NOT-NULL
+    :TYPE (string 3)
+    :initarg :status)
+
+
+    (tenant-id
+    :type integer
+    :initarg :tenant-id)
+   (COMPANY
+    :ACCESSOR company
+    :DB-KIND :JOIN
+    :DB-INFO (:JOIN-CLASS dod-company
+	                  :HOME-KEY tenant-id
+                          :FOREIGN-KEY row-id
+                          :SET nil)))
+
+   
+  (:BASE-TABLE dod_vendor_orders))
+

@@ -126,4 +126,4 @@
 					; For each customer, get the order preference list and pass to the below function.
 	      (mapcar (lambda (customer)
 			  (let ((custopflist (get-opreflist-for-customer customer)))
-			      (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) customer dodcompany) )) customers)))
+			    (if (> 0 (count custopflist))  (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) customer dodcompany)) )) customers)))

@@ -141,3 +141,10 @@ $(document).ready(function () {
     });
 
 });
+
+
+function DeleteConfirm (){
+    
+    return confirm("Do you really want to Cancel?");
+   
+}

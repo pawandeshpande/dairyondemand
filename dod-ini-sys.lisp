@@ -53,8 +53,8 @@ Database type: Supported type is ':odbc'"
 
 
 (defun init-dairyondemand ()
-  (cond  (*dod-debug-mode* (setf *dod-database-caching* NIL))
-       ( (not *dod-debug-mode*) (setf *dod-database-caching* T))
+  (cond  (*dod-debug-mode* (setf *dod-database-caching* T))
+       ( (not *dod-debug-mode*) (setf *dod-database-caching* nil))
        (T (setf *dod-database-caching* NIL))))
 
 
