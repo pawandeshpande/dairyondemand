@@ -56,6 +56,10 @@
     (clsql:update-record-from-slot dodcust 'deleted-state)))
 
 
+(defun deduct-wallet-balance (amount customer-instance)
+(let ((cur-balance (slot-value customer-instance 'wallet-balance)))
+(progn  (setf (slot-value customer-instance 'wallet-balance) (- cur-balance amount))
+  (clsql:update-record-from-slot customer-instance 'wallet-balance))))
 
 (defun delete-cust-profiles ( list company)
 (let ((tenant-id (slot-value company 'row-id)))  
@@ -71,13 +75,17 @@
 
   
 
-(defun create-customer(name address phone company )
+(defun create-customer(name address phone wallet-bal city state zipcode company  )
   (let ((tenant-id (slot-value company 'row-id)))
  (clsql:update-records-from-instance (make-instance 'dod-cust-profile
 						    :name name
 						    :address address
 						    :phone phone
-					 :tenant-id tenant-id
+						    :wallet-balance wallet-bal
+						    :city city 
+						    :state state 
+						    :zipcode zipcode
+						    :tenant-id tenant-id
 						    :deleted-state "N"))))
  
 

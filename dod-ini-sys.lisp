@@ -48,6 +48,7 @@ Database type: Supported type is ':odbc'"
 
 
 (defvar *http-server* nil)
+(defvar *ssl-http-server* nil)
 (defvar *dod-debug-mode* nil)
 (defvar *dod-database-caching* nil)
 
@@ -58,28 +59,46 @@ Database type: Supported type is ':odbc'"
        (T (setf *dod-database-caching* NIL))))
 
 
-(defun start-dairyondemand () 
-(setf *dod-debug-mode* T)
-
-  (setf  *http-server* (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port 4243 :document-root #p"~/dairyondemand/")))
-(setf (hunchentoot:acceptor-access-log-destination *http-server* ) #p"~/dairyondemand-access.log")
+(defun start-das(&optional (withssl nil) (debug-mode T)  )
+:documentation "Start dairyondemand server with or without ssl. If withssl is T, then start 
+the hunchentoot server with ssl settings"
+ 
+(setf *dod-debug-mode* debug-mode)
+(setf *http-server* (make-instance 'hunchentoot:easy-acceptor :port 4244 :document-root #p"~/dairyondemand/"))
+(setf (hunchentoot:acceptor-access-log-destination *http-server*)   #p"~/dairyondemand-access.log")
 (setf (hunchentoot:acceptor-message-log-destination *http-server*) #p"~/dairyondemand-messages.log")
-(progn (init-dairyondemand) 
-    (crm-db-connect :strdb "dairyondemand" :strusr "TestCRMCore" :strpwd "TestCRMCore" :strdbtype :odbc))
 
-;(defparameter *ACCOUNT-BC* (make-instance 'crm-business-component
-;		 :name "Account"
-;		 :persistance-class (type-of 'crm-account)
-;		 :can-delete? t))
-)
+(progn (init-dairyondemand)
+       (if withssl  (init-httpserver-withssl))
+       (if withssl  (hunchentoot:start *ssl-http-server*) (hunchentoot:start *http-server*) )
+       (crm-db-connect :servername "localhost" :strdb "DAIRYONDEMAND" :strusr "TestCRMCore" :strpwd "TestCRMCore" :strdbtype :mysql)))
 
-(defun shutdown-dairyondemand ()
+
+
+(defun init-httpserver-withssl ()
+
+;(ssl-accslogdest (hunchentoot:acceptor-access-log-destination *ssl-http-server* ))
+;(ssl-msglogdest  (hunchentoot:acceptor-message-log-destination *ssl-http-server*)))
+
+(progn 
+  (setf *ssl-http-server* (make-instance 'hunchentoot:easy-ssl-acceptor :port 9443 
+							  :document-root #p"~/dairyondemand/"
+							  :ssl-privatekey-file #p"~/dairyondemand/privatekey.key"
+							  :ssl-certificate-file #p"~/dairyondemand/certificate.crt" ))
+  (setf (hunchentoot:acceptor-access-log-destination *ssl-http-server* )  #p"~/dairyondemand-ssl-access.log")
+       (setf  (hunchentoot:acceptor-message-log-destination *ssl-http-server*)   #p"~/dairyondemand-ssl-messages.log")))
+
+
+
+(defun stop-das ()
   (format t "******** Stopping SQL Recording *******~C"  #\linefeed)
   (clsql:stop-sql-recording :type :both)
   (format t "******** DB Disconnect ********~C" #\linefeed)
   (clsql:disconnect)
   (format t "******* Stopping HTTP Server *********~C"  #\linefeed)
-  (hunchentoot:stop *http-server*)
+(progn (if *ssl-http-server*  (hunchentoot:stop *ssl-http-server*) (hunchentoot:stop *http-server*))
+(setf *ssl-http-server* nil) 
+(setf *http-server* nil))
 )
 
 

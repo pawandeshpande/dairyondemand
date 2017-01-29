@@ -66,7 +66,11 @@
 	  :type (string 256)
 	  :initarg :picture-path)
       
-      
+      (wallet-balance 
+       :accessor wallet-balance 
+       :type (number) 
+       :initarg :wallet-balance) 
+
    (deleted-state
     :type (string 1)
     :void-value "N"

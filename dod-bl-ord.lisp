@@ -145,7 +145,7 @@
   
 
   
-(defun persist-order(order-date customer-id request-date ship-date ship-address  context-id tenant-id )
+(defun persist-order(order-date customer-id request-date ship-date ship-address  context-id order-amt tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-order
 					 :ord-date order-date
 					 :cust-id customer-id
@@ -156,21 +156,21 @@
 					 :tenant-id tenant-id
 					 :order-fulfilled "N"
 					 :status "PEN"
-					 :order-amt 0.00
+					 :order-amt order-amt
 					 :deleted-state "N")))
 
 
 
-(defun create-order (order-date customer-instance request-date ship-date ship-address context-id company-instance)
+(defun create-order (order-date customer-instance request-date ship-date ship-address context-id order-amt company-instance)
   (let ((customer-id (slot-value  customer-instance 'row-id) )
 	(tenant-id (slot-value company-instance 'row-id)))
-    (persist-order order-date customer-id request-date ship-date ship-address  context-id tenant-id)))
+    (persist-order order-date customer-id request-date ship-date ship-address  context-id order-amt tenant-id)))
 
 
 
-(defun create-order-from-pref (order-pref-list order-date request-date ship-date ship-address customer-instance company-instance)
+(defun create-order-from-pref (order-pref-list order-date request-date ship-date ship-address order-amt  customer-instance company-instance)
   (let ((uuid (uuid:make-v1-uuid )))
-      (progn 	  (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) company-instance)
+      (progn 	  (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt company-instance)
 		(let ((order (get-order-by-context-id (print-object uuid nil) company-instance)))
 		      (mapcar (lambda (preference)
 				  (let* ((prd (get-opf-product preference))
@@ -192,9 +192,9 @@
 	(if (member day lst) t nil)))
 
 
-(defun create-order-from-shopcart (order-details-list products  order-date request-date ship-date ship-address customer-instance company-instance)
+(defun create-order-from-shopcart (order-details-list products  order-date request-date ship-date ship-address order-amt  customer-instance company-instance)
   (let ((uuid (uuid:make-v1-uuid )))
-    (progn 	(create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) company-instance)
+    (progn 	(create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt  company-instance)
 		(let ((order (get-order-by-context-id (print-object uuid nil) company-instance)))
 		      (mapcar (lambda (odt)
 				(let* ((prd (search-prd-in-list (slot-value odt 'prd-id) products))

@@ -1,11 +1,15 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
-(defun new-dod-company(cname caddress createdby updatedby)
+(defun new-dod-company(cname caddress city state country zipcode createdby updatedby)
   (let  ((company-name cname)(company-address caddress))
 	(clsql:update-records-from-instance (make-instance 'dod-company
 							   :name company-name
 							   :address company-address
+							   :city city
+							   :state state 
+							   :country country
+							   :zipcode zipcode
 							   :deleted-state "N"
 							   :created-by createdby
 							   :updated-by updatedby))))

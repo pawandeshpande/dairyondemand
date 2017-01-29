@@ -354,7 +354,8 @@
 	(hunchentoot:create-regex-dispatcher "^/list-companies" 'dod-controller-list-companies)
 	(hunchentoot:create-regex-dispatcher "^/dodvendordetails" 'dod-controller-vendor-details)
 	(hunchentoot:create-regex-dispatcher "^/dodprddetails" 'dod-controller-prd-details)
-
+	(hunchentoot:create-regex-dispatcher "^/dodprodsubscribe" 'dod-controller-cust-add-orderpref-page)
+	(hunchentoot:create-regex-dispatcher "^/dodproducts" 'dod-controller-customer-products)
 ;************VENDOR RELATED ********************
 	(hunchentoot:create-regex-dispatcher "^/vendor-login.html" 'dod-controller-vendor-loginpage)
 	(hunchentoot:create-regex-dispatcher "^/dodvendlogin" 'dod-controller-vend-login)
