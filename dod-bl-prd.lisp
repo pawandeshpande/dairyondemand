@@ -4,14 +4,14 @@
 
 
 (defun get-products (tenant-id)
-  (clsql:select 'dod-prd-master  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching nil :flatp t ))
+  (clsql:select 'dod-prd-master  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
 
 (defun select-products-by-company (company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
  (clsql:select 'dod-prd-master  :where
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]]
-     :caching nil :flatp t )))
+     :caching *dod-database-caching* :flatp t )))
 
 (defun select-products-by-vendor (vendor company-instance)
     (let ((tenant-id (slot-value company-instance 'row-id))
@@ -20,7 +20,7 @@
 		[and [= [:deleted-state] "N"]
      [= [:tenant-id] tenant-id]
      [=[:vendor-id] vendor-id]]
-     :caching nil :flatp t )))
+     :caching *dod-database-caching* :flatp t )))
 
 
 
@@ -38,7 +38,7 @@
  (car (clsql:select 'dod-prd-master  :where
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
-		[=[:row-id] id]]    :caching nil :flatp t ))))
+		[=[:row-id] id]]    :caching *dod-database-caching* :flatp t ))))
 
 
 
@@ -49,7 +49,7 @@
 		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[like  [:catg-id] catg-id]]
-		:caching nil :flatp t)))
+		:caching *dod-database-caching* :flatp t)))
 
 
   (defun select-product-by-name (name-like-clause company-instance )
@@ -58,7 +58,17 @@
 		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[like  [:prd-name] name-like-clause]]
-		:caching nil :flatp t))))
+		:caching *dod-database-caching* :flatp t))))
+
+
+(defun search-products ( search-string company-instance)
+  (let ((tenant-id (slot-value company-instance 'row-id)))
+	(clsql:select 'dod-prd-master :where [and
+		      [= [:deleted-state] "N"]
+		      [= [:tenant-id] tenant-id] 
+		      [like [:prd-name] (format NIL "%~a%" search-string)]]
+		      :caching *dod-database-caching* :flatp t)))
+
 
 
 (defun update-prd-details (prd-instance); This function has side effect of modifying the database record.
@@ -66,7 +76,7 @@
 
 (defun delete-product( id company-instance)
     (let ((tenant-id (slot-value company-instance 'row-id)))
-  (let ((dodproduct (car (clsql:select 'dod-prd-master :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+  (let ((dodproduct (car (clsql:select 'dod-prd-master :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
     (setf (slot-value dodproduct 'deleted-state) "Y")
     (clsql:update-record-from-slot dodproduct 'deleted-state))))
 
@@ -74,14 +84,14 @@
 
 (defun delete-products ( list company-instance)
     (let ((tenant-id (slot-value company-instance 'row-id)))
-  (mapcar (lambda (id)  (let ((dodproduct (car (clsql:select 'dod-prd-master :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+  (mapcar (lambda (id)  (let ((dodproduct (car (clsql:select 'dod-prd-master :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
 			  (setf (slot-value dodproduct 'deleted-state) "Y")
 			  (clsql:update-record-from-slot dodproduct  'deleted-state))) list )))
 
 
 (defun restore-deleted-products ( list company-instance )
     (let ((tenant-id (slot-value company-instance 'row-id)))
-(mapcar (lambda (id)  (let ((dodproduct (car (clsql:select 'dod-prd-master :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+(mapcar (lambda (id)  (let ((dodproduct (car (clsql:select 'dod-prd-master :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
     (setf (slot-value dodproduct 'deleted-state) "N")
     (clsql:update-record-from-slot dodproduct 'deleted-state))) list )))
 
@@ -146,7 +156,7 @@
  (car (clsql:select 'dod-prd-catg  :where
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
-		[=[:row-id] id]]    :caching nil :flatp t ))))
+		[=[:row-id] id]]    :caching *dod-database-caching* :flatp t ))))
 
 
 
@@ -156,7 +166,7 @@
 		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[like  [:catg-name] name-like-clause]]
-		:caching nil :flatp t))))
+		:caching *dod-database-caching* :flatp t))))
 
 
 (defun update-prdcatg (prdcatg-inst); This function has side effect of modifying the database record.
@@ -164,7 +174,7 @@
 
 (defun delete-prdcatg( id company-instance)
     (let ((tenant-id (slot-value company-instance 'row-id)))
-  (let ((dodprdcatg (car (clsql:select 'dod-prd-catg :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+  (let ((dodprdcatg (car (clsql:select 'dod-prd-catg :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
     (setf (slot-value dodprdcatg 'deleted-state) "Y")
     (clsql:update-record-from-slot dodprdcatg 'deleted-state))))
 
@@ -172,14 +182,14 @@
 
 (defun delete-prdcatgs ( list company-instance)
     (let ((tenant-id (slot-value company-instance 'row-id)))
-  (mapcar (lambda (id)  (let ((dodprdcatg (car (clsql:select 'dod-prd-catg :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+  (mapcar (lambda (id)  (let ((dodprdcatg (car (clsql:select 'dod-prd-catg :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
 			  (setf (slot-value dodprdcatg 'deleted-state) "Y")
 			  (clsql:update-record-from-slot dodprdcatg  'deleted-state))) list )))
 
 
 (defun restore-deleted-prdcatgs ( list company-instance )
     (let ((tenant-id (slot-value company-instance 'row-id)))
-(mapcar (lambda (id)  (let ((dodprdcatg (car (clsql:select 'dod-prd-catg :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+(mapcar (lambda (id)  (let ((dodprdcatg (car (clsql:select 'dod-prd-catg :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
     (setf (slot-value dodprdcatg 'deleted-state) "N")
     (clsql:update-record-from-slot dodprdcatg 'deleted-state))) list )))
 

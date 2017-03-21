@@ -4,7 +4,7 @@
 
 (defun get-opreflist-by-company (company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
-(clsql:select 'dod-ord-pref  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching nil :flatp t )))
+(clsql:select 'dod-ord-pref  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t )))
 
 
 (defun get-opref-by-id (id company-instance)
@@ -12,7 +12,7 @@
   (car (clsql:select 'dod-ord-pref  :where
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
-		[=[:row-id] id]]    :caching nil :flatp t ))))
+		[=[:row-id] id]]    :caching *dod-database-caching* :flatp t ))))
 
 (defun get-opreflist-for-customer (customer)
 (let ((tenant-id (slot-value customer 'tenant-id))
@@ -21,8 +21,11 @@
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[=[:cust-id] cust-id ]]
-		:caching nil :flatp t )))
+		:caching *dod-database-caching* :flatp t )))
     
+
+
+
 
 (defun get-latest-opref-for-customer (customer)
   (let ((tenant-id (slot-value customer 'tenant-id))
@@ -31,13 +34,13 @@
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[=[:cust-id] cust-id ]
-		[= [:row-id] (get-max-opref-id cust-id tenant-id)]]    :caching nil :flatp t ))))
+		[= [:row-id] (get-max-opref-id cust-id tenant-id)]]    :caching *dod-database-caching* :flatp t ))))
   
 (defun get-max-opref-id (customer-id tenant-id)
  (clsql:select [max [row-id]] :from 'dod-opref  :where
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
-		[=[:cust-id] customer-id]]    :caching nil :flatp t ))
+		[=[:cust-id] customer-id]]    :caching *dod-database-caching* :flatp t ))
   
 
 
@@ -50,7 +53,7 @@
 (defun delete-opref( opref-instance )
   (let ((tenant-id (slot-value opref-instance 'tenant-id))
 	(id (slot-value opref-instance 'row-id)))
-  (let ((dodorderpref (car (clsql:select 'dod-ord-pref :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+  (let ((dodorderpref (car (clsql:select 'dod-ord-pref :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
     (setf (slot-value dodorderpref 'deleted-state) "Y")
     (clsql:update-record-from-slot dodorderpref 'deleted-state))))
 
@@ -58,13 +61,13 @@
 
 (defun delete-oprefs ( list company-instance)
     (let ((tenant-id (slot-value company-instance 'row-id)))
-  (mapcar (lambda (id)  (let ((dodorderpref (car (clsql:select 'dod-ord-pref :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+  (mapcar (lambda (id)  (let ((dodorderpref (car (clsql:select 'dod-ord-pref :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
 			  (setf (slot-value dodorderpref 'deleted-state) "Y")
 			  (clsql:update-record-from-slot dodorderpref  'deleted-state))) list )))
 
 
 (defun restore-deleted-orderprefs ( list tenant-id )
-(mapcar (lambda (id)  (let ((dodorderpref (car (clsql:select 'dod-ord-pref :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+(mapcar (lambda (id)  (let ((dodorderpref (car (clsql:select 'dod-ord-pref :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
     (setf (slot-value dodorderpref 'deleted-state) "N")
     (clsql:update-record-from-slot dodorderpref 'deleted-state))) list ))
 

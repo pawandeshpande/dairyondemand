@@ -32,7 +32,25 @@
 	(hunchentoot:redirect "/customer-login.html")))
 
 
+
+
+(defun das-cust-page-with-tiles (displayfunc pagetitle &rest args)
+(if (is-dod-cust-session-valid?)
+    (standard-customer-page (:title pagetitle) 
+    (apply displayfunc args))
+(hunchentoot:redirect "/customer-login.html")))
+
+
+
+
 (defun dod-controller-my-orderprefs ()
+  (let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
+	(header (list   "Product"  "Weekday Preference"  "Product Qty" "Qty Per Unit" "Unit Price"  "Action")))
+
+  (das-page-with-tiles 'ui-list-cust-orderprefs "Customer Order Preferences" header dodorderprefs)))
+
+
+(defun dod-controller-my-orderprefs1 ()
     :documentation "A callback function which prints daily order preferences for a logged in customer in HTML format."
     (if (is-dod-cust-session-valid?)
 	(let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
@@ -56,9 +74,9 @@
     :documentation "A callback function which prints orders for a logged in customer in HTML format."
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "List DOD Customer orders")   
-	    (let (( dodorders (hunchentoot:session-value :login-cusord-cache))
+	(let (( dodorders (hunchentoot:session-value :login-cusord-cache))
 		     (header (list  "Order No" "Order Date" "Request Date"  "Action")))
-		(if dodorders (ui-list-customer-orders header dodorders) "No orders")))
+	    (if dodorders (ui-list-customer-orders header dodorders) "No orders")))
 	(hunchentoot:redirect "/customer-login.html")))
 
 (defun dod-controller-del-order()
@@ -110,6 +128,16 @@
 																	    (:td  :height "12px" (str (slot-value customer 'phone)))
 																    (:td :height "12px" (:a :href  (format nil  "/delcustomer?id=~A" (slot-value customer 'row-id)):onclick "return false"  "Delete"))))) data)))))
 									  
+
+
+(defun dod-controller-search-products ()
+(let* ((search-clause (hunchentoot:parameter "search-clause"))
+      (products (search-products search-clause (hunchentoot:session-value :login-customer-company)))
+      (shoppingcart (hunchentoot:session-value :login-shopping-cart)))
+(das-cust-page-with-tiles 'ui-list-customer-products "Search results..." products shoppingcart)))
+
+
+
 
 
 (defmacro customer-navigation-bar ()
@@ -335,7 +363,7 @@
     (if (is-dod-cust-session-valid?)
 	(let ((odts (hunchentoot:session-value :login-shopping-cart))
 	      (customer (hunchentoot:session-value :login-customer))
-		 (products (hunchentoot:session-value :login-prd-cache))
+	      (products (hunchentoot:session-value :login-prd-cache))
 		 (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
 		 (cust (hunchentoot:session-value :login-customer))
 	      (shopcart-total (get-shop-cart-total))
@@ -402,6 +430,16 @@
 	    (let ((lstshopcart (hunchentoot:session-value :login-shopping-cart)))
 		
 		(htm 
+		 	 (:form :id "prdsearch" :name "prdsearch" :method "POST" :action "/dodsearchproducts"
+	 (:div :class "container" 
+	 (:div :class "col-lg-6" 
+	 (:div :class "input-group"
+
+	       (:input :type "text" :name "search-clause"  :class "form-control" :placeholder "Search products...")
+	       (:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Go!" ))))))
+     
+
+		 
 		    (:div :class "row"
 			(:div :class "col-md-12" :align "right"
 			    (:a :class "btn btn-primary" :role "button" :href "/dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))) ))))
@@ -491,7 +529,7 @@
 		  customer
 		  (null (hunchentoot:session-value :login-customer-name))) ;; customer should not be logged-in in the first place.
 	    (progn
-		(format T "Starting session")
+		(princ "Starting session")
 		(setf *current-customer-session* (hunchentoot:start-session))
 		(setf (hunchentoot:session-value :login-customer ) customer)
 		(setf (hunchentoot:session-value :login-customer-name) customer-name)

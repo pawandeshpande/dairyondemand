@@ -124,8 +124,6 @@
 
 
 
-
-
 (defun dod-controller-index () 
   (if (is-dod-session-valid?)
       (standard-page (:title "Welcome to Dairy Ondemand")
@@ -138,9 +136,27 @@
 	(:p "Want to create a new customer?" (:a :href "/new-customer" "here"))
 	(:p "List Customers" (:a :href "/list-customers" "here"))
 	)))
-	(hunchentoot:redirect "/login")))
+	(hunchentoot:redirect "/opr-login.html")))
   
 (setq *logged-in-users* (make-hash-table :test 'equal))
+
+
+(defun dod-controller-list-attrs ()
+:documentation "This function lists the attributes used in policy making"
+    (if (is-dod-session-valid?)
+	(standard-page (:title "attributes ...")
+    (let* ((company (hunchentoot:session-value :login-company))
+      (lstattrcart (hunchentoot:session-value :login-attribute-cart))
+      (lstattributes (select-auth-attrs-by-company company)))
+
+(htm (:div :class "row"
+	   (:div :class "col-md-12" :align "right"
+		 (:a :class "btn btn-primary" :role "button" :href "/dodattrcart" (:span :class "glyphicon glyphicon-shopping-cart") " Attributes  " (:span :class "badge" (str (format nil " ~A " (length lstattrcart))) ))))
+		    (:hr))		       
+(ui-list-attributes lstattributes lstattrcart)))
+(hunchentoot:redirect "/opr-login.html")))
+
+    
 
 
 (defun dod-controller-loginpage ()
@@ -171,13 +187,13 @@
 	    ( or (null cname) (zerop (length cname)))
 	    ( or (null uname) (zerop (length uname)))
 	    ( or (null passwd) (zerop (length passwd))))
-      (if (equal (dod-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/login") (hunchentoot:redirect  "/dodindex")))))
+      (if (equal (dod-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/opr-login.html") (hunchentoot:redirect  "/dodindex")))))
    
   
    (defun dod-controller-logout ()
      (progn (dod-logout (get-current-login-username))
 	    (hunchentoot:remove-session *current-user-session*)
-	    (hunchentoot:redirect "/login")))
+	    (hunchentoot:redirect "/opr-login.html")))
 
 
 (defun get-current-login-company ()
@@ -193,18 +209,23 @@
 				       [= [slot-value 'dod-users 'password] password]]
 				      :caching nil :flatp t)))
 	 (login-userid (slot-value login-user 'row-id))
-	 (login-tenant-id (slot-value (car (users-company login-user)) 'row-id))
-	 (login-company-name (slot-value (car (users-company login-user)) 'name)))
+	 (login-attribute-cart '())
+	 (login-tenant-id (slot-value  (users-company login-user) 'row-id))
+	 (login-company (slot-value login-user 'company))
+	 (login-company-name (slot-value (users-company login-user) 'name)))
 
     (when (and(equal  login-company-name company-name)
-	      (not (null login-user))
+	    login-user 
 	      (null (hunchentoot:session-value :login-username)) ;; User should not be logged-in in the first place.
 	      )  (progn (add-login-user username  login-user)
 				      (setf *current-user-session* (hunchentoot:start-session))
 				      (setf (hunchentoot:session-value :login-username) username)
 				      (setf (hunchentoot:session-value :login-userid) login-userid)
+				      (setf (hunchentoot:session-value :login-attribute-cart) login-attribute-cart)
 				      (setf (hunchentoot:session-value :login-tenant-id) login-tenant-id)
-				      (setf (hunchentoot:session-value :login-company) company-name))
+				      (setf (hunchentoot:session-value :login-company-name) company-name)
+				      (setf (hunchentoot:session-value :login-company) login-company))
+		 
        	 )))
 
 
@@ -252,6 +273,24 @@
 				       :name "address" 
 				       :class "txtarea"))
 
+	       (:p "City: " (:input :type "text"  
+				       :name "city" 
+				       ))
+	       (:p "State: " (:input :type "text"  
+				       :name "state" 
+				       ))
+
+	       (:p "Country: " (:input :type "text"  
+				       :name "country" 
+				       ))
+
+	       (:p "Zipcode: " (:input :type "text"  
+				       :name "zipcode" 
+				       ))
+
+
+	       
+
 	       (:h3 "Create the Admin user")
 	       (:p "Name: "
 		   (:input :type "text"  
@@ -280,6 +319,10 @@
   (if (is-dod-session-valid?)
       (let  ((cname (hunchentoot:parameter "name"))
 	     (caddress (hunchentoot:parameter "address"))
+	     (city (hunchentoot:parameter "city"))
+	     (state (hunchentoot:parameter "state"))
+	     (country (hunchentoot:parameter "country"))
+	     (zipcode (hunchentoot:parameter "zipcode"))
 	     (name (hunchentoot:parameter "name"))
 	     (username (hunchentoot:parameter "username"))
 	     (password (hunchentoot:parameter "password"))
@@ -292,7 +335,7 @@
  		      ( or (null username) (zerop (length username)))
 		      ( or (null password) (zerop (length password)))
 		      ( or (null email) (zerop (length email))))
-	  (new-dod-company cname caddress loginuser loginuser))
+	  (new-dod-company cname caddress city state country zipcode loginuser loginuser))
 	;; By this time the new company is created.
 	(let ((company (car (clsql:select 'dod-company :where [= [:name] cname] :caching nil :flatp t))))
 	  (create-dod-user  name username password email (slot-value company 'row-id)))
@@ -329,6 +372,8 @@
         (hunchentoot:create-regex-dispatcher "^/new-journal-entry" 'dod-controller-new-journal-entry)
 	(hunchentoot:create-regex-dispatcher "^/list-users" 'dod-controller-list-users)
 	(hunchentoot:create-regex-dispatcher "^/list-accounts" 'dod-controller-list-accounts)
+	(hunchentoot:create-regex-dispatcher "^/list-attributes" 'dod-controller-list-attrs)
+
 	;************CUSTOMER LOGIN RELATED ********************
 	(hunchentoot:create-regex-dispatcher "^/customer-login.html" 'dod-controller-customer-loginpage)
 	(hunchentoot:create-regex-dispatcher "^/dodcustlogin" 'dod-controller-cust-login)
@@ -356,6 +401,8 @@
 	(hunchentoot:create-regex-dispatcher "^/dodprddetails" 'dod-controller-prd-details)
 	(hunchentoot:create-regex-dispatcher "^/dodprodsubscribe" 'dod-controller-cust-add-orderpref-page)
 	(hunchentoot:create-regex-dispatcher "^/dodproducts" 'dod-controller-customer-products)
+	(hunchentoot:create-regex-dispatcher "^/dodsearchproducts" 'dod-controller-search-products)
+
 ;************VENDOR RELATED ********************
 	(hunchentoot:create-regex-dispatcher "^/vendor-login.html" 'dod-controller-vendor-loginpage)
 	(hunchentoot:create-regex-dispatcher "^/dodvendlogin" 'dod-controller-vend-login)

@@ -1,7 +1,7 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
-(defun crm-controller-delete-company ()
+(defun dod-controller-delete-company ()
 (if (is-dod-session-valid?)
     (let ((id (hunchentoot:parameter "id")) )
       (delete-dod-company id)
@@ -9,17 +9,51 @@
      (hunchentoot:redirect "/login")))
 
 
-(defun crm-controller-list-companies ()
+
+																		   
+(defun ui-list-companies (complist)
+    (cl-who:with-html-output (*standard-output* nil)
+	(:div :class "row-fluid"	  (mapcar (lambda (company)
+						      (htm (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12" 
+							       (:div :class "company-box"   (company-card company )))))
+					     complist))))
+
+
+
+(defun company-card (instance)
+    (let ((comp-name (slot-value instance 'name))
+	     (address  (slot-value instance 'address))
+	     (city (slot-value instance 'city))
+	  (state (slot-value instance 'state)) 
+	  (country (slot-value instance 'country))
+	  (zipcode (slot-value instance 'zipcode))
+	  (row-id (slot-value instance 'row-id)))
+
+	   
+	(cl-who:with-html-output (*standard-output* nil)
+	  
+		(:div :class "row"
+		    
+		(:div :class "col-sm-2" (str comp-name))
+		(:div :class "col-sm-2" (str address))
+		(:div :class "col-sm-2" (str city))
+		(:div :class "col-sm-2" (str state))
+		(:div :class "col-sm-2" (str country))
+		(:div :class "col-sm-1" (str zipcode))
+		(:div :class "col-sm-1"  (:a :href  (format nil  "/delcomp?id=~A" row-id )  "Delete"))
+		))))
+
+
+
+
+(defun dod-controller-list-companies ()
 (if (is-dod-session-valid?)
    (let (( companies (list-dod-companies)))
     (standard-page (:title "List companies")
-      (:table :cellpadding "0" :cellspacing "0" :border "1"
-     (loop for company in companies
-       do (htm (:tr (:td :colspan "3" :height "12px" (str (slot-value company 'name)))
-		    (:td :colspan "12px" (:a :href  (format nil  "/delcomp?id=~A" (slot-value company 'row-id)) "Delete"))
-		    
-		    ))))))
- (hunchentoot:redirect "/login")))
+      (ui-list-companies companies)))
+(hunchentoot:redirect "opr-login.html")))
+
+
 
 (defun get-login-tenant-id ()
   (hunchentoot:session-value :login-tenant-id))

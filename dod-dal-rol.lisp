@@ -1,7 +1,7 @@
 
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
-(clsql:def-view-class crm-roles ()
+(clsql:def-view-class dod-roles ()
   ((row-id
     :db-kind :key
     :db-constraints :not-null
@@ -44,20 +44,7 @@
     :DB-INFO (:JOIN-CLASS crm-company
 	                  :HOME-KEY tenant-id
                           :FOREIGN-KEY row-id
-                          :SET NIL))
+                          :SET NIL)))
 
-   
-   (parent-id
-    :type integer
-    :initarg :parent-id)
-   (PARENT
-    :accessor role-parent
-    :db-kind :join
-    :db-info (:join-class crm_roles
-                          :home-key parent-id
-                          :foreign-key row-id
-                          :set nil)))
-
-
-   (:base-table crm_roles))
+   (:base-table dod_roles))
 

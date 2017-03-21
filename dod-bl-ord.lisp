@@ -196,10 +196,26 @@
   (let ((uuid (uuid:make-v1-uuid )))
     (progn 	(create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt  company-instance)
 		(let ((order (get-order-by-context-id (print-object uuid nil) company-instance)))
-		      (mapcar (lambda (odt)
+		      
+		  (mapcar (lambda (odt)
 				(let* ((prd (search-prd-in-list (slot-value odt 'prd-id) products))
 					  (unit-price (slot-value odt 'unit-price))
 				      (prd-qty (slot-value odt 'prd-qty)))
-				    (create-order-details order prd   prd-qty unit-price company-instance))) order-details-list)))))
+				    (create-order-details order prd   prd-qty unit-price company-instance))) order-details-list)
+		  
+
+))))
 
 
+
+(defun create-daily-orders (&key company-id odtstr reqstr)
+    :documentation "odtstr and reqstr are of the format \"dd/mm/yyyy\" "
+    (let* ((orderdate (get-date-from-string odtstr))
+	      (requestdate (get-date-from-string reqstr))
+	      (dodcompany (select-company-by-id company-id))
+	      (customers (list-cust-profiles dodcompany)))
+					;Get a list of all the customers belonging to the current company. 
+					; For each customer, get the order preference list and pass to the below function.
+	      (mapcar (lambda (customer)
+			  (let ((custopflist (get-opreflist-for-customer customer)))
+			    (if custopflist  (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) nil   customer dodcompany)) )) customers)))

@@ -77,10 +77,6 @@
 (apply #'create-product PrajaVani)
 
 
-
-
-
-
 (defparameter *product-params* nil)
 (defparameter *unitprice* nil) 
 (loop for i from 1 to 10 do 
@@ -91,7 +87,6 @@
 
 ;Get the customer which we have created in the above steps. 
 (defparameter Testproduct (select-product-by-name (car *product-params*) dod-company ))
-
 
 
 

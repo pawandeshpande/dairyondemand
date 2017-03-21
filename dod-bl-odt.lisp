@@ -4,12 +4,16 @@
 
 
 (defun get-order-details (order-instance)
+:documentation "Returns the list of order details instances given order-instance as input"
   (let ((tenant-id (slot-value order-instance 'tenant-id))
 	(order-id (slot-value order-instance 'row-id)))
  (clsql:select 'dod-order-details  :where
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[=[:order-id] order-id]]    :caching nil :flatp t )))
+
+
+
 
 (defun get-order-details-for-vendor (order-instance vendor-instance)
     (let* ((tenant-id (slot-value order-instance 'tenant-id))

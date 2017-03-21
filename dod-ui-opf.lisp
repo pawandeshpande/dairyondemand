@@ -15,15 +15,14 @@
 
 ;**************Function to list an individual customer's order preferences ******************
 (defun ui-list-cust-orderprefs (header data)
-    (standard-customer-page (:title "List DOD Order Preferences")
-
+  
+  (cl-who:with-html-output (*standard-output* nil)
       
       (:h3 "My Subscriptions.")      
       (:table :class "table table-striped"  (:thead (:tr
  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
 								  (mapcar (lambda (orderpref)
-									      (let ((opf-customer  (get-opf-customer orderpref))
-										       (opf-id (slot-value orderpref 'row-id))
+									      (let ((opf-id (slot-value orderpref 'row-id))
 										  (opf-product (get-opf-product orderpref)))
 										(htm (:tr
 											

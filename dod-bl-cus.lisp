@@ -5,7 +5,7 @@
 
 (defun list-cust-profiles (company)
   (let ((tenant-id (slot-value company 'row-id)))
-  (clsql:select 'dod-cust-profile  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-debug-mode*  :flatp t )))
+  (clsql:select 'dod-cust-profile  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching*  :flatp t )))
 
 
 
@@ -15,7 +15,7 @@
 		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[like  [:name] name-like-clause]]
-		:caching nil :flatp t))))
+		:caching *dod-database-caching* :flatp t))))
 
 
 
@@ -25,7 +25,7 @@
 		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[=  [:row-id] id]]
-		:caching nil :flatp t))))
+		:caching *dod-database-caching* :flatp t))))
 
 
 
@@ -35,7 +35,7 @@
 		[= [:deleted-state] "Y"]
 		[= [:tenant-id] tenant-id]
 		[=  [:row-id] id]]
-		:caching nil :flatp t))))
+		:caching *dod-database-caching* :flatp t))))
 
 
 (defun delete-customer (object)
@@ -51,7 +51,7 @@
     
 
 (defun delete-cust-profile( id tenant-id )
-  (let ((dodcust (car (clsql:select 'dod-cust-profile :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+  (let ((dodcust (car (clsql:select 'dod-cust-profile :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
     (setf (slot-value dodcust 'deleted-state) "Y")
     (clsql:update-record-from-slot dodcust 'deleted-state)))
 
@@ -63,13 +63,13 @@
 
 (defun delete-cust-profiles ( list company)
 (let ((tenant-id (slot-value company 'row-id)))  
-  (mapcar (lambda (id)  (let ((doduser (car (clsql:select 'dod-cust-profile :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+  (mapcar (lambda (id)  (let ((doduser (car (clsql:select 'dod-cust-profile :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
 			  (setf (slot-value doduser 'deleted-state) "Y")
 			  (clsql:update-record-from-slot doduser  'deleted-state))) list )))
 
 
 (defun restore-deleted-cust-profile ( list tenant-id )
-(mapcar (lambda (id)  (let ((doduser (car (clsql:select 'dod-cust-profile :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+(mapcar (lambda (id)  (let ((doduser (car (clsql:select 'dod-cust-profile :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
     (setf (slot-value doduser 'deleted-state) "N")
     (clsql:update-record-from-slot doduser 'deleted-state))) list ))
 

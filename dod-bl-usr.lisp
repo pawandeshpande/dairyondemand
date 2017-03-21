@@ -3,7 +3,9 @@
 
 
 (defun list-dod-users ()
-  (clsql:select 'dod-users  :where [and [= [:deleted-state] "N"] [= [:tenant-id] (get-login-tenant-id)]]    :caching nil :flatp t ))
+  (clsql:select 'dod-users  :where [and [= [:deleted-state] "N"] 
+		[= [:tenant-id] (get-login-tenant-id)]
+		[<> [:name] "superadmin"]]    :caching nil :flatp t ))
 
 
 (defun delete-dod-user ( id )
@@ -28,11 +30,9 @@
 (defun verify-superadmin ();;"Verifies whether username is superadmin" 
   (if (equal (get-current-login-username) "superadmin") T NIL ))
 
-(defun superadmin-login (company-id)
+(defun superadmin-login ()
 (if (verify-superadmin )
-  (setf ( hunchentoot:session-value :login-company)   (get-tenant-name company-id))))
-
-	    
+  (setf ( hunchentoot:session-value :login-company) "super")))
 
   
 (defun create-dod-user(name uname passwd email-address tenant-id )
