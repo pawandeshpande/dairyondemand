@@ -22,12 +22,12 @@
 ;******Create the customer ******
 (defparameter *customer-params* nil)
 ;******Create a customer for demo company, with fixed phone number *******
-(setf *customer-params* (list (format nil "cust~a" (random 200)) "GA Bangalore 560066" "9999999999" 1000.00 "Bangalore" "Karnataka" "560066"  dod-company))
+(setf *customer-params* (list  "Demo Customer"   "GA Bangalore 560066" "9999999999" "Bangalore" "Karnataka" "560066"  dod-company))
 ;Create the customer now.
 (apply #'create-customer *customer-params*)
 
 (loop for i from 1 to 10 do 
-(setf *customer-params* (list (format nil "cust~a" (random 200)) "GA Bangalore 560066" (format nil "99999~a" (random 99999)) 1000.00 "Bangalore" "Karnataka" "560066"  dod-company))
+(setf *customer-params* (list (format nil "cust~a" (random 200)) "GA Bangalore 560066" (format nil "99999~a" (random 99999)) "Bangalore" "Karnataka" "560066"  dod-company))
 ;Create the customer now.
 (apply #'create-customer *customer-params*))
 
@@ -41,8 +41,8 @@
 ;Create the vendor now.
 (apply #'create-vendor *vendor-params*))
 ;Get the vendor which we have created in the above steps. 
-(defparameter Rajesh(select-vendor-by-name (car *vendor-params*) dod-company))
-(defparameter Suresh(select-vendor-by-name (car *vendor-params*) dod-company))
+(defparameter Rajesh(select-vendor-by-id 1  dod-company))
+(defparameter Suresh(select-vendor-by-id 2  dod-company))
 
 (defparameter MilkCatg (select-prdcatg-by-name "%Milk & Dairy Products%" dod-company))
 (defparameter NewspapersCatg (select-prdcatg-by-name "%Newspaper%" dod-company))
@@ -85,8 +85,18 @@
 ;Create the customer now.
 (apply #'create-product *product-params*))
 
-;Get the customer which we have created in the above steps. 
-(defparameter Testproduct (select-product-by-name (car *product-params*) dod-company ))
+;;;; Create two wallets for the customer demo
+(defparameter *demo-customer* (select-customer-by-name "%Demo Customer" dod-company)) 
+(defparameter *demo-cust-wallet1* (list *demo-customer* Rajesh dod-company))
+(defparameter *demo-cust-wallet2* (list *demo-customer* Suresh dod-company))
+
+(apply #'create-wallet *demo-cust-wallet1*)
+(apply #'create-wallet *demo-cust-wallet2*)
+
+(defparameter *cust-wallet1* (get-cust-wallet *demo-customer* Rajesh dod-company))
+(defparameter *cust-wallet2* (get-cust-wallet *demo-customer* Suresh dod-company))
+(set-wallet-balance 1000.00 *cust-wallet1*) 
+(set-wallet-balance 1000.00 *cust-wallet2*)
 
 
 

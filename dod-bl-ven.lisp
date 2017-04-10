@@ -2,7 +2,7 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
-(defun get-vendors (company)
+(defun select-vendors-for-company (company)
   (let ((tenant-id (slot-value company 'row-id)))
 (clsql:select 'dod-vend-profile  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching nil :flatp t )))
 
@@ -22,6 +22,8 @@
 		[= [:tenant-id] tenant-id]
 		[like  [:name] name-like-clause]]
 		:caching nil :flatp t))))
+
+
 
 
 

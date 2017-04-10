@@ -5,7 +5,7 @@
     :db-kind :key
     :db-constraints :not-null
     :type integer
-    :initarg row-id)
+    :initarg :row-id)
    (NAME
     :accessor name
     :DB-CONSTRAINTS :NOT-NULL
@@ -66,10 +66,6 @@
 	  :type (string 256)
 	  :initarg :picture-path)
       
-      (wallet-balance 
-       :accessor wallet-balance 
-       :type (number) 
-       :initarg :wallet-balance) 
 
    (deleted-state
     :type (string 1)
@@ -90,5 +86,62 @@
    
   (:BASE-TABLE dod_cust_profile))
 
+
+;;;;; Create class for DOD_CUST_WALLET table
+(clsql:def-view-class dod-cust-wallet ()
+  ((row-id
+    :db-kind :key
+    :db-constraints :not-null
+    :type integer
+    :initarg :row-id)
+  
+    (cust-id
+    :type integer
+    :initarg :cust-id)
+   (customer
+    :ACCESSOR get-customer
+    :DB-KIND :JOIN
+    :DB-INFO (:JOIN-CLASS dod-cust-profile
+	                  :HOME-KEY cust-id
+                          :FOREIGN-KEY row-id
+                          :SET nil))
+
+ (vendor-id
+    :type integer
+    :initarg :vendor-id)
+   (vendor
+    :ACCESSOR get-vendor
+    :DB-KIND :JOIN
+    :DB-INFO (:JOIN-CLASS dod-vend-profile
+	                  :HOME-KEY vendor-id
+                          :FOREIGN-KEY row-id
+                          :SET nil))
+   
+
+
+   (balance 
+    :type (number ) 
+    :initarg :balance)
+
+   (deleted-state
+    :type (string 1)
+    :void-value "N"
+    :initarg :deleted-state)
+
+
+
+    (tenant-id
+    :type integer
+    :initarg :tenant-id)
+   (COMPANY
+    :ACCESSOR get-company
+    :DB-KIND :JOIN
+    :DB-INFO (:JOIN-CLASS dod-company
+	                  :HOME-KEY tenant-id
+                          :FOREIGN-KEY row-id
+                          :SET nil)))
+
+   
+  (:BASE-TABLE dod_cust_wallet))
 
 

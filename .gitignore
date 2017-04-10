@@ -1,6 +1,6 @@
 *.fasl
 *.jpg
 *.png
-sap-labs.lisp
+
 *.*~
-*.*#
+*#.*#

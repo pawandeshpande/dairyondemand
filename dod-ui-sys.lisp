@@ -373,7 +373,7 @@
 	(hunchentoot:create-regex-dispatcher "^/list-users" 'dod-controller-list-users)
 	(hunchentoot:create-regex-dispatcher "^/list-accounts" 'dod-controller-list-accounts)
 	(hunchentoot:create-regex-dispatcher "^/list-attributes" 'dod-controller-list-attrs)
-
+	
 	;************CUSTOMER LOGIN RELATED ********************
 	(hunchentoot:create-regex-dispatcher "^/customer-login.html" 'dod-controller-customer-loginpage)
 	(hunchentoot:create-regex-dispatcher "^/dodcustlogin" 'dod-controller-cust-login)
@@ -402,6 +402,9 @@
 	(hunchentoot:create-regex-dispatcher "^/dodprodsubscribe" 'dod-controller-cust-add-orderpref-page)
 	(hunchentoot:create-regex-dispatcher "^/dodproducts" 'dod-controller-customer-products)
 	(hunchentoot:create-regex-dispatcher "^/dodsearchproducts" 'dod-controller-search-products)
+	(hunchentoot:create-regex-dispatcher "^/doddelcustorditem" 'dod-controller-del-cust-ord-item)
+	(hunchentoot:create-regex-dispatcher "^/dodcustlowbalance" 'dod-controller-low-wallet-balance)
+	(hunchentoot:create-regex-dispatcher "^/dodcustwallet" 'dod-controller-cust-wallet-display)
 
 ;************VENDOR RELATED ********************
 	(hunchentoot:create-regex-dispatcher "^/vendor-login.html" 'dod-controller-vendor-loginpage)

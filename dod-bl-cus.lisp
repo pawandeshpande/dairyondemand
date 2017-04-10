@@ -55,12 +55,6 @@
     (setf (slot-value dodcust 'deleted-state) "Y")
     (clsql:update-record-from-slot dodcust 'deleted-state)))
 
-
-(defun deduct-wallet-balance (amount customer-instance)
-(let ((cur-balance (slot-value customer-instance 'wallet-balance)))
-(progn  (setf (slot-value customer-instance 'wallet-balance) (- cur-balance amount))
-  (clsql:update-record-from-slot customer-instance 'wallet-balance))))
-
 (defun delete-cust-profiles ( list company)
 (let ((tenant-id (slot-value company 'row-id)))  
   (mapcar (lambda (id)  (let ((doduser (car (clsql:select 'dod-cust-profile :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
@@ -75,19 +69,77 @@
 
   
 
-(defun create-customer(name address phone wallet-bal city state zipcode company  )
+(defun create-customer(name address phone city state zipcode company  )
   (let ((tenant-id (slot-value company 'row-id)))
  (clsql:update-records-from-instance (make-instance 'dod-cust-profile
 						    :name name
 						    :address address
 						    :phone phone
-						    :wallet-balance wallet-bal
 						    :city city 
 						    :state state 
 						    :zipcode zipcode
 						    :tenant-id tenant-id
 						    :deleted-state "N"))))
  
+
+
+
+
+;;;;; Customer wallet related functions ;;;;;
+
+
+(defun create-wallet(customer vendor company  )
+  (let ((tenant-id (slot-value company 'row-id))
+	(cust-id (slot-value customer 'row-id))
+	(vendor-id (slot-value vendor 'row-id)))
+    (persist-wallet cust-id vendor-id tenant-id)))
+
+(defun persist-wallet (cust-id vendor-id tenant-id)
+ (clsql:update-records-from-instance (make-instance 'dod-cust-wallet
+						    :cust-id cust-id
+						    :vendor-id vendor-id 
+						    :tenant-id tenant-id
+				    		    :deleted-state "N")))
+
+(defun check-wallet-balance (amount customer-wallet)
+(let ((cur-balance (slot-value customer-wallet  'balance)))
+  (if (> cur-balance amount) T nil)))
+
+(defun check-low-wallet-balance (customer-wallet) 
+(if (< (slot-value customer-wallet 'balance) 100.00) T nil))
+
+(defun check-zero-wallet-balance (customer-wallet)
+(if (< (slot-value customer-wallet 'balance) 0.00) T nil)) 
+
+
+(defun deduct-wallet-balance (amount customer-wallet)
+(let ((cur-balance (slot-value customer-wallet 'balance)))
+(progn  (setf (slot-value customer-wallet 'balance) (- cur-balance amount))
+  (clsql:update-record-from-slot customer-wallet 'balance))))
+
+(defun set-wallet-balance (amount customer-wallet)
+ (progn  (setf (slot-value customer-wallet 'balance) amount)
+	 (clsql:update-record-from-slot customer-wallet 'balance)))
+
+(defun get-cust-wallet-by-vendor (customer vendor company) 
+  (let ((tenant-id (slot-value company 'row-id))
+	(cust-id (slot-value customer 'row-id))
+	(vendor-id (slot-value vendor 'row-id)))
+  (car (clsql:select 'dod-cust-wallet :where [and
+		[= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[= [:cust-id] cust-id]
+		[=  [:vendor-id] vendor-id]]
+		:caching *dod-database-caching* :flatp t))))
+
+(defun get-cust-wallets (customer company) 
+  (let ((tenant-id (slot-value company 'row-id))
+	(cust-id (slot-value customer 'row-id)))
+   (clsql:select 'dod-cust-wallet :where [and
+		[= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[= [:cust-id] cust-id]]
+		:caching *dod-database-caching* :flatp t)))
 
 
 

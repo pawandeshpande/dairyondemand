@@ -15,16 +15,16 @@
     (cl-who:with-html-output (*standard-output* nil)
 	(:h3 "Order Details") 
 	(:table :class "table table-striped"  (:thead (:tr
-							  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
-														       (mapcar (lambda (odt)
-																   (let ((odt-product  (get-odt-product odt)))
-																       (htm (:tr (:td  :height "12px" (str (slot-value odt 'order-id)))
-																		(:td  :height "12px" (str (slot-value odt-product 'prd-name)))
-																		(:td  :height "12px" (str (slot-value odt 'prd-qty)))
-																		(:td  :height "12px" (str (slot-value odt 'unit-price)))
-																		(:td :height "12px" (:a :href  (format nil  "/delorderdetail?id=~A" (slot-value odt 'row-id)) :onclick "return false"  "Delete")
-																		    (:a :href  (format nil  "/editorderdetail?id=~A" (slot-value odt 'row-id)) :onclick "return false"  "Edit")
-																		    ))))) (if (not (typep data 'list)) (list data) data) )))))
+				 (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
+				       (mapcar (lambda (odt)
+				   (let ((odt-product  (get-odt-product odt)))
+				     (htm (:tr (:td  :height "12px" (str (slot-value odt 'order-id)))
+				       (:td  :height "12px" (str (slot-value odt-product 'prd-name)))
+				       (:td  :height "12px" (str (slot-value odt 'prd-qty)))
+				       (:td  :height "12px" (str (slot-value odt 'unit-price)))
+				       (:td :height "12px" (:a :href  (format nil  "/delorderdetail?id=~A" (slot-value odt 'row-id)) :onclick "return false"  "Delete")
+					    (:a :href  (format nil  "/editorderdetail?id=~A" (slot-value odt 'row-id)) :onclick "return false"  "Edit")
+					    ))))) (if (not (typep data 'list)) (list data) data) )))))
 
 
 (defun ui-list-shop-cart (data shopcart)
@@ -49,16 +49,18 @@
 
 	(:h3 "Order Details") 
 	(:table :class "table table-striped"  (:thead (:tr
-							  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
-														       (mapcar (lambda (odt)
-																   (let ((odt-product  (get-odt-product odt))
-																	    (unit-price (slot-value odt 'unit-price))
-																	    (prd-qty (slot-value odt 'prd-qty)))
-																	    (htm (:tr (:td  :height "12px" (str (slot-value odt-product 'prd-name)))
-																		(:td  :height "12px" (str (format nil  "~d" prd-qty)))
-																		(:td  :height "12px" (str (format nil  "Rs. ~$" unit-price)))
-																		(:td  :height "12px" (str (format nil "Rs. ~$" (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty)))))
-																		)))) (if (not (typep data 'list)) (list data) data))))))
+					  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
+					      (mapcar (lambda (odt)
+						 (let ((odt-product  (get-odt-product odt))
+						       (unit-price (slot-value odt 'unit-price))
+						       (ordid (slot-value odt 'order-id))
+						       (prd-qty (slot-value odt 'prd-qty)))
+						   (htm (:tr (:td  :height "12px" (str (slot-value odt-product 'prd-name)))
+							     (:td  :height "12px" (str (format nil  "~d" prd-qty)))
+							     (:td  :height "12px" (str (format nil  "Rs. ~$" unit-price)))
+							     (:td  :height "12px" (str (format nil "Rs. ~$" (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty)))))
+							     (:td  :height "12px" (:a :onclick "return DeleteConfirm();" :href  (format nil "/doddelcustorditem?id=~A&ord=~A" (slot-value odt 'row-id) ordid) :onclick "return false" "Cancel"))
+)))) (if (not (typep data 'list)) (list data) data))))))
 
 
 (defun display-order-header (order-instance)

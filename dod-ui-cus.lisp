@@ -32,9 +32,11 @@
 	(hunchentoot:redirect "/customer-login.html")))
 
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DAS-CUST-PAGE-WITH-TILES;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun das-cust-page-with-tiles (displayfunc pagetitle &rest args)
+:documentation "This is a standard higher order function which takes the display function as argument and displays the information"
 (if (is-dod-cust-session-valid?)
     (standard-customer-page (:title pagetitle) 
     (apply displayfunc args))
@@ -44,19 +46,39 @@
 
 
 (defun dod-controller-my-orderprefs ()
-  (let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
+ :documentation "A callback function which prints daily order preferences for a logged in customer in HTML format." 
+ (let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
 	(header (list   "Product"  "Weekday Preference"  "Product Qty" "Qty Per Unit" "Unit Price"  "Action")))
+  (das-cust-page-with-tiles 'ui-list-cust-orderprefs "Customer Order Preferences" header dodorderprefs)))
 
-  (das-page-with-tiles 'ui-list-cust-orderprefs "Customer Order Preferences" header dodorderprefs)))
 
 
-(defun dod-controller-my-orderprefs1 ()
-    :documentation "A callback function which prints daily order preferences for a logged in customer in HTML format."
-    (if (is-dod-cust-session-valid?)
-	(let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
-		 (header (list   "Product"  "Weekday Preference"  "Product Qty" "Qty Per Unit" "Unit Price"  "Action")))
-	    (ui-list-cust-orderprefs header dodorderprefs))
-	(hunchentoot:redirect "/customer-login.html")))
+(defun dod-controller-cust-wallet-display ()
+:documentation "A callback function which displays the wallets for a customer" 
+(let* ((company (hunchentoot:session-value :login-customer-company))
+      (customer (hunchentoot:session-value :login-customer))
+      (wallets (get-cust-wallets customer company))
+       (header (list "Vendor" "Balance")))
+(das-cust-page-with-tiles 'list-customer-wallets "Customer Wallets" header wallets)))
+
+
+(defun list-customer-wallets (header wallets)
+(cl-who:with-html-output (*standard-output* nil)
+      (:h3 "My Wallets.")      
+      (:table :class "table table-striped"  (:thead (:tr
+ (mapcar (lambda (item) (htm (:th (str item)))) header))) 
+	      (:tbody
+	       (mapcar (lambda (wallet)
+			 (let ((vendor (slot-value wallet 'vendor))
+			       (balance (slot-value wallet 'balance)))
+			   (htm (:tr
+				 (:td  :height "12px" (str (slot-value vendor  'name)))
+				 (:td :height "12px" (str (format nil "Rs. ~$" balance))))))) wallets)))))
+
+
+
+
+
 
 (defun dod-controller-del-opref ()
     :documentation "Delete order preference"
@@ -97,6 +119,21 @@
 	    (let ((vendor (select-vendor-by-id  (hunchentoot:parameter "id") (hunchentoot:session-value :login-customer-company))))
 		(vendor-details-card vendor)))
 	(hunchentoot:redirect "/customer-login.html")))
+
+
+
+(defun dod-controller-del-cust-ord-item ()
+  (if (is-dod-cust-session-valid?)
+      (let* ((order-id (parse-integer (hunchentoot:parameter "ord")))
+	    (redirect-url (format nil "/dodmyorderdetails?id=~A" order-id))
+	    (item-id (parse-integer (hunchentoot:parameter "id")))
+	    (company (hunchentoot:session-value :login-customer-company)))
+
+	(delete-order-details (list item-id) company)
+	(hunchentoot:redirect redirect-url))
+      ;else
+      (hunchentoot:redirect "/customer-login.html")))
+	    
 
 	    
 
@@ -142,8 +179,7 @@
 
 (defmacro customer-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
-    `(let ((customer (hunchentoot:session-value :login-customer)))
-       (cl-who:with-html-output (*standard-output* nil)
+    `(cl-who:with-html-output (*standard-output* nil)
 	 (:div :class "navbar navbar-inverse  navbar-static-top"
 	     (:div :class "container-fluid"
 		 (:div :class "navbar-header"
@@ -157,7 +193,7 @@
 			 (:li :class "active" :align "center" (:a :href "/dodcustindex" (:span :class "glyphicon glyphicon-home")  " Home"))
 			 (:li :align "center" (:a :href "/dodcustorderprefs" "My Subscriptions"))
 			 (:li :align "center" (:a :href "/dodmyorders" "My Orders"))
-			 (:li :align "center" (:a :href "#" (:i :class "fa fa-google-wallet" :style "color:white") (str(format nil "~$" (slot-value customer 'wallet-balance)))))
+			 (:li :align "center" (:a :href "/dodcustwallet" (:i :class "fa fa-google-wallet" :style "color:white") ))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     (:ul :class "nav navbar-nav navbar-right"
 			 
@@ -165,7 +201,7 @@
 			 (:li :align "center" (:a :href "https://goo.gl/forms/XaZdzF30Z6K43gQm2" "Feedback" ))
 			 (:li :align "center" (:a :href "https://goo.gl/forms/SGizZXYwXDUiTgVY2" (:span :class "glyphicon glyphicon-bug") "Bug" ))
 	;(:li :align "center" (:a :href "/dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart " (:span :class "badge" (str (format nil " ~A " (length (hunchentoot:session-value :login-shopping-cart)))) )))
-			 (:li :align "center" (:a :href "/dodcustlogout" (:span :class "glyphicon glyphicon-off") " Logout "  )))))))))
+			 (:li :align "center" (:a :href "/dodcustlogout" (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
     
 
 
@@ -184,13 +220,14 @@
 		 (:link :rel "icon" :href "favicon.ico")
 		 (:title ,title )
 		 (:link :href "css/style.css" :rel "stylesheet")
-		 (:link :href "css/rangeslider.css" :rel "stylesheet")
+		
 		 (:link :href "css/bootstrap.min.css" :rel "stylesheet")
 		 (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
 		 (:link :href "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" :rel "stylesheet")
 		 (:link :href "css/theme.css" :rel "stylesheet")
-		 (:link :href "css/nouislider.min.css" :rel "stylesheet")
+		
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
+		  (:script :type "text/javascript" :src "js/dod.js")
 		 (:script :src "js/spin.min.js")
 		 ) ;; Header completes here.
 	     (:body
@@ -203,8 +240,8 @@
 		     (:div :id "header"	; DOD System header
 			 ,@body))	;container div close
 		 ;; Rangeslider
-		 (:script :src "js/nouislider.min.js")
-		 (:script :src "js/dod.js")
+		
+		
 		 ;; bootstrap core javascript
 		 (:script :src "js/bootstrap.min.js"))))))
 
@@ -250,17 +287,17 @@
 			         (:input :type "hidden" :name "product-id" :value (format nil "~a" (slot-value product 'row-id)))
 				 ; (products-dropdown "product-id"  (hunchentoot:session-value :login-prd-cache)))
 			    (:div :class "form-group row" (:label :for "prdqty" "Product Quantity")
-				(:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :maxlength "2" :type "text"))
+				(:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :value "1" :maxlength "2" :type "number"))
 			    (:div :class "form-group row" 
-			    (:label :class "checkbox-inline"  (:input :type "checkbox" :name "subs-sun" :value "Sunday" "Sunday"))
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-mon" :value "Monday" "Monday"))
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-tue" :value "Tuesday" "Tuesday")))
+			    (:label :class "checkbox-inline"  (:input :type "checkbox" :name "subs-sun"  :value "Sunday" :checked "" "Sunday" ))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-mon" :value "Monday" :checked "" "Monday"))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-tue" :value "Tuesday" :checked "" "Tuesday")))
 			    (:div :class "form-group row" 
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-wed" :value "Wednesday" "Wednesday"))
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-thu" :value "Thursday" "Thursday"))
-				(:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-fri" :value "Friday" "Friday")))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-wed" :value "Wednesday" :checked "" "Wednesday"))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-thu" :value "Thursday" :checked "" "Thursday"))
+				(:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-fri" :value "Friday" :checked "" "Friday")))
 			    (:div :class "form-group row" 
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-sat" :value "Saturday" "Saturday")))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-sat" :value "Saturday" :checked "" "Saturday")))
 			    
 			    (:div :class "form-group" 
 			    (:input :type "submit"  :class "btn btn-primary" :value "Add      "))
@@ -323,11 +360,11 @@
 		 (subs-fri (hunchentoot:parameter "subs-fri"))
 		 (subs-sat (hunchentoot:parameter "subs-sat"))
 		 (subs-sun (hunchentoot:parameter "subs-sun"))		 )
-	    (progn (format t "creating order preference now")
-		
-		(create-opref login-cust  (select-product-by-id product-id login-cust-comp )  prd-qty  (list subs-mon subs-tue subs-wed subs-thu subs-fri subs-sat subs-sun)  login-cust-comp)
+	  
+		(if (> prd-qty 0) 
+		(create-opref login-cust  (select-product-by-id product-id login-cust-comp )  prd-qty  (list subs-mon subs-tue subs-wed subs-thu subs-fri subs-sat subs-sun)  login-cust-comp))
 		(setf (hunchentoot:session-value :login-cusopf-cache) (get-opreflist-for-customer login-cust))
-		(hunchentoot:redirect "/dodcustorderprefs")))
+		(hunchentoot:redirect "/dodcustorderprefs"))
 	(hunchentoot:redirect "/customer-login.html")))
 
   
@@ -339,6 +376,11 @@
 	 do (if (equal (slot-value prd 'subscribe-flag) "Y")  (htm  (:option :value  (slot-value prd 'row-id) (str (slot-value prd 'prd-name))))))))))
 
 
+(defun dod-controller-low-wallet-balance ()
+  (if (is-dod-cust-session-valid?)
+      (standard-customer-page (:title "Low Wallet Balance")
+	(:h1 "Low Wallet Balance"))
+      (hunchentoot:redirect "/customer-login.html")))
 
 
 
@@ -362,20 +404,20 @@
 (defun dod-controller-cust-add-order-action ()
     (if (is-dod-cust-session-valid?)
 	(let ((odts (hunchentoot:session-value :login-shopping-cart))
-	      (customer (hunchentoot:session-value :login-customer))
-	      (products (hunchentoot:session-value :login-prd-cache))
+	         (products (hunchentoot:session-value :login-prd-cache))
 		 (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
 		 (cust (hunchentoot:session-value :login-customer))
 	      (shopcart-total (get-shop-cart-total))
 	      (custcomp (hunchentoot:session-value :login-customer-company))
 		 (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
 		 (shipaddr (hunchentoot:parameter "shipaddress")))
-	    (progn (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total cust custcomp)
+	 
+	  (progn (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total cust custcomp)
 		(setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 		(setf (hunchentoot:session-value :login-shopping-cart ) nil)
 		; Deduct the wallet balance after the order has been created
-		(deduct-wallet-balance shopcart-total  customer )
-		(hunchentoot:redirect "/dodcustordsuccess")))))
+		(hunchentoot:redirect "/dodcustordsuccess")))
+	 (hunchentoot:redirect "/customer-login.html")))
 
 (defun get-shop-cart-total ()
   (let* ((odts (hunchentoot:session-value :login-shopping-cart))
