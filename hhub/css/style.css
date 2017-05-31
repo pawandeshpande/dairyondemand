@@ -1,0 +1,258 @@
+body
+{
+    background-image: "url(resources/background.jpg)";
+
+}
+
+
+
+
+.scrollup {
+    width: 40px;
+    height: 40px;
+    opacity: 0.382;
+    position: fixed;
+    bottom: 33px;
+    left: 33px;
+    display: none;
+    text-indent: -9999px;
+    background: url(../resources/icon_top.png) no-repeat;
+    z-index: 1055;
+}
+
+.form-inline span {
+  display:block;
+}
+
+.form-inline span:after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
+.form-inline .col-lg-12 {
+  clear:both;
+}
+
+.loadingDiv {
+  position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    filter:alpha(opacity=50);
+    -moz-opacity:0.5;
+    -khtml-opacity: 0.5;
+    opacity: 0.5;
+    z-index: 10000;
+}
+
+.form-signin
+{
+    max-width: 330px;
+    padding: 15px;
+    margin: 0 auto;
+}
+.form-signin .form-signin-heading, .form-signin .checkbox
+{
+    margin-bottom: 10px;
+}
+.form-signin .checkbox
+{
+    font-weight: normal;
+}
+.form-signin .form-control
+{
+    position: relative;
+    font-size: 16px;
+    height: auto;
+    padding: 10px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.form-signin .form-control:focus
+{
+    z-index: 2;
+}
+.form-signin input[type="text"]
+{
+    margin-bottom: -1px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.form-signin input[type="password"]
+{
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.account-wall
+{
+    margin-top: 20px;
+    padding: 40px 0px 20px 0px;
+
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    -moz-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+    -webkit-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+}
+.login-title
+{
+    color: #555;
+    font-size: 18px;
+    font-weight: 400;
+    display: block;
+}
+.profile-img
+{
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 10px;
+    display: block;
+    -moz-border-radius: 50%;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+}
+.need-help
+{
+    margin-top: 10px;
+}
+.new-account
+{
+    display: block;
+    margin-top: 10px;
+}
+
+
+#dod-error
+{
+
+    font-size: 18px;
+    font-weight: 400;
+   background-color: #FF0000;
+  position: fixed;
+  left: 100px;
+  top: 50px;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: none;
+
+}
+
+
+
+
+
+.product-box{
+
+position: relative;
+display: inline-block;
+border-radius: 5px;
+padding: 20px;
+background-color: #f9ffff;
+border: 1px solid;
+border-color: #0080fd;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  transition: all 0.3s ease-in-out;
+}; 
+
+.proudct-box::after {
+  content: '';
+  position: relative;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  background-color: #f2ffcc;
+  border-radius: 5px;
+  border: 1px #0080fd;
+  box-shadow: 15px 15px rgba(0,0,0,0.3);
+  transition: opacity 0.3s ease-in-out;
+}
+
+.product-box:hover {
+  -webkit-transform: scale(1.02, 1.02);
+  transform: scale(1.02,  1.02);
+}
+
+.product-box:hover::after {
+    opacity: 1;
+}
+
+
+.product-name { 
+    display: block;
+    width: 200px;
+    height: 20px;
+    margin-bottom: 5px;
+    overflow: hidden;
+    font-family: "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Tahoma, sans-serif;
+    font-size: 16px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+    line-height: 20px;
+    border: none;
+}
+
+.vendor-name { 
+    display: block;
+    width: 200px;
+    height: 20px;
+    margin-bottom: 5px;
+    overflow: hidden;
+    font-family: "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Tahoma, sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+    line-height: 20px;
+    border: none;
+}
+
+
+.product-image {
+    text-align: left;
+    display: block;
+    position: relative;
+    width:  100px;
+    height: 70px;
+    padding:0px;
+    margin: 10px;
+    border: none;
+    background-repeat:   no-repeat;
+
+}
+
+
+
+
+.order-box{
+position: relative;
+display: inline-block;
+border-radius: 5px;
+padding: 20px;
+background-color: #f9ffff;
+border: 1px solid;
+border-color: #0080fd;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  transition: all 0.3s ease-in-out;
+}; 
+
+
+
+.attribute-box{
+position: relative;
+display: inline-block;
+border-radius: 5px;
+padding: 20px;
+background-color: #f9ffff;
+border: 1px solid;
+border-color: #0080fd;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  transition: all 0.3s ease-in-out;
+}; 
