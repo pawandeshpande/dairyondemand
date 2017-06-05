@@ -19,17 +19,23 @@
 (apply #'create-prdcatg *product-categories*)
 
 
+(defparameter salt (flexi-streams:octets-to-string  (secure-random:bytes 56 secure-random:*generator*)))
+(defparameter password (encrypt "demo" salt))      
+
 ;******Create the customer ******
 (defparameter *customer-params* nil)
 ;******Create a customer for demo company, with fixed phone number *******
-(setf *customer-params* (list  "Demo Customer"   "GA Bangalore 560066" "9999999999" "Bangalore" "Karnataka" "560066"  dod-company))
+(setf *customer-params* (list  "Demo Customer"   "GA Bangalore 560066" "9999999999" "abc@abc.com" nil password salt   "Bangalore" "Karnataka" "560066"  dod-company))
 ;Create the customer now.
 (apply #'create-customer *customer-params*)
 
 (loop for i from 1 to 10 do 
-(setf *customer-params* (list (format nil "cust~a" (random 200)) "GA Bangalore 560066" (format nil "99999~a" (random 99999)) "Bangalore" "Karnataka" "560066"  dod-company))
-;Create the customer now.
-(apply #'create-customer *customer-params*))
+     (let* ((salt (flexi-streams:octets-to-string  (secure-random:bytes 56 secure-random:*generator*)))
+	   (password (encrypt "P@ssword1" salt))
+	   (*customer-params* (list (format nil "cust~a" (random 200)) "GA Bangalore 560066" (format nil "99999~a" (random 99999)) "abc@abc.com" nil password salt  "Bangalore" "Karnataka" "560066"  dod-company)))
+       
+       ;create the customer now.
+       (apply #'create-customer *customer-params*)))
 
 ;Get the customer which we have created in the above steps. 
 (defparameter Testcustomer1 (select-customer-by-name (car *customer-params*) dod-company))
@@ -93,8 +99,8 @@
 (apply #'create-wallet *demo-cust-wallet1*)
 (apply #'create-wallet *demo-cust-wallet2*)
 
-(defparameter *cust-wallet1* (get-cust-wallet *demo-customer* Rajesh dod-company))
-(defparameter *cust-wallet2* (get-cust-wallet *demo-customer* Suresh dod-company))
+(defparameter *cust-wallet1* (get-cust-wallet-by-vendor *demo-customer* Rajesh dod-company))
+(defparameter *cust-wallet2* (get-cust-wallet-by-vendor *demo-customer* Suresh dod-company))
 (set-wallet-balance 1000.00 *cust-wallet1*) 
 (set-wallet-balance 1000.00 *cust-wallet2*)
 

@@ -226,6 +226,7 @@
 		
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
 		 (:script :src "js/spin.min.js")
+		 (:script :src "https://www.google.com/recaptcha/api.js")
 		 ) ;; Header completes here.
 	     (:body
 		 (:div :id "dod-main-container"
@@ -240,7 +241,8 @@
 		
 		
 		 ;; bootstrap core javascript
-		 (:script :src "js/bootstrap.min.js"))))))
+		 (:script :src "js/bootstrap.min.js")
+		 (:script :src "js/dod.js"))))))
 
 
 					;**********************************************************************************
@@ -249,8 +251,156 @@
 
 
 
+(defun dod-controller-cust-register-page ()
+    (standard-customer-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+      	(:form :class "form-custregister" :role "form" :method "POST" :action "dodcustregister"
+	   (:div :class "row"
+			(:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+				(:h1 :class "text-center login-title"  "Customer - Register to DAS")
+				(:hr)) 
+	       (:div :class "row" 
+	    (:div :class "col-lg-6 col-md-6 col-sm-6"
+			(:div :class "form-group"
+			    (:input :class "form-control" :name "firstname" :placeholder "First Name (Required)" :type "text" ))
+			(:div :class "form-group"
+			      (:input :class "form-control" :name "lastname" :placeholder "Last Name (Required)" :type "text" ))
+			(:div :class "form-group"
+			    (:input :class "form-control" :name "email" :placeholder "Email (Required)" :type "text" ))
+			(:div :class "form-group"
+			    (:input :class "form-control" :name "address" :placeholder "Address (Required)" :type "text" ))
+			(:div :class "form-group"
+			    (:input :class "form-control" :name "zipcode" :placeholder "Pincode (Required)" :type "text" ))
+			(:div :class "form-group"
+			    (:input :class "form-control" :name "city" :placeholder "City (Required)" :type "text" ))
+		
+			(:div :class "form-group"
+			    (:input :class "form-control" :name "birthdate" :placeholder "DOB" :type "text" ))
+			(:div :class "form-group"
+			    (:input :class "form-control" :name "state" :placeholder "State" :type "text" ))
+		
+			(:hr)(:hr))
+	
+	                (:div :class "col-lg-6 col-md-6 col-sm-6"     
+		
+			      (:div :class "form-group"
+			   ; (:input :class "form-control" :name "tenant-name" :placeholder "Group/Apartment (Required)" :type "text" ))
+				    (:label :for "tenant-id" (str "Group/Apartment"))
+				    (company-dropdown "tenant-id" (list-dod-companies)) )
+			      (:div :class "form-group"
+			    (:input :class "form-control" :name "phone" :placeholder "Your Mobile Number (Required)" :type "text" ))
+		
+			(:div :class "form-group"
+			    (:input :class "form-control" :name "password" :placeholder "Password" :type "password" ))
+			(:div :class "form-group"
+			    (:input :class "form-control" :name "confirmpass" :placeholder "Confirm Password" :type "password" ))
+			(:div :class "form-group"
+			    (:div :class "g-recaptcha" :data-sitekey "6LeiXSQUAAAAAO-qh28CcnBFva6cQ68PCfxiMC0V")
+	     
+			    			
+			(:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))
+	        ))))
+
+(defun check&encrypt (password confirmpass salt)
+ (unless
+	 (and (or (null password) (zerop (length password))) 
+	      (or (null confirmpass) (zerop (length confirmpass)))
+	      (not (equal password confirmpass))) 
+       (encrypt password salt)))
+
+
+(defun dod-controller-cust-register-action ()
+(let* ((captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
+       (paramname (list "secret" "response" ) ) 
+       (paramvalue (list "6LeiXSQUAAAAAFDP0jgtajXXvrOplfkMR9rWnFdO" captcha-resp))
+       (param-alist (pairlis paramname paramvalue ))
+      (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
+                       :method :POST
+                       :parameters param-alist  ))))
+       (firstname (hunchentoot:parameter "firstname"))
+       (lastname (hunchentoot:parameter "lastname")) 
+       (email (hunchentoot:parameter "email"))
+       (address (hunchentoot:parameter "address"))
+       (zipcode (hunchentoot:parameter "zipcode"))
+       (city (hunchentoot:parameter "city"))
+       (birthdate (get-date-from-string (hunchentoot:parameter "birthdate")))
+       (state (hunchentoot:parameter "state"))
+       (phone (hunchentoot:parameter "phone"))
+       (password (hunchentoot:parameter "password"))
+       (confirmpass (hunchentoot:parameter "confirmpass"))
+       (salt-octet (secure-random:bytes 56 secure-random:*generator*))
+       (salt (flexi-streams:octets-to-string  salt-octet))
+       (encryptedpass (check&encrypt password confirmpass salt))
+       (tenant-id (hunchentoot:parameter "tenant-id"))
+       (company (select-company-by-id tenant-id)))
+
+
+  ; If we receive a True from the google verifysite then, add the user to the backend. 
+  (cond 
+    ; Check for duplicate customer
+    ((duplicate-customerp phone company) (hunchentoot:redirect "/hhub/duplicate-cust.html"))
+    ; Check whether captcha has been solved 
+    ((null (cdr (car json-response)) ) ) 
+	((not (null encryptedpass)) 
+	 (progn 
+       ; 1 
+       (create-customer (format nil "~A ~A" firstname lastname) address phone email birthdate encryptedpass salt city state zipcode company)
+       ; 2 
+       (standard-customer-page (:title "Welcome to DAS platform")
+	 (:h3 (str(format nil "Your record has been successfully added" ))))))
+	  (() T))))
+
+
+(defun dod-controller-duplicate-customer ()
+     (standard-customer-page (:title "Welcome to DAS platform")
+	 (:h3 (str(format nil "Customer record has already been created" )))
+	 (:a :href "cust-register.html" "Register new customer")))
+  
+    
+(defun dod-controller-company-search-action ()
+  (let*  ((qrystr (hunchentoot:parameter "livesearch"))
+	(company-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr))))
+    (ui-list-companies company-list)))
+
+
+
+(defun ui-list-companies (company-list)
+;  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+   (standard-customer-page (:title "Welcome to DAS Platform")
+    (if company-list 
+	(htm (:div :class "row-fluid"	  (mapcar (lambda (cmp)
+						      (htm (:div :class "col-sm-12 col-lg-12 col-md-12"
+							     (:h3 (:a :href (format nil "~A" (slot-value cmp 'name))  (str (slot-value cmp 'name))))))) company-list)))
+	;else
+	(htm (:div :class "col-sm-12 col-md-12 col-lg-12"
+	      (:h3 "No records found"))))))
+
+
+
+(defun dod-controller-company-search-page ()
+   (standard-customer-page (:title "Welcome to DAS platform") 
+			   
+     (:div :class "row"
+     (:h2 "Search Apartment/Group")
+     (:div :id "custom-search-input"
+     (:div :class "input-group col-md-12"
+	       (:form :id "theForm" :action "livesearchaction" :OnSubmit "return false;" 
+		      (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Search for an Apartment/Group"))
+     (:span :class "input-group-btn" (:<button :class "btn btn-danger" :type "button" 
+		(:span :class " glyphicon glyphicon-search")))))
+
+
+     (:div :id "finalResult" ""))))
+
+ 
+			   
+
+
+ 
+
+
 (defun dod-controller-customer-loginpage ()
-    (if (is-dod-cust-session-valid?)
+ (if (is-dod-cust-session-valid?)
 	(hunchentoot:redirect "/hhub/dodcustindex")
     (standard-customer-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
 	(:div :class "row" 
@@ -262,8 +412,12 @@
 			(:div :class "form-group"
 			    (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text" ))
 			(:div :class "form-group"
-			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
-	(:script :src "js/dod.js"))))
+			    (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
+		
+			(:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+
+
 
 
 
@@ -370,6 +524,14 @@
 	 do (if (equal (slot-value prd 'subscribe-flag) "Y")  (htm  (:option :value  (slot-value prd 'row-id) (str (slot-value prd 'prd-name))))))))))
 
 
+;; This is company/tenant name dropdown
+(defun company-dropdown (name list)
+  (cl-who:with-html-output (*standard-output* nil)
+    (htm (:select :class "form-control" :placeholder "Group/Apartment"  :name name 
+	(loop for company in list 
+	     do ( htm (:option :value (slot-value company 'row-id) (str (slot-value company 'name)))))))))
+
+
 (defun dod-controller-low-wallet-balance ()
   (if (is-dod-cust-session-valid?)
       (standard-customer-page (:title "Low Wallet Balance")
@@ -379,9 +541,11 @@
 
 
 (defun dod-controller-cust-login ()
-    (let  ( (phone (hunchentoot:parameter "phone")))
-      (unless ( or (null phone) (zerop (length phone))) 
-	    (if (equal (dod-cust-login  :phone phone) NIL) (hunchentoot:redirect "/hhub/customer-login.html") (hunchentoot:redirect  "/hhub/dodcustindex")))))
+    (let  ( (phone (hunchentoot:parameter "phone"))
+	   (password (hunchentoot:parameter "password")))
+      (unless (and  ( or (null phone) (zerop (length phone)))
+		    (or (null password) (zerop (length password))))
+	    (if (equal (dod-cust-login  :phone phone :password password) NIL) (hunchentoot:redirect "/hhub/customer-login.html") (hunchentoot:redirect  "/hhub/dodcustindex")))))
 
 (defun dod-controller-cust-ordersuccess ()
     (if (is-dod-cust-session-valid?)
@@ -543,35 +707,38 @@
 		(hunchentoot:redirect  "/hhub/dodcustshopcart")))))
 
 
-(defun dod-cust-login (&key phone)
+(defun dod-cust-login (&key phone password)
     (let* ((customer (car (clsql:select 'dod-cust-profile :where [and
 			      [= [slot-value 'dod-cust-profile 'phone] phone]
-			     [= [:deleted-state] "N"]]
+			      [= [:deleted-state] "N"]]
 			      :caching nil :flatp t)))
-	      
-	      (customer-id (if customer (slot-value customer 'row-id)))
-	      (customer-name (if customer (slot-value customer 'name)))
-	      (customer-tenant-id (if customer (slot-value (car  (customer-company customer)) 'row-id)))
-	      (customer-company-name (if customer (slot-value (car (if customer (customer-company customer))) 'name)))
-	      (login-shopping-cart '())
-	      (customer-company (if customer (car (customer-company customer)))))
-	(when (and customer
-		  (null (hunchentoot:session-value :login-customer-name))) ;; customer should not be logged-in in the first place.
-	    (progn
-		(princ "Starting session")
-		(setf *current-customer-session* (hunchentoot:start-session))
-		(setf (hunchentoot:session-value :login-customer ) customer)
-		(setf (hunchentoot:session-value :login-customer-name) customer-name)
-		(setf (hunchentoot:session-value :login-customer-id) customer-id)
-		(setf (hunchentoot:session-value :login-customer-tenant-id) customer-tenant-id)
-		(setf (hunchentoot:session-value :login-customer-company-name) customer-company-name)
-		(setf (hunchentoot:session-value :login-customer-company) customer-company)
-		(setf (hunchentoot:session-value :login-shopping-cart) login-shopping-cart)
-		(setf (hunchentoot:session-value :login-cusopf-cache) (get-opreflist-for-customer  customer)) 
-		(setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
-		(setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
-		(setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
-		))))
-		 
+	   (pwd (if customer (slot-value customer 'password)))
+	   (salt (if customer (slot-value customer 'salt)))
+	   (password-verified  (check-password password salt pwd))
+	   (customer-id (if customer (slot-value customer 'row-id)))
+	   (customer-name (if customer (slot-value customer 'name)))
+	   (customer-tenant-id (if customer (slot-value (car  (customer-company customer)) 'row-id)))
+	   (customer-company-name (if customer (slot-value (car (if customer (customer-company customer))) 'name)))
+	   (login-shopping-cart '())
+	   (customer-company (if customer (car (customer-company customer)))))
+      (when (and customer
+		 password-verified
+		 (null (hunchentoot:session-value :login-customer-name))) ;; customer should not be logged-in in the first place.
+	(progn
+	  (princ "Starting session")
+	  (setf *current-customer-session* (hunchentoot:start-session))
+	  (setf (hunchentoot:session-value :login-customer ) customer)
+	  (setf (hunchentoot:session-value :login-customer-name) customer-name)
+	  (setf (hunchentoot:session-value :login-customer-id) customer-id)
+	  (setf (hunchentoot:session-value :login-customer-tenant-id) customer-tenant-id)
+	  (setf (hunchentoot:session-value :login-customer-company-name) customer-company-name)
+	  (setf (hunchentoot:session-value :login-customer-company) customer-company)
+	  (setf (hunchentoot:session-value :login-shopping-cart) login-shopping-cart)
+	  (setf (hunchentoot:session-value :login-cusopf-cache) (get-opreflist-for-customer  customer)) 
+	  (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
+	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
+	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
+	  ))))
+
 
 

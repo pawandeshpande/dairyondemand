@@ -26,25 +26,27 @@ var opts = {
 , position: 'fixed' // Element positioning
 };
 var $busyindicator = document.getElementById('busy-indicator')
-/*var spinner = new Spinner(opts).spin();*/
+var spinner = new Spinner(opts).spin();
 
-$.ajaxSetup({
+$(document).ready(function () {
+    $.ajaxSetup({
     	beforeSend: function(){
-            $('<div class=loadingDiv>loading...</div>').prependTo(document.body);
+           // $('<div class=loadingDiv>loading...</div>').prependTo(document.body);
 	    $busyindicator.appendChild(spinner.el);
 
 	},
 	complete: function(){
    	    $busyindicator.removeChild(spinner.el);
 	}
-})
+    });
+});
 
-/*
-$('a').click(function(){
+
+/*$('a').click(function(){
     $('<div class=loadingDiv>loading...</div>').prependTo(document.body);
     	    $busyindicator.appendChild(spinner.el);
-});*/
-
+});
+*/
 
 
 
@@ -58,7 +60,7 @@ $formcustsignin.submit ( function() {
 	$error.show();
 	},
    	success: function(response){
-	    console.log("Custome Signin successful");
+	    console.log("Customer Signin successful");
 	    window.location = "/dodcustindex"; 
 	    location.reload(); 
 
@@ -212,3 +214,59 @@ function calendar(date) {
   // Display the calendar.
   document.write(calendar_html);
 }
+
+
+
+
+$(document).ready(function(){
+    $("#livesearch").keyup(function(){
+	if (($("#livesearch").val().length ==3) || 
+	    ($("#livesearch").val().length == 5)||
+	    ($("#livesearch").val().length == 8)||
+	    ($("#livesearch").val().length == 13)||
+	    ($("#livesearch").val().length == 21)){
+	    $.ajax({
+		type: "post", 
+		cache: false,
+		url: $(theForm).attr("action"), 
+		data: $(theForm).serialize(),
+		success: function(response){
+		  
+		   //document.getElementById("livesearch").innerHTML=this.responseText;
+		//document.getElementById("livesearch").style.border="1px solid #A5ACB2";
+			$("#finalResult").html(response); 
+		//	$("#finalResult").style.border = "1px solid #a5acb2";
+		}, 
+		error: function(){      
+		    alert('Error while request..');
+		}
+	    });
+	}
+	return  false;
+    });
+});
+	
+
+/*
+function showResult(str) {
+  if (str.length==0) { 
+    document.getElementById("livesearch").innerHTML="";
+    document.getElementById("livesearch").style.border="0px";
+    return;
+  }
+  if (window.XMLHttpRequest) {
+    // code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp=new XMLHttpRequest();
+  } else {  // code for IE6, IE5
+    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+  }
+  xmlhttp.onreadystatechange=function() {
+    if (this.readyState==4 && this.status==200) {
+      document.getElementById("livesearch").innerHTML=this.responseText;
+      document.getElementById("livesearch").style.border="1px solid #A5ACB2";
+    }
+  }
+  xmlhttp.open("GET","livesearchaction.php?q="+str,true);
+  xmlhttp.send();
+}
+*/

@@ -17,7 +17,18 @@
 		[like  [:name] name-like-clause]]
 		:caching *dod-database-caching* :flatp t))))
 
+(defun select-customer-by-phone (phone company)
+(let ((tenant-id (slot-value company 'row-id)))
+  (car (clsql:select 'dod-cust-profile :where [and
+		[= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[like  [:phone] phone]]
+		:caching *dod-database-caching* :flatp t))))
 
+
+(defun duplicate-customerp(phone company)
+  (if (select-customer-by-phone phone company) T NIL))
+    
 
 (defun select-customer-by-id (id company)
 (let ((tenant-id (slot-value company 'row-id)))
@@ -67,13 +78,16 @@
     (setf (slot-value doduser 'deleted-state) "N")
     (clsql:update-record-from-slot doduser 'deleted-state))) list ))
 
-  
 
-(defun create-customer(name address phone city state zipcode company  )
+(defun create-customer(name address phone  email birthdate password salt city state zipcode company  )
   (let ((tenant-id (slot-value company 'row-id)))
  (clsql:update-records-from-instance (make-instance 'dod-cust-profile
 						    :name name
 						    :address address
+						    :email email 
+						    :password password 
+						    :salt salt
+						    :birthdate birthdate 
 						    :phone phone
 						    :city city 
 						    :state state 

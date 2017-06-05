@@ -20,6 +20,16 @@
     :type (string 30)
     :initarg :phone)
 
+   (password 
+    :accessor password
+    :type (string 128) 
+    :initarg :password)
+
+   (salt 
+    :accessor salt
+    :type (string 128)
+    :initarg :salt)
+
       (email
 	  :accessor email
 	  :type (string 255)

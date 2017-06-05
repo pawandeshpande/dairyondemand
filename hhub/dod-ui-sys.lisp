@@ -405,6 +405,12 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/doddelcustorditem" 'dod-controller-del-cust-ord-item)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustlowbalance" 'dod-controller-low-wallet-balance)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustwallet" 'dod-controller-cust-wallet-display)
+	(hunchentoot:create-regex-dispatcher "^/hhub/cust-register.html" 'dod-controller-cust-register-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustregister" 'dod-controller-cust-register-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/duplicate-cust.html" 'dod-controller-duplicate-customer)
+	(hunchentoot:create-regex-dispatcher "^/hhub/livesearch.php" 'dod-controller-company-search-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/livesearchaction" 'dod-controller-company-search-action)
+
 
 ;************VENDOR RELATED ********************
 	(hunchentoot:create-regex-dispatcher "^/hhub/vendor-login.html" 'dod-controller-vendor-loginpage)

@@ -24,6 +24,14 @@
 		:caching *dod-database-caching* :flatp t)))
 
 
+(defun select-companies-by-name (name-like-clause)
+ (clsql:select 'dod-company :where [and
+		[= [:deleted-state] "N"]
+		[like  [:name] (format NIL "%~a%"  name-like-clause)]]
+		:caching *dod-database-caching* :flatp t))
+
+
+
 (defun select-company-by-id (id)
 (car (clsql:select 'dod-company :where [and
 		[= [:deleted-state] "N"]
