@@ -26,7 +26,7 @@ var opts = {
 , position: 'fixed' // Element positioning
 };
 var $busyindicator = document.getElementById('busy-indicator')
-var spinner = new Spinner(opts).spin();
+/*var spinner = new Spinner(opts).spin();*/
 
 $.ajaxSetup({
     	beforeSend: function(){

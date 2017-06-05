@@ -6,10 +6,10 @@
 
 (defun dod-controller-list-vendors ()
 (if (is-dod-session-valid?)
-   (let (( dodvendors (get-vendors (get-login-company)))
+   (let (( dodvendors (select-vendors-for-company (get-login-company)))
 	 (header (list "Name" "Address" "Phone"  "Action")))
      (if dodvendors (ui-list-vendors header dodvendors) "No vendors"))
-     (hunchentoot:redirect "/login")))
+     (hunchentoot:redirect "vendor-login.html")))
 
 
 
@@ -23,7 +23,7 @@
 									     (htm (:tr (:td  :height "12px" (str (slot-value vendor 'name)))
 										      (:td  :height "12px" (str (slot-value vendor 'address)))
 										      (:td  :height "12px" (str (slot-value vendor 'phone)))
-		    (:td :height "12px" (:a :href  (format nil  "/delvendor?id=~A" (slot-value vendor 'row-id)) "Delete"))))) data)))))
+		    (:td :height "12px" (:a :href  (format nil  "delvendor?id=~A" (slot-value vendor 'row-id)) "Delete"))))) data)))))
 									  
 
 
@@ -38,11 +38,9 @@
 			(:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
 			(:h1 :class "text-center login-title"  "Vendor - Login to DAS")
 			(:div :class "form-group"
-			    (:input :class "form-control" :name "company" :placeholder "Group/Apartment"  :type "text" ))
-			(:div :class "form-group"
 			    (:input :class "form-control" :name "phone" :placeholder "Phone" :type "text" ))
 			(:div :class "form-group"
-			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Login")))))))))
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
   
 
 
@@ -91,30 +89,27 @@
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "DAS" (:img :style "width: 30px; height: 30px;" :src "/resources/demand&supply.png" )  ))
+		     (:a :class "navbar-brand" :href "#" :title "DAS" (:img :style "width: 30px; height: 30px;" :src "resources/demand&supply.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
-			 (:li :class "active" :align "center" (:a :href "/dodvendindex" "Home"))
-			 (:li  (:a :href "/dodvendindex?context=pendingorders"  "Pending Orders"))
-			 (:li (:a :href "/dodvendindex?context=completedorders"  "Completed Orders"))
+			 (:li :class "active" :align "center" (:a :href "dodvendindex" "Home"))
+			 (:li  (:a :href "dodvendindex?context=pendingorders"  "Pending Orders"))
+			 (:li (:a :href "dodvendindex?context=completedorders"  "Completed Orders"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     (:ul :class "nav navbar-nav navbar-right"
 			 (:li :align "center" (:a :href "https://goo.gl/forms/XaZdzF30Z6K43gQm2" "Feedback" ))
 			     (:li :align "center" (:a :href "https://goo.gl/forms/SGizZXYwXDUiTgVY2" (:span :class "glyphicon glyphicon-bug") "Bug" ))
-			     (:li :align "center" (:a :href "/dodvendlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
+			     (:li :align "center" (:a :href "dodvendlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
 
 (defun dod-controller-vend-login ()
-   (let  ((cname (hunchentoot:parameter "company"))
-	      (phone (hunchentoot:parameter "phone")))
-	(unless(and
-		   ( or (null cname) (zerop (length cname)))
-		   ( or (null phone) (zerop (length phone))))
-	    (if (equal (dod-vend-login :company-name cname :phone phone) NIL)
-		(hunchentoot:redirect "/dodvendindex")
+   (let  ((phone (hunchentoot:parameter "phone")))
+	(unless ( or (null phone) (zerop (length phone)))
+	    (if (equal (dod-vend-login :phone phone) NIL)
+		(hunchentoot:redirect "/hhub/dodvendindex")
 		; Else
-		(hunchentoot:redirect  "/dodvendindex")))))
+		(hunchentoot:redirect  "/hhub/dodvendindex")))))
 
-(defun dod-vend-login (&key company-name phone)
+(defun dod-vend-login (&key  phone)
  (let* ((vendor (car (clsql:select 'dod-vend-profile :where [and
 			      [= [slot-value 'dod-vend-profile 'phone] phone]
 			     [= [:deleted-state] "N"]]
@@ -126,8 +121,7 @@
 	      (vendor-company-name (if vendor (slot-value (car (if vendor (vendor-company vendor))) 'name)))
 	      (vendor-company (if vendor (car (vendor-company vendor)))))
 	
-	(when (and (equal  vendor-company-name company-name)
-		  vendor
+	(when (and  vendor
 		  (null (hunchentoot:session-value :login-vendor-name))) ;; vendor should not be logged-in in the first place.
 	    (progn
 		(format T "Starting session")
@@ -169,14 +163,14 @@
 		   )))
 	   ; (:hr)
 	    (cond ((and dodorders btnordprd) (ui-list-vendor-orders dodorders))
-		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/dodvenexpexl?reqdate=~A" reqdate)))
+		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/hhub/dodvenexpexl?reqdate=~A" reqdate)))
 		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers-tiles dodorders))
 		((equal context "pendingorders") (ui-list-vendor-orders-by-customers-tiles dodorders))
 		((equal context "completedorders") (let ((orders (get-orders-for-vendor (get-login-vendor) "Y")))
 						(ui-list-vendor-orders-by-customers-tiles orders)))
 		(T ()) )))
 					; Else
-	(hunchentoot:redirect "/vendor-login.html")))
+	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
 
@@ -187,9 +181,9 @@
 		  (company-instance (hunchentoot:session-value :login-vendor-company))
 		   (order-instance (get-order-by-id id company-instance)))
 	   (progn (set-order-fulfilled "Y"  order-instance company-instance)
-	       (hunchentoot:redirect "/dodvendindex"))
+	       (hunchentoot:redirect "/hhub/dodvendindex"))
 	    )
-	(hunchentoot:redirect "/vendor-login.html")))
+	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 (defun dod-controller-ven-expexl ()
     (if (is-dod-vend-session-valid?)
@@ -200,7 +194,7 @@
 	    (setf (hunchentoot:content-type*) "application/vnd.ms-excel")
 	    (setf (header-out "Content-Disposition" ) (format nil "inline; filename=Orders_~A.csv" reqdate))
 	(ui-list-orders-for-excel header dodorders vendor-instance))
-    (hunchentoot:redirect "/vendor-login.html")))
+    (hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
 
@@ -227,7 +221,7 @@
 (defun dod-controller-vendor-logout ()
     :documentation "Vendor logout."
     (progn (hunchentoot:remove-session *current-vendor-session*)
-	(hunchentoot:redirect "/vendor-login.html")))
+	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
 
@@ -258,11 +252,11 @@
 					    (htm(:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
 				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))
-				    (if (equal (slot-value dodorder 'order-fulfilled) "N") (htm  (:a :href (format nil "/dodvenordfulfilled?id=~A" (slot-value dodorder 'row-id) ) (:span :class "btn btn-primary"  "Set Order Completed")))
+				    (if (equal (slot-value dodorder 'order-fulfilled) "N") (htm  (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value dodorder 'row-id) ) (:span :class "btn btn-primary"  "Set Order Completed")))
 					;ELSE
 					(htm (:span :class "label label-info" "FULFILLED")))				    
 						    )))))
-	(hunchentoot:redirect "/vendor-login.html")))
+	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
 

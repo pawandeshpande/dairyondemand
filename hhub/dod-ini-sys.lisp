@@ -7,11 +7,11 @@
 :oracle, :odbc, :aodbc or :sqlite")
 (defvar *crm-database-name* "dairyondemand"
   "The name of the database we will work in.")
-(defvar *crm-database-user* "TestCRMCore"
+(defvar *crm-database-user* "TESTCRMCORE"
   "The name of the database user we will work as.")
 (defvar *crm-database-server* "localhost"
   "The name of the database server if required")
-(defvar *crm-database-password* "TestCRMCore"
+(defvar *crm-database-password* "TESTCRMCORE"
   "The password if required")
 
 
@@ -71,7 +71,7 @@ the hunchentoot server with ssl settings"
 (progn (init-dairyondemand)
        (if withssl  (init-httpserver-withssl))
        (if withssl  (hunchentoot:start *ssl-http-server*) (hunchentoot:start *http-server*) )
-       (crm-db-connect :servername "localhost" :strdb "DAIRYONDEMAND" :strusr "TestCRMCore" :strpwd "TestCRMCore" :strdbtype :mysql)))
+       (crm-db-connect :servername "localhost" :strdb "DAIRYONDEMAND" :strusr "TESTCRMCORE" :strpwd "TESTCRMCORE" :strdbtype :mysql)))
 
 
 

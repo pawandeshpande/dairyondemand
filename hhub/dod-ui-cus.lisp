@@ -212,7 +212,7 @@
 	     (:head 
 		 (:meta :http-equiv "Content-Type" 
 		     :content    "text/html;charset=utf-8")
-		 (:meta :name "viewport" :content "width=device-width, initial-scale=1")
+		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
 		 (:meta :name "description" :content "")
 		 (:meta :name "author" :content "")
 		 (:link :rel "icon" :href "favicon.ico")
@@ -225,7 +225,6 @@
 		 (:link :href "css/theme.css" :rel "stylesheet")
 		
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
-		  (:script :type "text/javascript" :src "js/dod.js")
 		 (:script :src "js/spin.min.js")
 		 ) ;; Header completes here.
 	     (:body
@@ -261,11 +260,9 @@
 			(:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
 			(:h1 :class "text-center login-title"  "Customer - Login to DAS")
 			(:div :class "form-group"
-			    (:input :class "form-control" :name "company" :placeholder "demo"  :type "text" ))
+			    (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text" ))
 			(:div :class "form-group"
-			    (:input :class "form-control" :name "phone" :placeholder "9999999999" :type "text" ))
-			(:div :class "form-group"
-			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Login"))))))
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
 	(:script :src "js/dod.js"))))
 
 
@@ -382,12 +379,9 @@
 
 
 (defun dod-controller-cust-login ()
-    (let  ((cname (hunchentoot:parameter "company"))
-	      (phone (hunchentoot:parameter "phone")))
-	(unless(and
-		   ( or (null cname) (zerop (length cname)))
-		   ( or (null phone) (zerop (length phone))))
-	    (if (equal (dod-cust-login :company-name cname :phone phone) NIL) (hunchentoot:redirect "/hhub/customer-login.html") (hunchentoot:redirect  "/hhub/dodcustindex")))))
+    (let  ( (phone (hunchentoot:parameter "phone")))
+      (unless ( or (null phone) (zerop (length phone))) 
+	    (if (equal (dod-cust-login  :phone phone) NIL) (hunchentoot:redirect "/hhub/customer-login.html") (hunchentoot:redirect  "/hhub/dodcustindex")))))
 
 (defun dod-controller-cust-ordersuccess ()
     (if (is-dod-cust-session-valid?)
@@ -549,7 +543,7 @@
 		(hunchentoot:redirect  "/hhub/dodcustshopcart")))))
 
 
-(defun dod-cust-login (&key company-name phone)
+(defun dod-cust-login (&key phone)
     (let* ((customer (car (clsql:select 'dod-cust-profile :where [and
 			      [= [slot-value 'dod-cust-profile 'phone] phone]
 			     [= [:deleted-state] "N"]]
@@ -561,8 +555,7 @@
 	      (customer-company-name (if customer (slot-value (car (if customer (customer-company customer))) 'name)))
 	      (login-shopping-cart '())
 	      (customer-company (if customer (car (customer-company customer)))))
-	(when (and (equal  customer-company-name company-name)
-		  customer
+	(when (and customer
 		  (null (hunchentoot:session-value :login-customer-name))) ;; customer should not be logged-in in the first place.
 	    (progn
 		(princ "Starting session")

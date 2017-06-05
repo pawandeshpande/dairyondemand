@@ -6,3 +6,5 @@
 
 
 (in-package :dairyondemand)
+(push "~/dairyondemand/hhub/" asdf:*central-registry*)
+
