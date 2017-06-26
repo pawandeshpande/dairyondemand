@@ -212,8 +212,10 @@ function calendar(date) {
   calendar_html += '</table>';
 
   // Display the calendar.
-  document.write(calendar_html);
+  //document.write(calendar_html);
+    return calendar_html;
 }
+
 
 
 

@@ -1,6 +1,27 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
+(new-dod-company "Gopalan Atlantis" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Gopalan Granduer" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Gopalan Urban Woods" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Prestige Palms" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Prestige Glen Woods" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Prestige Silver Oaks" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Prestige Langleigh" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Prestige Bogunville" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Prestige Mayberry" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Sobha Rose" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Nitesh Forest Hills" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "AWHO Apartments" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Balaji Pristine" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Raghavendra Midas" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Umiya Woods" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Prithvi Layout" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+(new-dod-company "Athashri" "ECC Road, Whitefield" "Bangalore" "Karnataka" "India" "560096" -1 -1)
+
+
+
+
 					;**********Get the company***********
 (defparameter dod-company (select-company-by-name "%demo"))
 

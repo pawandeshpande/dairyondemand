@@ -31,7 +31,7 @@
 		 
 																		    ))))) data)))))
 (defun ui-list-prod-catg (catglist)
-  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+  (cl-who:with-html-output (*standard-output* nil :prologue t :indent t)
 	(:div :class "row-fluid"	  (mapcar (lambda (prdcatg)
 						      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
 							       (:div :class "prdcatg-box"   (prdcatg-card prdcatg )))))

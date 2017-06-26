@@ -252,8 +252,10 @@
 
 
 (defun dod-controller-cust-register-page ()
+  (let ((cname (hunchentoot:parameter "cname")))
+   
     (standard-customer-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
-      	(:form :class "form-custregister" :role "form" :method "POST" :action "dodcustregister"
+      	(:form :class "form-custregister" :role "form" :method "POST" :action "dodcustregisteraction"
 	   (:div :class "row"
 			(:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
 				(:h1 :class "text-center login-title"  "Customer - Register to DAS")
@@ -283,9 +285,9 @@
 	                (:div :class "col-lg-6 col-md-6 col-sm-6"     
 		
 			      (:div :class "form-group"
-			   ; (:input :class "form-control" :name "tenant-name" :placeholder "Group/Apartment (Required)" :type "text" ))
-				    (:label :for "tenant-id" (str "Group/Apartment"))
-				    (company-dropdown "tenant-id" (list-dod-companies)) )
+				   (:input :class "form-control" :name "tenant-name" :value (format nil "~A" cname) :type "text" :readonly T ))
+				   ; (:label :for "tenant-id" (str "Group/Apartment"))
+				   ; (company-dropdown "tenant-id" (list-dod-companies)) )
 			      (:div :class "form-group"
 			    (:input :class "form-control" :name "phone" :placeholder "Your Mobile Number (Required)" :type "text" ))
 		
@@ -299,7 +301,7 @@
 			    			
 			(:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))
-	        ))))
+	        )))))
 
 (defun check&encrypt (password confirmpass salt)
  (unless
@@ -331,24 +333,31 @@
        (salt-octet (secure-random:bytes 56 secure-random:*generator*))
        (salt (flexi-streams:octets-to-string  salt-octet))
        (encryptedpass (check&encrypt password confirmpass salt))
-       (tenant-id (hunchentoot:parameter "tenant-id"))
-       (company (select-company-by-id tenant-id)))
+       (tenant-name (hunchentoot:parameter "tenant-name"))
+       (company (select-company-by-name tenant-name)))
 
 
   ; If we receive a True from the google verifysite then, add the user to the backend. 
-  (cond 
+  (cond
+    
     ; Check for duplicate customer
     ((duplicate-customerp phone company) (hunchentoot:redirect "/hhub/duplicate-cust.html"))
     ; Check whether captcha has been solved 
-    ((null (cdr (car json-response)) ) ) 
-	((not (null encryptedpass)) 
+    ((null (cdr (car json-response))) (dod-response-captcha-error)  ) 
+    ; Check whether password was entered correctly 
+    ((not (null encryptedpass)) 
 	 (progn 
        ; 1 
        (create-customer (format nil "~A ~A" firstname lastname) address phone email birthdate encryptedpass salt city state zipcode company)
        ; 2 
        (standard-customer-page (:title "Welcome to DAS platform")
-	 (:h3 (str(format nil "Your record has been successfully added" ))))))
+	 (:h3 (str(format nil "Your record has been successfully added" )))
+	 (:a :href "/hhub/customer-login.html" "Login now"))))
 	  (() T))))
+
+(defun dod-response-captcha-error ()
+  (standard-customer-page (:title "Captcha response error from Google")
+    (:h2 "Captcha response error from Google. Looks like some unusual activity. Please try again later")))
 
 
 (defun dod-controller-duplicate-customer ()
@@ -365,12 +374,17 @@
 
 
 (defun ui-list-companies (company-list)
-;  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
-   (standard-customer-page (:title "Welcome to DAS Platform")
+  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+  ; (standard-customer-page (:title "Welcome to DAS Platform")
     (if company-list 
 	(htm (:div :class "row-fluid"	  (mapcar (lambda (cmp)
-						      (htm (:div :class "col-sm-12 col-lg-12 col-md-12"
-							     (:h3 (:a :href (format nil "~A" (slot-value cmp 'name))  (str (slot-value cmp 'name))))))) company-list)))
+						      (htm 
+						       (:form :method "POST" :action "custsignup1action" :id "custsignup1form" 
+							      (:div :class "col-sm-4 col-lg-3 col-md-4"
+								    (:div :class "form-group"
+									  (:input :class "form-control" :name "cname" :type "hidden" :value (str (format nil "~A" (slot-value cmp 'name)))))
+								    (:div :class "form-group"
+									  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" (str (format nil "~A" (slot-value cmp 'name)))))))))  company-list)))
 	;else
 	(htm (:div :class "col-sm-12 col-md-12 col-lg-12"
 	      (:h3 "No records found"))))))
@@ -384,7 +398,7 @@
      (:h2 "Search Apartment/Group")
      (:div :id "custom-search-input"
      (:div :class "input-group col-md-12"
-	       (:form :id "theForm" :action "livesearchaction" :OnSubmit "return false;" 
+	       (:form :id "theForm" :action "companysearchaction" :OnSubmit "return false;" 
 		      (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Search for an Apartment/Group"))
      (:span :class "input-group-btn" (:<button :class "btn btn-danger" :type "button" 
 		(:span :class " glyphicon glyphicon-search")))))
