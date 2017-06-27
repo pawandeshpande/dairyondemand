@@ -177,7 +177,7 @@
 
 (defmacro customer-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
-    `(cl-who:with-html-output (*standard-output* nil)
+    `(cl-who:with-html-output-to-string (*standard-output* nil)
 	 (:div :class "navbar navbar-inverse  navbar-static-top"
 	     (:div :class "container-fluid"
 		 (:div :class "navbar-header"

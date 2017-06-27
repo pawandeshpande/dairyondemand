@@ -14,6 +14,7 @@
 (defvar *crm-database-password* "TESTCRMCORE"
   "The password if required")
 
+(defparameter *sitepass* (encrypt "P@ssword1" "highrisehub.com"))
 
 ;; Connect to the database (see the CLSQL documentation for vendor
 ;; specific connection specs).

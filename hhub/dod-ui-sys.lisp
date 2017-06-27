@@ -123,7 +123,35 @@
 	
 		   (:script :src "js/bootstrap.min.js")))))
 
+(defun dod-controller-restart-site-page ()
+(standard-page (:title "Restart Higirisehub.com")
+  (:div :class "row"
+	(:div :class "col-sm-12 col-md-12 col-lg-12"
+	      (:form :id "restartsiteform" :method "POST" :action "restartsiteaction"
+		     (:div :class "form-group"
+			   (:input :class "form-control" :name "password" :placeholder "password"  :type "password"))
+		      (:div :class "form-group"
+			    (:input :type "submit" :name "submit" :class "btn btn-primary" :value "Go...      ")))))))
 
+
+
+
+(defun dod-controller-restart-site-action1 ()
+  (standard-page (:title "Restarting Highrisehub.com")
+       (:h2 "done")))
+
+ 
+
+
+(defun dod-controller-restart-site-action ()
+  (let ((pass (hunchentoot:parameter "password")))
+   (if (equal (encrypt  pass "highrisehub.com") *sitepass*)
+      	     
+       (progn (stop-das) 
+	      (start-das) 
+	      (standard-page (:title "Restart Highrisehub.com")
+		(:h2 "Database restarted successfully"))))))
+	
 
 (defun dod-controller-index () 
   (if (is-dod-session-valid?)
@@ -166,7 +194,7 @@
 	  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 		(:div :class "account-wall"
 		      (:h1 :class "text-center login-title"  "Login to Dairy Ondemand")
-		      (:form :class "form-signin" :role "form" :method "POST" :action "/dodlogin"
+		      (:form :class "form-signin" :role "form" :method "POST" :action "dodlogin"
 			     (:div :class "form-group"
 				   (:input :class "form-control" :name "company" :placeholder "Company Name"  :type "text"))
 			     (:div :class "form-group"
@@ -340,7 +368,7 @@
 	;; By this time the new company is created.
 	(let ((company (car (clsql:select 'dod-company :where [= [:name] cname] :caching nil :flatp t)))) (create-dod-user  name username password email (slot-value company 'row-id)))
                       	  
-	(hunchentoot:redirect  "/dodindex"))
+	(hunchentoot:redirect  "dodindex"))
       (hunchentoot:redirect "/login")))
 
 
@@ -373,6 +401,9 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-users" 'dod-controller-list-users)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-accounts" 'dod-controller-list-accounts)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-attributes" 'dod-controller-list-attrs)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dbreset" 'dod-controller-restart-site-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/restartsiteaction" 'dod-controller-restart-site-action)
+	
 	
 	;************CUSTOMER LOGIN RELATED ********************
 	(hunchentoot:create-regex-dispatcher  "^/hhub/customer-login.html" 'dod-controller-customer-loginpage)
