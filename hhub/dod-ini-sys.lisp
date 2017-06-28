@@ -13,7 +13,9 @@
   "The name of the database server if required")
 (defvar *crm-database-password* "TESTCRMCORE"
   "The password if required")
-
+(setf clsql:*default-database* "DAIRYONDEMAND")
+(setf *DB-POOL-MAX-FREE-CONNECTIONS* NIL) 
+(defvar *dod-db-instance* nil)
 (defparameter *sitepass* (encrypt "P@ssword1" "highrisehub.com"))
 
 ;; Connect to the database (see the CLSQL documentation for vendor
@@ -30,11 +32,11 @@ Database type: Supported type is ':odbc'"
   (progn 
     (case strdbtype
       ((:mysql :postgresql :postgresql-socket)
-       (clsql:connect `(,servername
+       (setf *dod-db-instance* (clsql:connect `(,servername
 			,strdb
 			,strusr
 			,strpwd)
-		      :database-type strdbtype))
+		      :database-type strdbtype)))
       ((:odbc :aodbc :oracle)
        (clsql:connect `(,strdb
 			,strusr
@@ -101,7 +103,5 @@ the hunchentoot server with ssl settings"
 (setf *ssl-http-server* nil) 
 (setf *http-server* nil))
 )
-
-
 
 

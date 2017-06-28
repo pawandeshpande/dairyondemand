@@ -12,7 +12,12 @@
 
 (defun is-dod-cust-session-valid? ()
     :documentation "Checks whether the current login session is valid or not."
-    (if  (null (get-login-cust-name)) NIL T))
+    (cond ((equal (clsql:connected-databases) nil) (clsql:reconnect :database *dod-db-instance*))  
+	  ((not (null (get-login-cust-name))) T)
+	  (() NIL)))
+	  
+
+
 
 (defun get-login-cust-name ()
     :documentation "Gets the name of the currently logged in customer"
@@ -177,7 +182,7 @@
 
 (defmacro customer-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
-    `(cl-who:with-html-output-to-string (*standard-output* nil)
+    `(cl-who:with-html-output (*standard-output* nil)
 	 (:div :class "navbar navbar-inverse  navbar-static-top"
 	     (:div :class "container-fluid"
 		 (:div :class "navbar-header"
@@ -728,7 +733,7 @@
 			      :caching nil :flatp t)))
 	   (pwd (if customer (slot-value customer 'password)))
 	   (salt (if customer (slot-value customer 'salt)))
-	   (password-verified  (check-password password salt pwd))
+	   (password-verified (if customer  (check-password password salt pwd)))
 	   (customer-id (if customer (slot-value customer 'row-id)))
 	   (customer-name (if customer (slot-value customer 'name)))
 	   (customer-tenant-id (if customer (slot-value (car  (customer-company customer)) 'row-id)))

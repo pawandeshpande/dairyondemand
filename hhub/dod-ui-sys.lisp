@@ -127,20 +127,13 @@
 (standard-page (:title "Restart Higirisehub.com")
   (:div :class "row"
 	(:div :class "col-sm-12 col-md-12 col-lg-12"
-	      (:form :id "restartsiteform" :method "POST" :action "restartsiteaction"
+	      (:form :id "restartsiteform" :method "POST" :action "dbresetaction"
 		     (:div :class "form-group"
 			   (:input :class "form-control" :name "password" :placeholder "password"  :type "password"))
 		      (:div :class "form-group"
 			    (:input :type "submit" :name "submit" :class "btn btn-primary" :value "Go...      ")))))))
 
 
-
-
-(defun dod-controller-restart-site-action1 ()
-  (standard-page (:title "Restarting Highrisehub.com")
-       (:h2 "done")))
-
- 
 
 
 (defun dod-controller-restart-site-action ()
@@ -402,7 +395,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-accounts" 'dod-controller-list-accounts)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-attributes" 'dod-controller-list-attrs)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbreset" 'dod-controller-restart-site-page)
-	(hunchentoot:create-regex-dispatcher "^/hhub/restartsiteaction" 'dod-controller-restart-site-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dbresetaction" 'dod-controller-restart-site-action)
 	
 	
 	;************CUSTOMER LOGIN RELATED ********************
