@@ -1,4 +1,4 @@
-;; -*- mode: common-lisp; coding: utf-8 -*-
+
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
@@ -34,7 +34,7 @@
 	(let (( dodcustomers (list-cust-profiles (get-login-company)))
 		 (header (list "Name" "Address" "Phone"  "Action")))
 	    (if dodcustomers (ui-list-customers header dodcustomers) "No customers"))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	(hunchentoot:redirect "/hhub/opr-login.html")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

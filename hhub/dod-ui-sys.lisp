@@ -123,7 +123,7 @@
 	
 		   (:script :src "js/bootstrap.min.js")))))
 
-(defun dod-controller-restart-site-page ()
+(defun dod-controller-dbreset-page ()
 (standard-page (:title "Restart Higirisehub.com")
   (:div :class "row"
 	(:div :class "col-sm-12 col-md-12 col-lg-12"
@@ -136,14 +136,13 @@
 
 
 
-(defun dod-controller-restart-site-action ()
+(defun dod-controller-dbreset-action ()
   (let ((pass (hunchentoot:parameter "password")))
-   (if (equal (encrypt  pass "highrisehub.com") *sitepass*)
-      	     
-       (progn (stop-das) 
+    (if (equal (encrypt  pass "highrisehub.com") *sitepass*)
+       (progn  (stop-das) 
 	      (start-das) 
 	      (standard-page (:title "Restart Highrisehub.com")
-		(:h2 "Database restarted successfully"))))))
+		(:h3 "DB Reset successful"))))))
 	
 
 (defun dod-controller-index () 
@@ -394,8 +393,8 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-users" 'dod-controller-list-users)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-accounts" 'dod-controller-list-accounts)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-attributes" 'dod-controller-list-attrs)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dbreset" 'dod-controller-restart-site-page)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dbresetaction" 'dod-controller-restart-site-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dbreset.html" 'dod-controller-dbreset-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dbresetaction" 'dod-controller-dbreset-action)
 	
 	
 	;************CUSTOMER LOGIN RELATED ********************

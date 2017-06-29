@@ -13,7 +13,7 @@
   "The name of the database server if required")
 (defvar *crm-database-password* "TESTCRMCORE"
   "The password if required")
-(setf clsql:*default-database* "DAIRYONDEMAND")
+
 (setf *DB-POOL-MAX-FREE-CONNECTIONS* NIL) 
 (defvar *dod-db-instance* nil)
 (defparameter *sitepass* (encrypt "P@ssword1" "highrisehub.com"))
