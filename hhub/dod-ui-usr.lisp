@@ -1,11 +1,11 @@
-(in-package :dairyondemand)
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
   
 (defun crm-controller-list-users ()
-(if (is-crm-session-valid?)
+(if (is-dod-session-valid?)
    (let (( crmusers (list-dod-users)))
-     (standard-page (:title "List CRM Users")
+     (standard-page (:title "List HHUB Users")
        (:h3 "Users")
 
       (:table :class "table table-striped"  
@@ -17,7 +17,7 @@
 
 
 (defun crm-controller-new-user ()
- (if (is-crm-session-valid?)
+ (if (is-dod-session-valid?)
       (standard-page (:title "Add a new User")
 	(:h1 "Add a new User")
 	(:form :action "/user-added" :method "post" 
@@ -45,7 +45,7 @@
 
 
 (defun crm-controller-user-added ()
-  (if (is-crm-session-valid?)
+  (if (is-dod-session-valid?)
       (let  ((name (hunchentoot:parameter "name"))
 	     (username (hunchentoot:parameter "username"))
 	     (password (hunchentoot:parameter "password"))
@@ -55,14 +55,14 @@
 		      ( or (null username) (zerop (length username)))
 		      ( or (null password) (zerop (length password)))
 		      ( or (null email) (zerop (length email))))		
-	  (new-crm-user name username password email (get-login-tenant-id)))
-	(hunchentoot:redirect  "/crmindex"))
+	  (create-dod-user name username password email (get-login-tenant-id)))
+	(hunchentoot:redirect  "/dodindex"))
       (hunchentoot:redirect "/login")))
 
 
 
 (defun new-dod-user(name uname passwd email-address tenant-id )
- (if ( is-crm-session-valid?)
+ (if ( is-dod-session-valid?)
 	;; if session is valid then go ahead and create the company
     (create-dod-user name uname passwd email-address tenant-id)
      ;; else redirect to the login page

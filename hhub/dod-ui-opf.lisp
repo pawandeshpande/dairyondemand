@@ -15,10 +15,11 @@
 
 ;**************Function to list an individual customer's order preferences ******************
 (defun ui-list-cust-orderprefs (header data)
-  
   (cl-who:with-html-output (*standard-output* nil)
-      
       (:h3 "My Subscriptions.")      
+        (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustindex") "Shop Now")
+      (:div :class "row" 
+	    (:div :class "col-sm-12 col-md-12 col-lg-12"
       (:table :class "table table-striped"  (:thead (:tr
  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
 								  (mapcar (lambda (orderpref)
@@ -27,18 +28,18 @@
 										(htm (:tr
 											
 											 (:td  :height "12px" (str (slot-value opf-product  'prd-name)))
-											  (:td :height "12px"    (str (if (equal (slot-value orderpref 'sun) "Y") "Su,"))
-											     (str (if (equal (slot-value orderpref 'mon) "Y") "Mo,"))
-											     (str (if (equal (slot-value orderpref 'tue) "Y")  "Tu,"))
-											     (str (if (equal (slot-value orderpref 'wed) "Y") "We,"))
-											     (str (if (equal (slot-value orderpref 'thu) "Y")  "Th,"))
-											     (str (if (equal (slot-value orderpref 'fri) "Y") "Fr,"))
-											     (str (if (equal (slot-value orderpref 'sat) "Y")  "Sa")))
+											  (:td :height "12px"    (str (if (equal (slot-value orderpref 'sun) "Y") "Su, "))
+											     (str (if (equal (slot-value orderpref 'mon) "Y") "Mo, "))
+											     (str (if (equal (slot-value orderpref 'tue) "Y")  "Tu, "))
+											     (str (if (equal (slot-value orderpref 'wed) "Y") "We, "))
+											     (str (if (equal (slot-value orderpref 'thu) "Y")  "Th, "))
+											     (str (if (equal (slot-value orderpref 'fri) "Y") "Fr, "))
+											     (str (if (equal (slot-value orderpref 'sat) "Y")  "Sa ")))
 											 (:td  :height "12px" (str (slot-value orderpref 'prd-qty)))
 											 (:td  :height "12px" (str (slot-value opf-product  'qty-per-unit)))
 											 (:td  :height "12px" (str (format nil "Rs. ~$"  (slot-value opf-product  'unit-price))))     
 											 
-										       (:td :height "12px" (:a  :onclick "return DeleteConfirm();" :href  (format nil  "/delopref?id=~A" opf-id ) "Cancel" )))))) data)))))
+										       (:td :height "12px" (:a  :onclick "return DeleteConfirm();" :href  (format nil  "/delopref?id=~A" opf-id ) "Cancel" )))))) data)))))))
 
 
 ;********************Function to list all customer order preferences for a given company.************************

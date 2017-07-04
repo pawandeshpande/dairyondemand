@@ -84,13 +84,11 @@
 	     (description  (slot-value prdcatg-instance 'description))
 	     (picture-path (slot-value prdcatg-instance 'picture-path))
 	  (row-id (slot-value prdcatg-instance 'row-id)))
-	   
 	(cl-who:with-html-output (*standard-output* nil)
-	  
 		(:div :class "row"
-		    
 		(:div :class "col-sm-12" (:a :href (format nil "dodproducts?id=~A" row-id) (:img :src  (format nil "~A" picture-path) :height "83" :width "100" :alt catg-name " ")))
-		(:div :class "col-sm-12" (str description))))))
+		(:div :class "row"
+		(:div :class "col-sm-12" (:h4(:span :class "label label-default"(str description)))))))))
 
 
 	
@@ -108,7 +106,7 @@
 		(:div :class "row"
 		    
 		(:div :class "col-sm-6" (:a :href (format nil "dodprddetails?id=~A" prd-id) (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
-		(:div :class "col-sm-6"	(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))))
+		(:div :class "col-sm-3"	(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))))
 		    (:div :class "row"
 		    (:div :class "col-sm-6"
 		(:h5 :class "product-name"  (str prd-name) )

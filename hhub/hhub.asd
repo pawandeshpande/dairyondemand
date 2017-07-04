@@ -28,9 +28,9 @@
 ;;; NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;;; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(asdf:defsystem #:dairyondemand
+(asdf:defsystem #:hhub
   :serial t
-  :description "Dairy ondemand is an application to calculate demand for dairy in an apartment. It can be extended to more than one apartment in a city or vendors can register their own areas as supply areas. Backend is MYSQL database and it is a web application."
+  :description "HighriseHub is an online marketplace for a group of people/colony/apartment. It can be extended to more than one apartment in a city or vendors can register their own areas as supply areas. Backend is MYSQL database and it is a web application."
   :author "Pawankumar Deshpande <pawan.deshpande@gmail.com>"
   :license "THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
 OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -45,9 +45,13 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
     :version "1.0.0"
 
   :components ((:file "packages")
-	       ; Util 
+	       
+	       	; Util 
 	       (:file "dod-ui-utl" :depends-on ("packages") )
 		  (:file "dod-bl-utl")
+	       ; Initial System
+	       (:file "dod-ini-sys" :depends-on ("packages"))
+				
 	       ; System
 		  (:file "dod-ui-sys" :depends-on ("packages") )
 	       ; User
@@ -88,6 +92,5 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
 	       (:file "dod-bl-pol" :depends-on ("packages"))
 	       (:file "dod-ui-pol" :depends-on ("packages"))
 	   
-	       ; Initial System
-	       (:file "dod-ini-sys" :depends-on ("packages"))))
+	       ))
 

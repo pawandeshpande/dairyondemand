@@ -5,7 +5,7 @@
 (defvar *crm-database-type* :odbc
   "Possible values are :postgresql :postgresql-socket, :mysql,
 :oracle, :odbc, :aodbc or :sqlite")
-(defvar *crm-database-name* "dairyondemand"
+(defvar *crm-database-name* "DAIRYONDEMAND"
   "The name of the database we will work in.")
 (defvar *crm-database-user* "TESTCRMCORE"
   "The name of the database user we will work as.")
@@ -13,10 +13,12 @@
   "The name of the database server if required")
 (defvar *crm-database-password* "TESTCRMCORE"
   "The password if required")
-
+(defvar *dod-dbconn-spec* (list *crm-database-server* *crm-database-name* *crm-database-user* *crm-database-password*))
 (setf *DB-POOL-MAX-FREE-CONNECTIONS* NIL) 
-(defvar *dod-db-instance* nil)
-(defparameter *sitepass* (encrypt "P@ssword1" "highrisehub.com"))
+(defvar *dod-db-instance*)
+(defvar *sitepass* (encrypt "P@ssword1" "highrisehub.com"))
+(defvar *current-customer-session* nil) 
+
 
 ;; Connect to the database (see the CLSQL documentation for vendor
 ;; specific connection specs).
@@ -74,7 +76,7 @@ the hunchentoot server with ssl settings"
 (progn (init-dairyondemand)
        (if withssl  (init-httpserver-withssl))
        (if withssl  (hunchentoot:start *ssl-http-server*) (hunchentoot:start *http-server*) )
-       (crm-db-connect :servername "localhost" :strdb "DAIRYONDEMAND" :strusr "TESTCRMCORE" :strpwd "TESTCRMCORE" :strdbtype :mysql)))
+       (crm-db-connect :servername *crm-database-server* :strdb *crm-database-name* :strusr *crm-database-user*  :strpwd *crm-database-password* :strdbtype :mysql)))
 
 
 

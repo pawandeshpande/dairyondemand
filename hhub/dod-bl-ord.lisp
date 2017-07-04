@@ -208,7 +208,7 @@
 
 
 
-(defun create-daily-orders (&key company-id odtstr reqstr)
+(defun create-daily-orders-for-company (&key company-id odtstr reqstr)
     :documentation "odtstr and reqstr are of the format \"dd/mm/yyyy\" "
     (let* ((orderdate (get-date-from-string odtstr))
 	      (requestdate (get-date-from-string reqstr))
@@ -219,3 +219,12 @@
 	      (mapcar (lambda (customer)
 			  (let ((custopflist (get-opreflist-for-customer customer)))
 			    (if custopflist  (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) nil   customer dodcompany)) )) customers)))
+
+
+
+(defun run-daily-orders-batch ()
+  :documentation "datestr is of the format \"dd/mm/yyyy\" "
+  (let ((cmplist (list-dod-companies)))
+    (mapcar (lambda (cmp) 
+	      (let ((id (slot-value cmp 'row-id)))
+		(create-daily-orders-for-company :company-id id :odtstr (get-date-string (get-date)) :reqstr (get-date-string (date+ (get-date) (make-duration :day 1)))))) cmplist))) 

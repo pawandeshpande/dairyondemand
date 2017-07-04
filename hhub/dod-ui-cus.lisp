@@ -1,6 +1,7 @@
-
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
+
+
 
 (defun get-login-customer ()
     :documentation "Get the login session for customer"
@@ -12,7 +13,7 @@
 
 (defun is-dod-cust-session-valid? ()
     :documentation "Checks whether the current login session is valid or not."
-    (cond ((equal (clsql:connected-databases) nil) (clsql:reconnect :database *dod-db-instance*))  
+    (cond ((equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) nil) (clsql:reconnect :database *dod-db-instance*))  
 	  ((not (null (get-login-cust-name))) T)
 	  (() NIL)))
 	  
@@ -51,7 +52,7 @@
 (defun dod-controller-my-orderprefs ()
  :documentation "A callback function which prints daily order preferences for a logged in customer in HTML format." 
  (let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
-	(header (list   "Product"  "Weekday Preference"  "Product Qty" "Qty Per Unit" "Unit Price"  "Action")))
+	(header (list   "Product"  "Day"  "Qty" "Qty Per Unit" "Price"  "Actions")))
   (das-cust-page-with-tiles 'ui-list-cust-orderprefs "Customer Order Preferences" header dodorderprefs)))
 
 
@@ -100,7 +101,7 @@
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "List DOD Customer orders")   
 	(let (( dodorders (hunchentoot:session-value :login-cusord-cache))
-		     (header (list  "Order No" "Order Date" "Request Date"  "Action")))
+		     (header (list  "Order No" "Order Date" "Request Date"  "Actions")))
 	    (if dodorders (ui-list-customer-orders header dodorders) "No orders")))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
@@ -144,7 +145,7 @@
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "List DOD Customer orders")   
 	    (let* (( dodorder (get-order-by-id (hunchentoot:parameter "id") (get-login-cust-company)))
-		      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
+		      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total" "Action"))
 		      (odtlst (get-order-details dodorder) )
       		      (total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst))))
@@ -250,9 +251,9 @@
 		 (:script :src "js/dod.js"))))))
 
 
-					;**********************************************************************************
+;**********************************************************************************
 ;***************** CUSTOMER LOGIN RELATED FUNCTIONS ******************************
-(defvar *current-customer-session* nil) 
+
 
 
 
@@ -454,7 +455,7 @@
 			         (:input :type "hidden" :name "product-id" :value (format nil "~a" (slot-value product 'row-id)))
 				 ; (products-dropdown "product-id"  (hunchentoot:session-value :login-prd-cache)))
 			    (:div :class "form-group row" (:label :for "prdqty" "Product Quantity")
-				(:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :value "1" :maxlength "2" :type "number"))
+				(:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :value "1" :size "4" :maxlength "2" :type "text"))
 			    (:div :class "form-group row" 
 			    (:label :class "checkbox-inline"  (:input :type "checkbox" :name "subs-sun"  :value "Sunday" :checked "" "Sunday" ))
 			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-mon" :value "Monday" :checked "" "Monday"))
@@ -486,7 +487,7 @@
 				(:input :class "form-control" :name "reqdate" :value (str (get-date-string (date+ (get-date) (make-duration :day 1)))) :type "text"))
 			    ;(:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
 			;	(:textarea :class "form-control" :name "shipaddress" :rows "4"  (str (format nil "~A" (slot-value customer 'address)))  ))
-			   			    (:input :type "submit"  :class "btn btn-primary" :value "Confirm")))))
+			     (:input :type "submit"  :class "btn btn-primary" :value "Confirm")))))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
 
@@ -641,25 +642,23 @@
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
 (defun dod-controller-cust-index () 
-    (if (is-dod-cust-session-valid?)
+  (if (is-dod-cust-session-valid?)
+      (let ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
+	    (lstprodcatg (hunchentoot:session-value :login-prdcatg-cache)))
 	(standard-customer-page (:title "Welcome to Dairy Ondemand - customer")
-	    (let ((lstshopcart (hunchentoot:session-value :login-shopping-cart)))
-		
-		(htm 
-		 	 (:form :id "prdsearch" :name "prdsearch" :method "POST" :action "dodsearchproducts"
-	 (:div :class "container" 
-	 (:div :class "col-lg-6" 
-	 (:div :class "input-group"
-
-	       (:input :type "text" :name "search-clause"  :class "form-control" :placeholder "Search products...")
-	       (:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Go!" ))))))
-     		    (:div :class "row"
-			(:div :class "col-md-12" :align "right"
-   (:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))) ))))
-		    (:hr)		       
-		    (let ((lstprodcatg (hunchentoot:session-value :login-prdcatg-cache))) 
-		          (ui-list-prod-catg lstprodcatg)))))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	  ; Display the product search form. 
+	  (:form :id "prdsearch" :name "prdsearch" :method "POST" :action "dodsearchproducts"
+		 (:div :class "container" 
+		       (:div :class "col-lg-6 col-md-6 col-sm-12" 
+			     (:div :class "input-group"
+				   (:input :type "text" :name "search-clause"  :class "form-control" :placeholder "Search products...")
+				   (:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Go!" ))))
+	  ; Display the My Cart button. 
+	  (:div :class "col-lg-6 col-md-6 col-sm-6" :align "right"
+		(:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))))))))
+	(:hr)		       
+	(ui-list-prod-catg lstprodcatg)))
+(hunchentoot:redirect "/hhub/customer-login.html")))
 
 
 (defun dod-controller-customer-products ()
@@ -727,10 +726,10 @@
 
 
 (defun dod-cust-login (&key phone password)
-    (let* ((customer (car (clsql:select 'dod-cust-profile :where [and
+    (with-database (dbinst *dod-dbconn-spec* :if-exists :old :pool t :database-type :mysql ) (let* ((customer (car (clsql:select 'dod-cust-profile :where [and
 			      [= [slot-value 'dod-cust-profile 'phone] phone]
 			      [= [:deleted-state] "N"]]
-			      :caching nil :flatp t)))
+			      :caching nil :flatp t :database dbinst)))
 	   (pwd (if customer (slot-value customer 'password)))
 	   (salt (if customer (slot-value customer 'salt)))
 	   (password-verified (if customer  (check-password password salt pwd)))
@@ -757,7 +756,7 @@
 	  (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
-	  ))))
+	  )))))
 
 
 

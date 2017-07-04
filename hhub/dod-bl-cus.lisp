@@ -4,8 +4,9 @@
 
 
 (defun list-cust-profiles (company)
+ (with-database (dbinst *dod-dbconn-spec* :if-exists :old :pool t :database-type :mysql )
   (let ((tenant-id (slot-value company 'row-id)))
-  (clsql:select 'dod-cust-profile  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching*  :flatp t )))
+  (clsql:select 'dod-cust-profile  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]  :database dbinst   :caching *dod-database-caching*  :flatp t ))))
 
 
 
