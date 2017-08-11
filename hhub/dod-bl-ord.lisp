@@ -48,17 +48,23 @@
 		   [= [:fulfilled] fulfilled]] 
 			  :distinct t :caching nil :flatp t)))
 	(remove nil (mapcar (lambda (order-id)
-		    (get-order-by-id order-id company fulfilled)) ordlist))))
+		    (get-order-by-status order-id company fulfilled)) ordlist))))
 
+(defun get-order-by-status (id company-instance fulfilled)
+ (let ((tenant-id (slot-value company-instance 'row-id)))
+  (car (clsql:select 'dod-order  :where
+		     [and [= [:deleted-state] "N"]
+		     [= [:order-fulfilled] fulfilled]
+		     [= [:tenant-id] tenant-id]
+		     [=[:row-id] id]]    :caching *dod-debug-mode* :flatp t ))))
+  
 
-
-(defun get-order-by-id (id company-instance  &optional (fulfilled "N"))
+(defun get-order-by-id (id company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
   (car (clsql:select 'dod-order  :where
-		[and [= [:deleted-state] "N"]
-	   [= [:tenant-id] tenant-id]
-	    [= [:order-fulfilled] fulfilled]
-		[=[:row-id] id]]    :caching *dod-debug-mode* :flatp t ))))
+		     [and [= [:deleted-state] "N"]
+		     [= [:tenant-id] tenant-id]
+		     [=[:row-id] id]]    :caching *dod-debug-mode* :flatp t ))))
 
 (defun get-vendor-order-items-by-orderid (id company-instance  &optional (fulfilled "N"))
   (let ((tenant-id (slot-value company-instance 'row-id)))

@@ -13,12 +13,21 @@
 
 (defun is-dod-cust-session-valid? ()
     :documentation "Checks whether the current login session is valid or not."
-    (cond ((equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) nil) (clsql:reconnect :database *dod-db-instance*))  
-	  ((not (null (get-login-cust-name))) T)
-	  (() NIL)))
-	  
+	(if (null (get-login-cust-name)) NIL T))
 
-
+;    (handler-case 
+	;expression
+;	(if (not (null (get-login-cust-name)))
+;	       (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T))	      
+        ; Handle this condition
+   
+ ;     (clsql:sql-database-data-error (condition)
+;	  (if (equal (clsql:sql-error-error-id condition) 2006 ) (clsql:reconnect :database *dod-db-instance*)))
+;      (clsql:sql-fatal-error (errorinst) (if (equal (clsql:sql-error-database-message errorinst) "Database is closed.") 
+;					     (progn (clsql:stop-sql-recording :type :both)
+;					            (clsql:disconnect) 
+;						    (crm-db-connect :servername *crm-database-server* :strdb *crm-database-name* :strusr *crm-database-user*  :strpwd *crm-database-password* :strdbtype :mysql))))))
+      
 
 (defun get-login-cust-name ()
     :documentation "Gets the name of the currently logged in customer"
@@ -27,7 +36,7 @@
 (defun dod-controller-customer-logout ()
     :documentation "Customer logout."
     (progn (hunchentoot:remove-session *current-customer-session*)
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	(hunchentoot:redirect "/index.html")))
 
 (defun dod-controller-list-customers ()
     :documentation "A callback function which prints a list of customers in HTML format."
@@ -278,13 +287,17 @@
 			    (:input :class "form-control" :name "address" :placeholder "Address (Required)" :type "text" ))
 			(:div :class "form-group"
 			    (:input :class "form-control" :name "zipcode" :placeholder "Pincode (Required)" :type "text" ))
-			(:div :class "form-group"
-			    (:input :class "form-control" :name "city" :placeholder "City (Required)" :type "text" ))
+			(:div :class "form-group" 
+			    (:input :class "form-control" :name "city" :value "Bangalore"  :type "text" :readonly "true"))
 		
 			(:div :class "form-group"
-			    (:input :class "form-control" :name "birthdate" :placeholder "DOB" :type "text" ))
+			    (:input :class "form-control" :name "birthdate" :placeholder "DOB" :type "text" )) 
+					    			
+		
+
 			(:div :class "form-group"
-			    (:input :class "form-control" :name "state" :placeholder "State" :type "text" ))
+			    (:input :class "form-control" :name "state" :value "Karnataka"  :type "text" :readonly "true"
+ ))
 		
 			(:hr)(:hr))
 	
@@ -591,6 +604,7 @@
 		(setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 		(setf (hunchentoot:session-value :login-shopping-cart ) nil)
 		; Deduct the wallet balance after the order has been created
+	       
 		(hunchentoot:redirect "/hhub/dodcustordsuccess")))
 	 (hunchentoot:redirect "/hhub/customer-login.html")))
 
@@ -726,10 +740,13 @@
 
 
 (defun dod-cust-login (&key phone password)
-    (with-database (dbinst *dod-dbconn-spec* :if-exists :old :pool t :database-type :mysql ) (let* ((customer (car (clsql:select 'dod-cust-profile :where [and
+   ; (handler-case 
+	;expression
+
+       (let* ((customer (car (clsql:select 'dod-cust-profile :where [and
 			      [= [slot-value 'dod-cust-profile 'phone] phone]
 			      [= [:deleted-state] "N"]]
-			      :caching nil :flatp t :database dbinst)))
+			      :caching nil :flatp t :database *dod-db-instance* )))
 	   (pwd (if customer (slot-value customer 'password)))
 	   (salt (if customer (slot-value customer 'salt)))
 	   (password-verified (if customer  (check-password password salt pwd)))
@@ -756,7 +773,25 @@
 	  (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
-	  )))))
+	  ))))
+
+        ; Handle this condition
+   
+ ;     (clsql:sql-database-data-error (condition)
+;	  (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn 
+;								   (clsql:reconnect :database *dod-db-instance*)
+;								   (hunchentoot:redirect "/hhub/customer-login.html"))))
+ ;     (clsql:sql-fatal-error (errorinst) (if (equal (clsql:sql-error-database-message errorinst) "Database is closed.") 
+;					     (progn (clsql:stop-sql-recording :type :both)
+;					            (clsql:disconnect) 
+;						    (crm-db-connect :servername *crm-database-server* :strdb *crm-database-name* :strusr *crm-database-user*  :strpwd *crm-database-password* :strdbtype :mysql)
+;(hunchentoot:redirect "/hhub/customer-login.html"))))))
+      
+
+
+
+
+
 
 
 

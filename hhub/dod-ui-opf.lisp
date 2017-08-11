@@ -39,7 +39,7 @@
 											 (:td  :height "12px" (str (slot-value opf-product  'qty-per-unit)))
 											 (:td  :height "12px" (str (format nil "Rs. ~$"  (slot-value opf-product  'unit-price))))     
 											 
-										       (:td :height "12px" (:a  :onclick "return DeleteConfirm();" :href  (format nil  "/delopref?id=~A" opf-id ) "Cancel" )))))) data)))))))
+										       (:td :height "12px" (:a  :onclick "return DeleteConfirm();" :href  (format nil  "delopref?id=~A" opf-id ) "Cancel" )))))) data)))))))
 
 
 ;********************Function to list all customer order preferences for a given company.************************

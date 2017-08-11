@@ -221,7 +221,7 @@
 (defun dod-controller-vendor-logout ()
     :documentation "Vendor logout."
     (progn (hunchentoot:remove-session *current-vendor-session*)
-	(hunchentoot:redirect "/hhub/vendor-login.html")))
+	(hunchentoot:redirect "/index.html")))
 
 
 
