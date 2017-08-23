@@ -157,8 +157,11 @@
 
 
 (defun vendor-order-card (order-instance)
-    (let ((order-id (slot-value order-instance 'row-id)))
+    (let ((customer (get-ord-customer order-instance))
+	  (order-id (slot-value order-instance 'row-id)))
 	(cl-who:with-html-output (*standard-output* nil)
 		(:div :class "row"
+		      (:div :class "col-sm-12" (str (slot-value customer 'name)))
+		      (:div :class "col-sm-12" (str (slot-value customer 'address)))
 		(:div :class "col-sm-12"  (:a :href (format nil "dodvendororderdetails?id=~A" order-id) (:span :class "label label-info" (str order-id) )))))))
 
