@@ -154,7 +154,7 @@
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "List DOD Customer orders")   
 	    (let* (( dodorder (get-order-by-id (hunchentoot:parameter "id") (get-login-cust-company)))
-		      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total" "Action"))
+		      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total" "Status" "Action"))
 		      (odtlst (get-order-details dodorder) )
       		      (total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst))))

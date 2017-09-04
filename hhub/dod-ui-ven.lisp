@@ -243,6 +243,7 @@
     (if (is-dod-vend-session-valid?)
 	(standard-vendor-page (:title "List Vendor Order Details")   
 	    (let* (( dodvenorder (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor-company)))
+		   (venorderfulfilled (slot-value dodvenorder 'fulfilled))
 		   (order (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
 		   (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
 		      (odtlst (get-order-items-for-vendor order (get-login-vendor)) )
@@ -253,9 +254,12 @@
 					    (htm(:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
 				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))
-				    (if (equal (slot-value dodvenorder 'fulfilled) "N") (htm  (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Set Order Completed")))
+				    (if (equal venorderfulfilled "Y") 
+					(htm (:span :class "label label-info" "FULFILLED"))
 					;ELSE
-					(htm (:span :class "label label-info" "FULFILLED")))				    
+					(htm  (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Set Order Completed"))))
+					;ELSE
+					
 						    )))))
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
