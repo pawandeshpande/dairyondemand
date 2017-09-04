@@ -148,9 +148,9 @@
 
 
 
-(defun ui-list-vendor-orders-by-customers-tiles (data)
+(defun ui-list-vendor-orders-tiles (data)
     (cl-who:with-html-output (*standard-output* nil)
-	(:div :class "row-fluid"	 (if data (mapcar (lambda (order)
+     (:div :class "row-fluid"	 (if data (mapcar (lambda (order)
 						      (htm (:div :class "col-sm-4 col-xs-3 col-md-1 col-lg-1" 
 							       (:div :class "order-box"   (vendor-order-card order )))))
 					      data)))))

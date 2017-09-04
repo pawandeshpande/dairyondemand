@@ -3,7 +3,7 @@
 
 
 
-(defun get-order-details (order-instance)
+(defun get-order-items (order-instance)
 :documentation "Returns the list of order details instances given order-instance as input"
   (let ((tenant-id (slot-value order-instance 'tenant-id))
 	(order-id (slot-value order-instance 'row-id)))
@@ -15,7 +15,32 @@
 
 
 
-(defun get-order-details-for-vendor (order-instance vendor-instance)
+(defun count-order-items-completed (order-instance company) 
+  :documentation "Checks whether all the order items are in completed status for a given order" 
+(let ((tenant-id (slot-value company 'row-id))
+      (order-id (slot-value order-instance 'row-id)))
+  (first (clsql:select [count [*]] :from 'dod-order-details :where 
+		[and [= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[= [:status] "CMP"]
+		[= [:fulfilled] "Y"]
+		[=[:order-id] order-id]]    :caching nil :flatp t ))))
+
+
+(defun count-order-items-pending (order-instance company) 
+  :documentation "Checks whether all the order items are in completed status for a given order" 
+(let ((tenant-id (slot-value company 'row-id))
+      (order-id (slot-value order-instance 'row-id)))
+  (first (clsql:select [count [*]] :from 'dod-order-details :where 
+		[and [= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[= [:status] "PEN"]
+		[= [:fulfilled] "N"]
+		[=[:order-id] order-id]]    :caching nil :flatp t ))))
+
+
+
+(defun get-order-items-for-vendor (order-instance vendor-instance)
     (let* ((tenant-id (slot-value order-instance 'tenant-id))
 	     (vendor-id (slot-value vendor-instance 'row-id))
 	      (order-id (slot-value order-instance 'row-id)))
@@ -62,7 +87,7 @@
   
 
   
-(defun persist-order-details(order-id product-id vendor-id unit-price product-qty  tenant-id )
+(defun persist-order-items(order-id product-id vendor-id unit-price product-qty  tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-order-details
 						    :order-id order-id
 						    :prd-id product-id
@@ -81,27 +106,28 @@
 					 :vendor-id vendor-id
 					 :status "PEN"
 					 :fulfilled "N"
-					 :tenant-id tenant-id   )))
+					 :tenant-id tenant-id )))
 
 
 
  ;This is a clean function with no side effect.
-(defun create-order-details (order product  product-qty unit-price company-instance)
+(defun create-order-items (order product  product-qty unit-price company-instance)
   (let ((order-id (slot-value order 'row-id))
 	   (product-id (slot-value product 'row-id))
 	   (vendor-id (slot-value (product-vendor product) 'row-id))
 	(tenant-id (slot-value company-instance 'row-id)))
-      (progn (persist-order-details order-id product-id vendor-id unit-price product-qty tenant-id)
-	  (persist-vendor-orders order-id vendor-id tenant-id))))
+    (persist-order-items order-id product-id vendor-id unit-price product-qty tenant-id)))
 
 
  ;This is a clean function with no side effect.
 (defun create-odtinst-shopcart (order product product-qty unit-price company-instance)
   (let ((product-id (slot-value product 'row-id))
-	   (tenant-id (slot-value company-instance 'row-id))
+       	(vendor-id (slot-value (product-vendor product) 'row-id)) 
+	(tenant-id (slot-value company-instance 'row-id))
 	   (order-id (if order (slot-value order 'row-id) nil)))
     (make-instance 'dod-order-details
 						    :order-id order-id
+						    :vendor-id vendor-id
 						    :prd-id product-id
 						    :unit-price unit-price
 						    :prd-qty product-qty

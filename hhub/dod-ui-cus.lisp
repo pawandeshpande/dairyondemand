@@ -615,6 +615,13 @@
     total ))
 	
 
+(defun get-shopcart-vendorlist (shopcart-items company)
+( remove-duplicates  (mapcar (lambda (odt) 
+	   (select-vendor-by-id (slot-value odt 'vendor-id) company))  shopcart-items)
+:test #'equal
+:key (lambda (vendor) (slot-value vendor 'row-id)))) 
+
+ 
 
 (defun dod-controller-cust-update-cart ()
     :documentation "update the shopping cart by modifying the product quantity"
