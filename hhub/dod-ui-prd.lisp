@@ -38,6 +38,14 @@
 					     catglist))))
 
 
+(defun ui-list-vendor-products (data)
+  (cl-who:with-html-output (*standard-output* nil)
+	(:div :class "row-fluid"	  (mapcar (lambda (product)
+						      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
+							       (:div :class "product-box"   (product-card-for-vendor  product )))))
+					      data))))
+  
+
 (defun ui-list-customer-products (data lstshopcart)
     (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "row-fluid"	  (mapcar (lambda (product)
@@ -93,6 +101,27 @@
 
 	
 
+(defun product-card-for-vendor (product-instance)
+    (let ((prd-name (slot-value product-instance 'prd-name))
+	     (unit-price (slot-value product-instance 'unit-price))
+	     (prd-image-path (slot-value product-instance 'prd-image-path))
+	     (prd-id (slot-value product-instance 'row-id))
+	  (subscribe-flag (slot-value product-instance 'subscribe-flag))
+	     (prd-vendor (product-vendor product-instance)))
+	(cl-who:with-html-output (*standard-output* nil)
+	  
+		(:div :class "row"
+		    
+		(:div :class "col-sm-6"  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " "))
+		(:div :class "col-sm-3"	(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))))
+		    (:div :class "row"
+		    (:div :class "col-sm-6"
+		(:h5 :class "product-name"  (str prd-name) )
+					))
+
+		    (:div :class "row"
+			
+			  (if (equal subscribe-flag "Y") (htm (:div :class "col-sm-6"  (:h3 (:span :class "label label-default" "Can be Subscribed"))))) ))))
 
 (defun product-card (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))

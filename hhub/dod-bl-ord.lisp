@@ -27,7 +27,10 @@
 	    (progn (setf (slot-value order-instance 'order-fulfilled) value)
 	    (setf (slot-value order-instance 'shipped-date) (get-date))
 	    (setf (slot-value order-instance 'status ) "CMP")
-	    (update-order order-instance)))))))   
+	    (update-order order-instance)))
+	    
+	    (dod-reset-order-functions (get-login-vendor))
+	    ))))   
 
 
 
@@ -122,7 +125,7 @@
    (car (clsql:select 'dod-vendor-orders  :where
 	   [and [= [:tenant-id] tenant-id]
 	   [= [:vendor-id] vendor-id]
-	   [=[:order-id] id]]    :caching *dod-debug-mode* :flatp t ))))
+	   [=[:order-id] id]]    :caching nil :flatp t ))))
 
 
 
@@ -235,7 +238,7 @@
 					  (prd-qty (slot-value preference 'prd-qty))
 					  
 					  )
-				  (if (prefpresent-p preference (date-dow request-date)) (create-order-details order prd  prd-qty unit-price company-instance)))) order-pref-list)))))
+				  (if (prefpresent-p preference (date-dow request-date)) (create-order-items order prd  prd-qty unit-price company-instance)))) order-pref-list)))))
 
 
 (defun prefpresent-p (preference day)

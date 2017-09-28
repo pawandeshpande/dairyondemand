@@ -93,6 +93,7 @@
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "dodvendindex" "Home"))
+			 (:li  (:a :href "dodvenproducts"  "My Products"))
 			 (:li  (:a :href "dodvendindex?context=pendingorders"  "Pending Orders"))
 			 (:li (:a :href "dodvendindex?context=completedorders"  "Completed Orders"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
@@ -133,12 +134,43 @@
 		(setf (hunchentoot:session-value :login-vendor-company-name) vendor-company-name)
 		(setf (hunchentoot:session-value :login-vendor-company) vendor-company)
 		(setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company vendor-company))
+		(setf (hunchentoot:session-value :order-func-list) (dod-gen-order-functions vendor))
+		(setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor))
 		))))
+
+(defun dod-controller-vendor-products ()
+(let ((vendor-products-func (first (hunchentoot:session-value :login-vendor-products-functions))))
+  (standard-vendor-page (:title "Welcome to Dairy Ondemand - vendor")
+    (ui-list-vendor-products (funcall vendor-products-func)))))
+
+(defun dod-gen-vendor-products-functions (vendor)
+  (let ((vendor-products (select-products-by-vendor vendor (get-login-vendor-company))))
+    (list (function (lambda () vendor-products)))))
+
+(defun dod-gen-order-functions (vendor)
+(let ((pending-orders (get-orders-for-vendor vendor ))
+      (completed-orders (get-orders-for-vendor vendor "Y")))
+  (list (function (lambda () pending-orders ))
+	(function (lambda () completed-orders)))))
+
+
+(defun dod-reset-order-functions (vendor)
+  (let ((order-func-list (dod-gen-order-functions vendor)))
+    (setf (hunchentoot:session-value :order-func-list) order-func-list)))
+
+
+(defun dod-get-cached-pending-orders()
+  (let ((pending-orders-func (first (hunchentoot:session-value :order-func-list))))
+    (funcall pending-orders-func)))
+
+(defun dod-get-cached-completed-orders ()
+  (let ((completed-orders-func (second (hunchentoot:session-value :order-func-list))))
+    (funcall completed-orders-func)))
 
 
 (defun dod-controller-vend-index () 
     (if (is-dod-vend-session-valid?)
-	(let (( dodorders (get-orders-for-vendor (get-login-vendor)))
+	(let (( dodorders (dod-get-cached-pending-orders ))
 		 (btnordprd (hunchentoot:parameter "btnordprd"))
 		 (reqdate (hunchentoot:parameter "reqdate"))
 		 (btnexpexl (hunchentoot:parameter "btnexpexl"))
@@ -164,7 +196,7 @@
 	   ; (:hr)
 	    (cond ((and dodorders btnordprd) (ui-list-vendor-orders dodorders))
 		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/hhub/dodvenexpexl?reqdate=~A" reqdate)))
-		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers-tiles dodorders))
+		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers dodorders (get-login-vendor)))
 		((equal context "pendingorders") (ui-list-vendor-orders-tiles dodorders))
 		((equal context "completedorders") (let ((orders (get-orders-for-vendor (get-login-vendor) "Y")))
 						(ui-list-vendor-orders-tiles orders)))
