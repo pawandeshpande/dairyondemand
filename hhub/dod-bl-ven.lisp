@@ -56,13 +56,21 @@
   
 
   
-(defun create-vendor(name address phone company )
+(defun create-vendor(name address phone email password salt city state zipcode company )
   (let ((tenant-id (slot-value company 'row-id)))
  (clsql:update-records-from-instance (make-instance 'dod-vend-profile
 				    :name name
 				    :address address
+				    :email email 
+				    :password password 
+				    :salt salt
 				    :phone phone
+				    :city city 
+				    :state state 
+				    :zipcode zipcode
 				    :tenant-id tenant-id
 				    :deleted-state "N"))))
+ 
+
  
 

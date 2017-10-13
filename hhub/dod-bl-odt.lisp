@@ -137,3 +137,8 @@
 (defun search-odt-by-prd-id (prd-id list)
     (if (not (equal prd-id (slot-value (car list) 'prd-id))) (search-odt-by-prd-id prd-id (cdr list))
     (car list)))
+
+
+(defun search-odt-by-order-id (order-id list)
+   (if (not (equal order-id (slot-value (car list) 'order-id))) (search-odt-by-order-id  order-id (cdr list))
+    (car list)))

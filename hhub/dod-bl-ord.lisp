@@ -93,6 +93,20 @@
 			  (get-order-by-id ord-id company)) ordidlist))))
 
 
+(defun get-all-orders-for-vendor (vendor-instance)
+  (let* ((tenant-id (slot-value vendor-instance 'tenant-id))
+	 (company (car (vendor-company vendor-instance)))
+	 (vendor-id (slot-value vendor-instance 'row-id))
+	 (ordidlist     (clsql:select [order-id] :from  'dod-vendor-orders :where
+	    [and [= [:tenant-id] tenant-id]
+		  [= [:vendor-id] vendor-id]]
+		  
+			  :caching nil :flatp t)))
+    (remove nil (mapcar (lambda (ord-id) 
+			  (get-order-by-id ord-id company)) ordidlist))))
+
+
+
 (defun get-vendor-order-by-status (order company-instance fulfilled)
  (let ((tenant-id (slot-value company-instance 'row-id))
        (order-id (slot-value order 'row-id)))

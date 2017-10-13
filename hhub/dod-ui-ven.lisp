@@ -39,6 +39,9 @@
 			(:h1 :class "text-center login-title"  "Vendor - Login to DAS")
 			(:div :class "form-group"
 			    (:input :class "form-control" :name "phone" :placeholder "Phone" :type "text" ))
+				(:div :class "form-group"
+			    (:input :class "form-control" :name "password" :placeholder "password" :type "password" ))
+		
 			(:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
   
@@ -103,40 +106,51 @@
 			     (:li :align "center" (:a :href "dodvendlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
 
 (defun dod-controller-vend-login ()
-   (let  ((phone (hunchentoot:parameter "phone")))
-	(unless ( or (null phone) (zerop (length phone)))
-	    (if (equal (dod-vend-login :phone phone) NIL)
-		(hunchentoot:redirect "/hhub/dodvendindex")
-		; Else
-		(hunchentoot:redirect  "/hhub/dodvendindex")))))
+  (let  ((phone (hunchentoot:parameter "phone"))
+	 (password (hunchentoot:parameter "password")))
+    (unless (and  ( or (null phone) (zerop (length phone)))
+		  (or (null password) (zerop (length password))))
+      (if (equal (dod-vend-login  :phone phone :password password) NIL) 
+	  (hunchentoot:redirect "/hhub/vendor-login.html")
+	  ;else
+	  (hunchentoot:redirect "/hhub/dodvendindex")))))
 
-(defun dod-vend-login (&key  phone)
- (let* ((vendor (car (clsql:select 'dod-vend-profile :where [and
-			      [= [slot-value 'dod-vend-profile 'phone] phone]
-			     [= [:deleted-state] "N"]]
-			      :caching nil :flatp t)))
-	      
-	      (vendor-id (if vendor (slot-value vendor 'row-id)))
-	      (vendor-name (if vendor (slot-value vendor 'name)))
-	      (vendor-tenant-id (if vendor (slot-value (car  (vendor-company vendor)) 'row-id)))
-	      (vendor-company-name (if vendor (slot-value (car (if vendor (vendor-company vendor))) 'name)))
-	      (vendor-company (if vendor (car (vendor-company vendor)))))
+
+
+(defun dod-vend-login (&key  phone password)
+  (let* ((vendor (car (clsql:select 'dod-vend-profile :where [and
+				   [= [slot-value 'dod-vend-profile 'phone] phone]
+				   [= [:deleted-state] "N"]]
+				   :caching nil :flatp t)))
+	(pwd (if vendor (slot-value vendor 'password)))
+	(salt (if vendor (slot-value vendor 'salt)))
+	(password-verified (if vendor  (check-password password salt pwd)))
+	(vendor-id (if vendor (slot-value vendor 'row-id)))
+	(vendor-name (if vendor (slot-value vendor 'name)))
+	(vendor-tenant-id (if vendor (slot-value (car  (vendor-company vendor)) 'row-id)))
+	(vendor-company-name (if vendor (slot-value (car (if vendor (vendor-company vendor))) 'name)))
+	(vendor-company (if vendor (car (vendor-company vendor))))
+	(log (if password-verified (hunchentoot:log-message* :info (format nil  "phone : ~A password : ~A" phone password)))))
+	 
 	
-	(when (and  vendor
-		  (null (hunchentoot:session-value :login-vendor-name))) ;; vendor should not be logged-in in the first place.
-	    (progn
-		(format T "Starting session")
-		(setf *current-vendor-session* (hunchentoot:start-session))
-		(setf (hunchentoot:session-value :login-vendor ) vendor)
-		(setf (hunchentoot:session-value :login-vendor-name) vendor-name)
-		(setf (hunchentoot:session-value :login-vendor-id) vendor-id)
-		(setf (hunchentoot:session-value :login-vendor-tenant-id) vendor-tenant-id)
-		(setf (hunchentoot:session-value :login-vendor-company-name) vendor-company-name)
-		(setf (hunchentoot:session-value :login-vendor-company) vendor-company)
-		(setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company vendor-company))
-		(setf (hunchentoot:session-value :order-func-list) (dod-gen-order-functions vendor))
-		(setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor))
-		))))
+   (when (and  vendor
+	       password-verified
+	       (null (hunchentoot:session-value :login-vendor-name))) ;; vendor should not be logged-in in the first place.
+     (progn
+       (format T "Starting session")
+        
+       (setf *current-vendor-session* (hunchentoot:start-session))
+       (setf (hunchentoot:session-value :login-vendor ) vendor)
+       (setf (hunchentoot:session-value :login-vendor-name) vendor-name)
+       (setf (hunchentoot:session-value :login-vendor-id) vendor-id)
+       (setf (hunchentoot:session-value :login-vendor-tenant-id) vendor-tenant-id)
+       (setf (hunchentoot:session-value :login-vendor-company-name) vendor-company-name)
+       (setf (hunchentoot:session-value :login-vendor-company) vendor-company)
+       (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company vendor-company))
+       (setf (hunchentoot:session-value :order-func-list) (dod-gen-order-functions vendor))
+       (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor))
+       
+       ))))
 
 (defun dod-controller-vendor-products ()
 (let ((vendor-products-func (first (hunchentoot:session-value :login-vendor-products-functions))))
@@ -148,10 +162,16 @@
     (list (function (lambda () vendor-products)))))
 
 (defun dod-gen-order-functions (vendor)
-(let ((pending-orders (get-orders-for-vendor vendor ))
-      (completed-orders (get-orders-for-vendor vendor "Y")))
+(let* ((pending-orders (get-orders-for-vendor vendor ))
+      (completed-orders (get-orders-for-vendor vendor "Y"))
+      (all-orders (get-all-orders-for-vendor vendor)) 
+       (all-order-items (mapcar (lambda (order)
+				     (get-order-items-for-vendor order vendor)) all-orders)))
+
   (list (function (lambda () pending-orders ))
-	(function (lambda () completed-orders)))))
+	(function (lambda () completed-orders))
+	(function (lambda () all-order-items)))))
+
 
 
 (defun dod-reset-order-functions (vendor)
@@ -166,6 +186,13 @@
 (defun dod-get-cached-completed-orders ()
   (let ((completed-orders-func (second (hunchentoot:session-value :order-func-list))))
     (funcall completed-orders-func)))
+
+(defun dod-get-cached-order-items (order)
+(let* ((order-items-func (third (hunchentoot:session-value :order-func-list)))
+      (order-items (funcall order-items-func))
+      (order-id (slot-value order 'row-id)))
+  (search-odt-by-order-id order-id order-items)))
+
 
 
 (defun dod-controller-vend-index () 
@@ -198,7 +225,7 @@
 		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/hhub/dodvenexpexl?reqdate=~A" reqdate)))
 		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers dodorders (get-login-vendor)))
 		((equal context "pendingorders") (ui-list-vendor-orders-tiles dodorders))
-		((equal context "completedorders") (let ((orders (get-orders-for-vendor (get-login-vendor) "Y")))
+		((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
 						(ui-list-vendor-orders-tiles orders)))
 		(T ()) )))
 					; Else
@@ -278,7 +305,7 @@
 		   (venorderfulfilled (slot-value dodvenorder 'fulfilled))
 		   (order (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
 		   (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
-		      (odtlst (get-order-items-for-vendor order (get-login-vendor)) )
+		      (odtlst (dod-get-cached-order-items order) )
       		      (total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst))))
 		(display-order-header order) 

@@ -64,9 +64,11 @@
 ; **** Create the vendor *****
 (defparameter *vendor-params* nil)
 (loop for i from 1 to 10 do 
-(setf *vendor-params* (list (format nil "Vendor~a" (random 20)) "GA Bangalore 560066" (format nil "98456~a" (random 99999)) dod-company))
+     (let* ((salt (flexi-streams:octets-to-string  (secure-random:bytes 56 secure-random:*generator*)))
+	    (password (encrypt "P@ssword1" salt))
+	    (*vendor-params* (list (format nil "Vendor~a" (random 200)) "GA Bangalore 560066" (format nil "98456~a" (random 99999))  "vendor@abc.com" password salt "Bangalore" "Karnataka" "560066" dod-company )))
 ;Create the vendor now.
-(apply #'create-vendor *vendor-params*))
+(apply #'create-vendor *vendor-params*)))
 ;Get the vendor which we have created in the above steps. 
 (defparameter Rajesh(select-vendor-by-id 1  dod-company))
 (defparameter Suresh(select-vendor-by-id 2  dod-company))
