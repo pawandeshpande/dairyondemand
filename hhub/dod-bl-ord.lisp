@@ -5,7 +5,7 @@
 (defun set-order-fulfilled ( value order-instance company-instance)
     :documentation "value should be Y or N, followed by order instance and company instance"
     (let ((vendor-order (get-vendor-order-instance (slot-value order-instance 'row-id)))
-	     (vendor-order-items (get-order-items-for-vendor  order-instance (get-login-vendor) )))
+	     (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance (get-login-vendor) )))
 	     
     (if (eq (order-company order-instance) company-instance)
 	(progn

@@ -162,11 +162,9 @@
     (list (function (lambda () vendor-products)))))
 
 (defun dod-gen-order-functions (vendor)
-(let* ((pending-orders (get-orders-for-vendor vendor ))
+(let ((pending-orders (get-orders-for-vendor vendor ))
       (completed-orders (get-orders-for-vendor vendor "Y"))
-      (all-orders (get-all-orders-for-vendor vendor)) 
-       (all-order-items (mapcar (lambda (order)
-				     (get-order-items-for-vendor order vendor)) all-orders)))
+       (all-order-items (get-order-items-for-vendor  vendor)))
 
   (list (function (lambda () pending-orders ))
 	(function (lambda () completed-orders))
@@ -187,11 +185,12 @@
   (let ((completed-orders-func (second (hunchentoot:session-value :order-func-list))))
     (funcall completed-orders-func)))
 
-(defun dod-get-cached-order-items (order)
+(defun dod-get-cached-order-items-by-order-id (order)
 (let* ((order-items-func (third (hunchentoot:session-value :order-func-list)))
       (order-items (funcall order-items-func))
       (order-id (slot-value order 'row-id)))
-  (search-odt-by-order-id order-id order-items)))
+ (remove nil (mapcar (lambda (item)
+	    (if (equal (slot-value item 'order-id) order-id) item)) order-items))))
 
 
 
@@ -224,7 +223,9 @@
 	    (cond ((and dodorders btnordprd) (ui-list-vendor-orders dodorders))
 		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/hhub/dodvenexpexl?reqdate=~A" reqdate)))
 		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers dodorders (get-login-vendor)))
-		((equal context "pendingorders") (ui-list-vendor-orders-tiles dodorders))
+		((equal context "pendingorders") 
+		 (progn ()
+			(ui-list-vendor-orders-tiles dodorders)))
 		((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
 						(ui-list-vendor-orders-tiles orders)))
 		(T ()) )))
@@ -305,8 +306,9 @@
 		   (venorderfulfilled (slot-value dodvenorder 'fulfilled))
 		   (order (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
 		   (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
-		      (odtlst (dod-get-cached-order-items order) )
-      		      (total   (reduce #'+  (mapcar (lambda (odt)
+		      (odtlst (dod-get-cached-order-items-by-order-id order) )
+      		  
+		   (total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst))))
 		(display-order-header order) 
 		(if odtlst (ui-list-vend-orderdetails header odtlst) "No order details")

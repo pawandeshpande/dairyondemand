@@ -39,8 +39,7 @@
 		[=[:order-id] order-id]]    :caching nil :flatp t ))))
 
 
-
-(defun get-order-items-for-vendor (order-instance vendor-instance)
+(defun get-order-items-for-vendor-by-order-id (order-instance vendor-instance)
     (let* ((tenant-id (slot-value order-instance 'tenant-id))
 	     (vendor-id (slot-value vendor-instance 'row-id))
 	      (order-id (slot-value order-instance 'row-id)))
@@ -51,7 +50,21 @@
 		     [= [:vendor-id] vendor-id]
 		     [=[:order-id] order-id]]    :caching nil :flatp t )))
 
+
+
+(defun get-order-items-for-vendor (vendor-instance)
+    (let* ((tenant-id (slot-value vendor-instance 'tenant-id))
+	     (vendor-id (slot-value vendor-instance 'row-id)))
+	
+ (clsql:select 'dod-order-details  :where
+		[and [= [:deleted-state] "N"]
+		     [= [:tenant-id] tenant-id]
+		     [= [:vendor-id] vendor-id]]
+		        :caching nil :flatp t )))
+
 	     
+
+
 
 
 
