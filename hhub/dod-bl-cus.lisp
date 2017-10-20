@@ -121,7 +121,7 @@
   (if (> cur-balance amount) T nil)))
 
 (defun check-low-wallet-balance (customer-wallet) 
-(if (< (slot-value customer-wallet 'balance) 100.00) T nil))
+(if (< (slot-value customer-wallet 'balance) 50.00) T nil))
 
 (defun check-zero-wallet-balance (customer-wallet)
 (if (< (slot-value customer-wallet 'balance) 0.00) T nil)) 
@@ -157,6 +157,17 @@
 		:caching *dod-database-caching* :flatp t)))
 
 
+
+
+(defun get-cust-wallet-by-id (id company) 
+  (let ((tenant-id (slot-value company 'row-id)))
+	
+   (car (clsql:select 'dod-cust-wallet :where [and
+		[= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[= [:row-id] id]]
+	
+		:caching *dod-database-caching* :flatp t))))
 
 
 

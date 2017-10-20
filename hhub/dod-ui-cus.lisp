@@ -263,7 +263,18 @@
 ;**********************************************************************************
 ;***************** CUSTOMER LOGIN RELATED FUNCTIONS ******************************
 
+(defun dod-controller-cust-apt-no ()
+ (let ((cname (hunchentoot:parameter "cname")))
+   (standard-customer-page (:title "Welcome to DAS Platform - Your Demand and Supply destination.")
+     (:form :class "form-custresister" :role "form" :method "POST" :action "dodcustregisteraction"
+	    (:div :class "row" 
+		  (:div :class "col-lg-6 col-md-6 col-sm-6"
+			(:div :class "form-group"
+			      (:input :class "form-control" :name "address" :placeholder "Apartment No (Required)" :type "text" ))
+			(:div :class "form-group"
+			      (:input :class "form-control" :name "tenant-name" :value (format nil "~A" cname) :type "text" :readonly T ))))))))
 
+			
 
 
 (defun dod-controller-cust-register-page ()
@@ -285,17 +296,17 @@
 			    (:input :class "form-control" :name "email" :placeholder "Email (Required)" :type "text" ))
 			(:div :class "form-group"
 			    (:input :class "form-control" :name "address" :placeholder "Address (Required)" :type "text" ))
-			(:div :class "form-group"
+			(:div :class "form-group" :style "display: none"
 			    (:input :class "form-control" :name "zipcode" :placeholder "Pincode (Required)" :type "text" ))
-			(:div :class "form-group" 
+			(:div :class "form-group" :style "display: none"
 			    (:input :class "form-control" :name "city" :value "Bangalore"  :type "text" :readonly "true"))
 		
-			(:div :class "form-group"
+			(:div :class "form-group" :style "display: none"
 			    (:input :class "form-control" :name "birthdate" :placeholder "DOB" :type "text" )) 
 					    			
 		
 
-			(:div :class "form-group"
+			(:div :class "form-group" :style "display: none"
 			    (:input :class "form-control" :name "state" :value "Karnataka"  :type "text" :readonly "true"
  ))
 		

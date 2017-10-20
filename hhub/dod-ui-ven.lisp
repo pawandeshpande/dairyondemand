@@ -27,6 +27,7 @@
 									  
 
 
+
 (defun dod-controller-vendor-loginpage ()
     (if (is-dod-vend-session-valid?)
 	(hunchentoot:redirect "/dodvendindex")
@@ -45,6 +46,78 @@
 			(:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
   
+
+(defun dod-controller-vendor-search-cust-wallet-page ()
+    (if (is-dod-vend-session-valid?)
+    (standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+	(:div :class "row" 
+	    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
+		(:form :class "form-cust-wallet-search" :role "form" :method "POST" :action "dodsearchcustwalletaction"
+		    (:div :class "account-wall"
+			  (:div :class "form-group"
+			    (:input :class "form-control" :name "phone" :placeholder "Phone" :type "text" ))
+					
+			(:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
+    (hunchentoot:redirect "/hhub/vendor-login.html")
+))
+
+(defun dod-controller-vendor-search-cust-wallet-action ()
+(let* ((phone (hunchentoot:parameter "phone"))
+	(customer (select-customer-by-phone phone (get-login-vendor-company)))
+	(wallet (get-cust-wallet-by-vendor customer (get-login-vendor) (get-login-vendor-company))))
+(if (is-dod-vend-session-valid?)
+(standard-vendor-page (:title "Welcome to DAS Platform")
+ 
+  (:div :class "row" 
+	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Name: ~A" (if customer (slot-value customer 'name)))))))
+  (:div :class "row" 
+	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Phone: ~A" (if customer (slot-value customer 'phone)))))))
+   (:div :class "row" 
+	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Address: ~A" (if customer (slot-value customer 'address)))))))
+
+  (:div :class "row" 
+	    (:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Balance = Rs.~$" (if wallet (slot-value wallet 'balance)))))))
+	(:div :class "row" 
+	    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
+		  (:form :class "form-vendor-update-balance" :role "form" :method "POST" :action "dodupdatewalletbalance"
+		    (:div :class "account-wall"
+			  (:div :class "form-group"
+			    (:input :class "form-control" :name "balance" :placeholder "recharge amount" :type "text" ))
+			  (:input :class "form-control" :name "wallet-id" :value (slot-value wallet 'row-id) :type "hidden")
+			   (:input :class "form-control" :name "phone" :value phone :type "hidden")
+			  (:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
+(hunchentoot:redirect "/hhub/vendor-login.html"))))
+
+
+(defun dod-controller-update-wallet-balance ()
+  (if (is-dod-vend-session-valid?)
+  (let* ((amount (parse-integer (hunchentoot:parameter "balance")))
+	 (phone (hunchentoot:parameter "phone"))
+	(wallet (get-cust-wallet-by-id (hunchentoot:parameter "wallet-id") (get-login-vendor-company)))
+	(current-balance (slot-value wallet 'balance))
+	(latest-balance (+ current-balance amount)))
+    (set-wallet-balance latest-balance wallet)
+    (hunchentoot:redirect (format nil "/hhub/dodsearchcustwalletaction?phone=~A" phone)))
+  ;else 
+  (hunchentoot:redirect "/hhub/vendor-login.html")))
+    
+	
+	
+   
+   
+(defun dod-controller-vend-profile ()
+(if (is-dod-vend-session-valid?)
+    (standard-vendor-page (:title "Welcome to Highrisehub")
+       (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
+       (:form :class "form-update-wallet" :method "POST" :action "dodsearchcustwalletpage"
+	      (:div :class "row"
+		     (:div :class "col-sm-6 col-md-4 col-md-offset-4"
+		     (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Recharge Customer Wallet")))))
+    (hunchentoot:redirect "vendor-login.html")))
+
+
 
 
 (defmacro standard-vendor-page ((&key title) &body body)
@@ -96,11 +169,12 @@
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "dodvendindex" "Home"))
-			 (:li  (:a :href "dodvenproducts"  "My Products"))
-			 (:li  (:a :href "dodvendindex?context=pendingorders"  "Pending Orders"))
-			 (:li (:a :href "dodvendindex?context=completedorders"  "Completed Orders"))
+			 (:li :align "center" (:a :href "dodvenproducts"  "My Products"))
+			 (:li :align "cener"  (:a :href "dodvendindex?context=pendingorders"  "Pending Orders"))
+			 (:li :align "center" (:a :href "dodvendindex?context=completedorders"  "Completed Orders"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     (:ul :class "nav navbar-nav navbar-right"
+			 (:li :align "center" (:a :href "dodvendprofile" "My Profile" )) 
 			 (:li :align "center" (:a :href "https://goo.gl/forms/XaZdzF30Z6K43gQm2" "Feedback" ))
 			     (:li :align "center" (:a :href "https://goo.gl/forms/SGizZXYwXDUiTgVY2" (:span :class "glyphicon glyphicon-bug") "Bug" ))
 			     (:li :align "center" (:a :href "dodvendlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
@@ -191,6 +265,9 @@
       (order-id (slot-value order 'row-id)))
  (remove nil (mapcar (lambda (item)
 	    (if (equal (slot-value item 'order-id) order-id) item)) order-items))))
+
+
+
 
 
 
