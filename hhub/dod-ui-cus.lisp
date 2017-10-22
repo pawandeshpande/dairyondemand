@@ -578,8 +578,16 @@
 
 (defun dod-controller-low-wallet-balance ()
   (if (is-dod-cust-session-valid?)
-      (standard-customer-page (:title "Low Wallet Balance")
-	(:h1 "Low Wallet Balance"))
+      (let* ((company (hunchentoot:session-value :login-customer-company))
+	     (customer (hunchentoot:session-value :login-customer))
+	     (wallets (get-cust-wallets customer company))
+	     (header (list "Vendor" "Balance")))
+	
+	(standard-customer-page (:title "Low Wallet Balance")
+	(:h1 (:span :class "label label-danger"  "Low Wallet Balance. Modify your shopcart. "))
+	(list-customer-wallets header wallets)
+	(:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  ")))
+	
       (hunchentoot:redirect "/hhub/customer-login.html")))
 
 
@@ -602,22 +610,56 @@
 
 (defun dod-controller-cust-add-order-action ()
     (if (is-dod-cust-session-valid?)
-	(let ((odts (hunchentoot:session-value :login-shopping-cart))
-	         (products (hunchentoot:session-value :login-prd-cache))
-		 (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
-		 (cust (hunchentoot:session-value :login-customer))
-	      (shopcart-total (get-shop-cart-total))
-	      (custcomp (hunchentoot:session-value :login-customer-company))
-		 (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
-		 (shipaddr (hunchentoot:parameter "shipaddress")))
+	(let* ((odts (hunchentoot:session-value :login-shopping-cart))
+	       (products (hunchentoot:session-value :login-prd-cache))
+	       (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
+	       (cust (hunchentoot:session-value :login-customer))
+	       (shopcart-total (get-shop-cart-total))
+	       (custcomp (hunchentoot:session-value :login-customer-company))
+	       (vendor-list (get-shopcart-vendorlist odts custcomp))
+	       (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
+	       (shipaddr (hunchentoot:parameter "shipaddress")))
 	 
+	  (if (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
+				      (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust  vendor custcomp))) vendor-list)) 
+	 ; (if (check-wallet-balance shopcart-total (get-login-customer-wallet)) 
 	  (progn (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total cust custcomp)
 		(setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 		(setf (hunchentoot:session-value :login-shopping-cart ) nil)
 		; Deduct the wallet balance after the order has been created
 	       
-		(hunchentoot:redirect "/hhub/dodcustordsuccess")))
+		(hunchentoot:redirect "/hhub/dodcustordsuccess"))
+	  ;else
+	  (hunchentoot:redirect "/hhub/dodcustlowbalance"))
+	  )
 	 (hunchentoot:redirect "/hhub/customer-login.html")))
+
+
+(defun get-order-items-total-for-vendor (vendor order-items) 
+ (let ((vendor-id (slot-value vendor 'row-id)))
+  (reduce #'+ (mapcar (lambda (item) (if (equal vendor-id (slot-value item 'vendor-id)) 
+					 (* (slot-value item 'unit-price) (slot-value item 'prd-qty)))) order-items))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 (defun get-shop-cart-total ()
   (let* ((odts (hunchentoot:session-value :login-shopping-cart))

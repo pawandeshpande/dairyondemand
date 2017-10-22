@@ -159,6 +159,7 @@
 
 
 
+
 (defun get-cust-wallet-by-id (id company) 
   (let ((tenant-id (slot-value company 'row-id)))
 	
