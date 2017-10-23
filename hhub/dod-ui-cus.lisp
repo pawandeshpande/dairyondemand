@@ -75,6 +75,28 @@
 (das-cust-page-with-tiles 'list-customer-wallets "Customer Wallets" header wallets)))
 
 
+
+(defun wallet-card (wallet-instance custom-message)
+    (let ((customer (get-customer wallet-instance))
+	  (vendor (get-vendor wallet-instance))
+	  (balance (slot-value wallet-instance 'balance)) 
+	  (lowbalancep (if (check-low-wallet-balance wallet-instance) T NIL)))
+
+	(cl-who:with-html-output (*standard-output* nil)
+	  (:div :class "wallet-box"
+		(:div :class "row"
+		      (:div :class "col-sm-6"  (:h3  (str (format nil "Customer: ~A " (slot-value customer 'name)))))
+		(:div :class "col-sm-6"  (:h3  (str (format nil "Ph:  ~A " (slot-value customer 'phone))))))
+		(:div :class "row"
+		(if lowbalancep 
+		   (htm  (:div :class "col-sm-6" (:div  (:h3(:span :class "label label-warning" (str (format nil "Rs ~$ - Low Balance. Please recharge the  wallet."  balance)))))))
+		   (htm (:div :class "col-sm-3" (:div  (:h3(:span :class "label label-info" (str (format nil "Balance: Rs. ~$"  balance)))))))))
+		(:div :class "row"
+		      (:div :class "col-sm-6"  (:h3  (str (format nil " ~A " custom-message)))))))))
+		
+
+
+
 (defun list-customer-wallets (header wallets)
 (cl-who:with-html-output (*standard-output* nil)
       (:h3 "My Wallets.")      

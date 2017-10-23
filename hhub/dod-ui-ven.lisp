@@ -315,12 +315,23 @@
 (defun dod-controller-ven-order-fulfilled ()
     (if (is-dod-vend-session-valid?)
 	(let* ((id (hunchentoot:parameter "id"))
-		  (company-instance (hunchentoot:session-value :login-vendor-company))
-		   (order-instance (get-order-by-id id company-instance)))
-	   (progn (set-order-fulfilled "Y"  order-instance company-instance)
-	       (hunchentoot:redirect "/hhub/dodvendindex"))
-	    )
+	       (company-instance (hunchentoot:session-value :login-vendor-company))
+	       (order-instance (get-order-by-id id company-instance))
+	       (customer (get-ord-customer order-instance)) 
+	       (vendor (get-login-vendor))
+	       (wallet (get-cust-wallet-by-vendor customer vendor company-instance))
+	       (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance (get-login-vendor) )))
+	  (if (check-wallet-balance (get-order-items-total-for-vendor vendor  vendor-order-items) wallet)
+	      (progn (set-order-fulfilled "Y"  order-instance company-instance)
+	       (hunchentoot:redirect "/hhub/dodvendindex?context=completedorders"))
+	      ;else 
+	      (display-wallet-for-customer wallet "Not enough balance for the transaction.")))
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
+
+
+(defun display-wallet-for-customer (wallet-instance custom-message)
+  (standard-vendor-page (:title "Wallet Display")
+    (wallet-card wallet-instance custom-message)))
 
 (defun dod-controller-ven-expexl ()
     (if (is-dod-vend-session-valid?)

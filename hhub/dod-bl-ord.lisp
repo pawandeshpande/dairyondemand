@@ -7,14 +7,13 @@
     (let* ((vendor-order (get-vendor-order-instance (slot-value order-instance 'row-id)))
 	   (customer (get-ord-customer order-instance)) 
 	   (vendor (get-login-vendor))
-	  (wallet (get-cust-wallet-by-vendor (get-ord-customer order-instance) (get-login-vendor) company-instance))
-	  (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance (get-login-vendor) ))
+	   (wallet (get-cust-wallet-by-vendor customer vendor company-instance))
+	   (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance (get-login-vendor) ))
 	  (total   (reduce #'+  (mapcar (lambda (voitem)
 			(* (slot-value voitem 'unit-price) (slot-value voitem 'prd-qty))) vendor-order-items))))
       
-    (if
-     (and (eq (order-company order-instance) company-instance)
-	  (check-wallet-balance (get-order-items-total-for-vendor vendor  vendor-order-items) (get-cust-wallet-by-vendor customer  vendor company-instance))) 
+      (if  (eq (order-company order-instance) company-instance)
+	 
 	  (progn
 	; complete the order items for that particular vendor.  	
 	    (mapcar (lambda (voitem)
