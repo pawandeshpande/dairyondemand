@@ -108,6 +108,7 @@
 			       (balance (slot-value wallet 'balance)))
 			   (htm (:tr
 				 (:td  :height "12px" (str (slot-value vendor  'name)))
+				  (:td  :height "12px" (str (slot-value vendor  'phone)))
 				 (:td :height "12px" (str (format nil "Rs. ~$" balance))))))) wallets)))))
 
 
@@ -258,10 +259,12 @@
 		
 		 (:link :href "css/bootstrap.min.css" :rel "stylesheet")
 		 (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
+		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
 		 (:link :href "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" :rel "stylesheet")
 		 (:link :href "css/theme.css" :rel "stylesheet")
 		
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
+		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
 		 (:script :src "js/spin.min.js")
 		 (:script :src "https://www.google.com/recaptcha/api.js")
 		 ) ;; Header completes here.
@@ -310,49 +313,33 @@
 				(:hr)) 
 	       (:div :class "row" 
 	    (:div :class "col-lg-6 col-md-6 col-sm-6"
+		  (:div :class "form-group"
+			(:input :class "form-control" :name "tenant-name" :value (format nil "~A" cname) :type "text" :readonly T ))
+		  (:div :class "form-group"
+			(:input :class "form-control" :name "name" :placeholder "Full Name (Required)" :type "text" ))
+		  (:div :class "form-group"
+			(:input :class "form-control" :name "address" :placeholder "Address (Required)" :type "text" ))
+		  (:div :class "form-group"
+			(:input :class "form-control" :name "email" :placeholder "Email (Required)" :type "text" ))
+		  
+		  (:hr))
+	    
+	    (:div :class "col-lg-6 col-md-6 col-sm-6"     
+		  
+		  
+					; (:label :for "tenant-id" (str "Group/Apartment"))
+					; (company-dropdown "tenant-id" (list-dod-companies)) )
+		  (:div :class "form-group"
+			(:input :class "form-control" :name "phone" :placeholder "Your Mobile Number (Required)" :type "text" ))
+		  
+		  (:div :class "form-group"
+			(:input :class "form-control" :name "password" :placeholder "Password" :type "password" ))
+		  (:div :class "form-group"
+			(:input :class "form-control" :name "confirmpass" :placeholder "Confirm Password" :type "password" ))
+		  (:div :class "form-group"
+			(:div :class "g-recaptcha" :data-sitekey "6LeiXSQUAAAAAO-qh28CcnBFva6cQ68PCfxiMC0V")
 			(:div :class "form-group"
-			    (:input :class "form-control" :name "firstname" :placeholder "First Name (Required)" :type "text" ))
-			(:div :class "form-group"
-			      (:input :class "form-control" :name "lastname" :placeholder "Last Name (Required)" :type "text" ))
-			(:div :class "form-group"
-			    (:input :class "form-control" :name "email" :placeholder "Email (Required)" :type "text" ))
-			(:div :class "form-group"
-			    (:input :class "form-control" :name "address" :placeholder "Address (Required)" :type "text" ))
-			(:div :class "form-group" :style "display: none"
-			    (:input :class "form-control" :name "zipcode" :placeholder "Pincode (Required)" :type "text" ))
-			(:div :class "form-group" :style "display: none"
-			    (:input :class "form-control" :name "city" :value "Bangalore"  :type "text" :readonly "true"))
-		
-			(:div :class "form-group" :style "display: none"
-			    (:input :class "form-control" :name "birthdate" :placeholder "DOB" :type "text" )) 
-					    			
-		
-
-			(:div :class "form-group" :style "display: none"
-			    (:input :class "form-control" :name "state" :value "Karnataka"  :type "text" :readonly "true"
- ))
-		
-			(:hr)(:hr))
-	
-	                (:div :class "col-lg-6 col-md-6 col-sm-6"     
-		
-			      (:div :class "form-group"
-				   (:input :class "form-control" :name "tenant-name" :value (format nil "~A" cname) :type "text" :readonly T ))
-				   ; (:label :for "tenant-id" (str "Group/Apartment"))
-				   ; (company-dropdown "tenant-id" (list-dod-companies)) )
-			      (:div :class "form-group"
-			    (:input :class "form-control" :name "phone" :placeholder "Your Mobile Number (Required)" :type "text" ))
-		
-			(:div :class "form-group"
-			    (:input :class "form-control" :name "password" :placeholder "Password" :type "password" ))
-			(:div :class "form-group"
-			    (:input :class "form-control" :name "confirmpass" :placeholder "Confirm Password" :type "password" ))
-			(:div :class "form-group"
-			    (:div :class "g-recaptcha" :data-sitekey "6LeiXSQUAAAAAO-qh28CcnBFva6cQ68PCfxiMC0V")
-	     
-			    			
-			(:div :class "form-group"
-			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))
+			      (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))
 	        )))))
 
 (defun check&encrypt (password confirmpass salt)
@@ -368,17 +355,12 @@
        (paramname (list "secret" "response" ) ) 
        (paramvalue (list "6LeiXSQUAAAAAFDP0jgtajXXvrOplfkMR9rWnFdO" captcha-resp))
        (param-alist (pairlis paramname paramvalue ))
-      (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
+       (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
                        :method :POST
                        :parameters param-alist  ))))
-       (firstname (hunchentoot:parameter "firstname"))
-       (lastname (hunchentoot:parameter "lastname")) 
+       (name (hunchentoot:parameter "name"))
        (email (hunchentoot:parameter "email"))
        (address (hunchentoot:parameter "address"))
-       (zipcode (hunchentoot:parameter "zipcode"))
-       (city (hunchentoot:parameter "city"))
-       (birthdate (get-date-from-string (hunchentoot:parameter "birthdate")))
-       (state (hunchentoot:parameter "state"))
        (phone (hunchentoot:parameter "phone"))
        (password (hunchentoot:parameter "password"))
        (confirmpass (hunchentoot:parameter "confirmpass"))
@@ -387,7 +369,7 @@
        (encryptedpass (check&encrypt password confirmpass salt))
        (tenant-name (hunchentoot:parameter "tenant-name"))
        (company (select-company-by-name tenant-name)))
-
+  
 
   ; If we receive a True from the google verifysite then, add the user to the backend. 
   (cond
@@ -400,8 +382,9 @@
     ((not (null encryptedpass)) 
 	 (progn 
        ; 1 
-       (create-customer (format nil "~A ~A" firstname lastname) address phone email birthdate encryptedpass salt city state zipcode company)
-       ; 2 
+       (create-customer name address phone email nil encryptedpass salt nil nil nil company)
+       ; 2
+       
        (standard-customer-page (:title "Welcome to DAS platform")
 	 (:h3 (str(format nil "Your record has been successfully added" )))
 	 (:a :href "/hhub/customer-login.html" "Login now"))))
@@ -530,10 +513,12 @@
 			    (:div  :class "form-group" (:label :for "orddate" "Order Date" )
 				(:input :class "form-control" :name "orddate" :value (str (get-date-string (get-date))) :type "text"  :readonly "true"  ))
 			    (:div :class "form-group" (:label :for "reqdate" "Required On" )
-				(:input :class "form-control" :name "reqdate" :value (str (get-date-string (date+ (get-date) (make-duration :day 1)))) :type "text"))
+				(:input :class "form-control" :name "reqdate" :id "required-on" :value (str (get-date-string (date+ (get-date) (make-duration :day 1)))) :type "text"))
 			    ;(:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
 			;	(:textarea :class "form-control" :name "shipaddress" :rows "4"  (str (format nil "~A" (slot-value customer 'address)))  ))
-			     (:input :type "submit"  :class "btn btn-primary" :value "Confirm")))))
+			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
+				    (payment-mode-dropdown))
+			    (:input :type "submit"  :class "btn btn-primary" :value "Confirm")))))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
 
@@ -589,6 +574,16 @@
       (loop for prd in products
 	 do (if (equal (slot-value prd 'subscribe-flag) "Y")  (htm  (:option :value  (slot-value prd 'row-id) (str (slot-value prd 'prd-name))))))))))
 
+  
+;; This is products dropdown
+(defun  payment-mode-dropdown ()
+  (cl-who:with-html-output (*standard-output* nil)
+     (htm (:select :class "form-control"  :name "payment-mode"
+		   (:option    :value  "PRE" :selected "true"  (str "Prepaid Wallet"))
+		   (:option :value "COD" (str "Cash On Demand"))))))
+
+
+
 
 ;; This is company/tenant name dropdown
 (defun company-dropdown (name list)
@@ -603,10 +598,11 @@
       (let* ((company (hunchentoot:session-value :login-customer-company))
 	     (customer (hunchentoot:session-value :login-customer))
 	     (wallets (get-cust-wallets customer company))
-	     (header (list "Vendor" "Balance")))
+	     (header (list "Vendor" "Phone" "Balance")))
 	
 	(standard-customer-page (:title "Low Wallet Balance")
-	(:h1 (:span :class "label label-danger"  "Low Wallet Balance. Modify your shopcart. "))
+	(:div :class "row" 
+	      (:h3 (:span :class "label label-danger"  "Low Wallet Balance. Please call vendor and recharge your wallet. ")))
 	(list-customer-wallets header wallets)
 	(:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  ")))
 	
@@ -634,33 +630,36 @@
     (if (is-dod-cust-session-valid?)
 	(let* ((odts (hunchentoot:session-value :login-shopping-cart))
 	       (products (hunchentoot:session-value :login-prd-cache))
+	       (payment-mode (hunchentoot:parameter "payment-mode"))
 	       (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
 	       (cust (hunchentoot:session-value :login-customer))
 	       (shopcart-total (get-shop-cart-total))
 	       (custcomp (hunchentoot:session-value :login-customer-company))
 	       (vendor-list (get-shopcart-vendorlist odts custcomp))
+	       (wallet (get-cust-wallet-by-vendor cust vendor custcomp))
 	       (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
 	       (shipaddr (hunchentoot:parameter "shipaddress")))
 	 
-	  (if (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
-				      (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust  vendor custcomp))) vendor-list)) 
-	 ; (if (check-wallet-balance shopcart-total (get-login-customer-wallet)) 
-	  (progn (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total cust custcomp)
-		(setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
-		(setf (hunchentoot:session-value :login-shopping-cart ) nil)
-		; Deduct the wallet balance after the order has been created
-	       
-		(hunchentoot:redirect "/hhub/dodcustordsuccess"))
-	  ;else
-	  (hunchentoot:redirect "/hhub/dodcustlowbalance"))
-	  )
+	  
+	  (cond ((equal payment-mode "PRE")
+		      ; at least one vendor wallet has low balance 
+		      (if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
+							(check-wallet-balance (get-order-items-total-for-vendor vendor odts) wallet)) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalance")))
+		((equal payment-mode "COD") T)
+		(T (progn (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total cust custcomp)
+		 (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
+		 (setf (hunchentoot:session-value :login-shopping-cart ) nil)
+		 (hunchentoot:redirect "/hhub/dodcustordsuccess")))))
 	 (hunchentoot:redirect "/hhub/customer-login.html")))
+
+
+
 
 
 (defun get-order-items-total-for-vendor (vendor order-items) 
  (let ((vendor-id (slot-value vendor 'row-id)))
-  (reduce #'+ (mapcar (lambda (item) (if (equal vendor-id (slot-value item 'vendor-id)) 
-					 (* (slot-value item 'unit-price) (slot-value item 'prd-qty)))) order-items))))
+  (reduce #'+ (remove nil (mapcar (lambda (item) (if (equal vendor-id (slot-value item 'vendor-id)) 
+					 (* (slot-value item 'unit-price) (slot-value item 'prd-qty)))) order-items)))))
 
 
 
@@ -711,6 +710,10 @@
 		(hunchentoot:redirect "/hhub/dodcustshopcart")))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 		 
+(defun dod-controller-create-cust-wallet ()
+  :documentation "If the customer wallet is not defined, then define it now"
+  (let ((vendor (select-vendor-by-id (hunchentoot:parameter "vendor-id") (get-login-customer-company))))
+    (create-wallet (get-login-customer) vendor (get-login-customer-company))))
 
 (defun dod-controller-cust-add-to-cart ()
     :documentation "This function is responsible for adding the product and product quantity to the shopping cart."
@@ -719,12 +722,17 @@
 		  (productlist (hunchentoot:session-value :login-prd-cache))
 		  (myshopcart (hunchentoot:session-value :login-shopping-cart))
 		  (product (search-prd-in-list (parse-integer prd-id) productlist))
+		  (vendor (product-vendor product))
+		  (vendor-id (slot-value vendor 'row-id))
+		  (wallet (get-cust-wallet-for-vendor (get-login-customer) vendor (get-login-customer-company)))
 		  (category-id (slot-value product 'catg-id))
 		  (odt (create-odtinst-shopcart nil product  1 (slot-value product 'unit-price) (hunchentoot:session-value :login-customer-company))))
-	    
+	  (if wallet 
 	      (progn (setf (hunchentoot:session-value :login-shopping-cart) (append (list odt)  myshopcart  ))
 		     (if (length (hunchentoot:session-value :login-shopping-cart)) (hunchentoot:redirect (format nil "/hhub/dodproducts?id=~a" category-id)))
-		   ))
+		   )
+	      ;else 
+	      (hunchentoot:redirect (format nil "/hhub/createcustwallet?vendor-id=~A" vendor-id))))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
 

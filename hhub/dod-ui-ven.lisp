@@ -55,7 +55,7 @@
 		(:form :class "form-cust-wallet-search" :role "form" :method "POST" :action "dodsearchcustwalletaction"
 		    (:div :class "account-wall"
 			  (:div :class "form-group"
-			    (:input :class "form-control" :name "phone" :placeholder "Phone" :type "text" ))
+			    (:input :class "form-control" :name "phone" :placeholder "Enter Customer Phone Number" :type "text" ))
 					
 			(:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))

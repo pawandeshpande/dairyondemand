@@ -35,7 +35,7 @@
       (mapcar (lambda (item) (str (format nil "~A," item ))) header)
       (str (format nil " ~C~C" #\return #\linefeed))
            (mapcar (lambda (ord )
-		       (let* ((odtlst (get-order-details-for-vendor  ord vendor-instance))
+		       (let* ((odtlst (get-order-items-for-vendor  vendor-instance))
 				(total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
 		  (customer (get-ord-customer ord)))
@@ -88,7 +88,7 @@
 (defun ui-list-vendor-orders-by-customers (ordlist vendor-instance)
  	 (cl-who:with-html-output (*standard-output* nil)	       
      (mapcar (lambda (ord )
-		 (let*  ((odtlst (get-order-details-for-vendor  ord vendor-instance))
+		 (let*  ((odtlst (get-order-items-for-vendor  vendor-instance))
 			      (total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
 		  (customer (get-ord-customer ord)))
@@ -142,7 +142,7 @@
 											    )))) (if (not (typep data 'list)) (list data) data) )))))
 
 (defun concat-ord-dtl-name (order-instance)
-  (let ((odt ( get-order-details order-instance)))
+  (let ((odt ( get-order-items order-instance)))
     (mapcar (lambda (odt-ins)
 	      (concatenate 'string (slot-value (get-odt-product odt-ins) 'prd-name) ",")) odt)))
 
@@ -157,11 +157,13 @@
 
 
 (defun vendor-order-card (order-instance)
-    (let ((customer (get-ord-customer order-instance))
-	  (order-id (slot-value order-instance 'row-id)))
+    (let* ((customer (get-ord-customer order-instance))
+	  (order-id (slot-value order-instance 'row-id))
+	  (name (slot-value customer 'name))
+	  (address (slot-value customer 'address)))
 	(cl-who:with-html-output (*standard-output* nil)
 		(:div :class "row"
-		      (:div :class "col-sm-12" (str (slot-value customer 'name)))
-		      (:div :class "col-sm-12" (str (slot-value customer 'address)))
+		      (:div :class "col-sm-12" (str name ))
+		      (:div :class "col-sm-12" (str (if (> (length address) 20)  (subseq (slot-value customer 'address) 0 20) address)))
 		(:div :class "col-sm-12"  (:a :href (format nil "dodvendororderdetails?id=~A" order-id) (:span :class "label label-info" (str order-id) )))))))
 

@@ -42,13 +42,6 @@ $(document).ready(function () {
 });
 
 
-$('a').click(function(){
-    $('<div class=loadingDiv>loading...</div>').prependTo(document.body);
-    	    $busyindicator.appendChild(spinner.el);
-});
-
-
-
 
 $formcustsignin.submit ( function() {
     $formcustsignin.hide();
@@ -69,6 +62,13 @@ $formcustsignin.submit ( function() {
     return false;
     
 })
+
+$(document).ready(
+         function() {
+            $( "#required-on" ).datepicker(  {dateFormat: "dd/mm/yy"} ); 
+         });
+
+
 
 $formvendsignin.submit ( function() {
     $formvendsignin.hide();
