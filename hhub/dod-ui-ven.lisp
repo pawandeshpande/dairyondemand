@@ -39,9 +39,9 @@
 			(:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
 			(:h1 :class "text-center login-title"  "Vendor - Login to DAS")
 			(:div :class "form-group"
-			    (:input :class "form-control" :name "phone" :placeholder "Phone" :type "text" ))
+			    (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex:9999999990" :type "text" ))
 				(:div :class "form-group"
-			    (:input :class "form-control" :name "password" :placeholder "password" :type "password" ))
+			    (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
 		
 			(:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
@@ -128,7 +128,7 @@
 	     (:head 
 		 (:meta :http-equiv "Content-Type" 
 		     :content    "text/html;charset=utf-8")
-		 (:meta :name "viewport" :content "width=device-width, initial-scale=1")
+		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
 		 (:meta :name "description" :content "")
 		 (:meta :name "author" :content "")
 		 (:link :rel "icon" :href "favicon.ico")
@@ -141,15 +141,14 @@
 		 (:script :src "js/spin.min.js")
 		 ) ;; Header completes here.
 	     (:body
-		 (:div :id "dod-main-container"
-		 (:div :id "dod-error" (:h2 "Error..."))
+	      (:div :id "dod-main-container"
+		    (:a :href "#" :class "scrollup" :style "display: none;") 
+		    (:div :id "dod-error" (:h2 "Error..."))
 		 (:div :id "busy-indicator")
 		 (if (is-dod-vend-session-valid?) (vendor-navigation-bar))
 		 (:div :class "container theme-showcase" :role "main" 
 		     (:div :id "header"	; DOD System header
 			 ,@body))	;container div close
-		 ;; Rangeslider
-		 (:script :src "js/nouislider.min.js")
 		 (:script :src "js/dod.js")
 		 ;; bootstrap core javascript
 		 (:script :src "js/bootstrap.min.js"))))))
@@ -301,15 +300,14 @@
 		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/hhub/dodvenexpexl?reqdate=~A" reqdate)))
 		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers dodorders (get-login-vendor)))
 		((equal context "pendingorders") 
-		 (progn ()
+		 (progn (str (format nil "Pending Orders : ~d" (length dodorders)))
 			(ui-list-vendor-orders-tiles dodorders)))
 		((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
-						(ui-list-vendor-orders-tiles orders)))
+						     (progn (str (format nil "Completed Orders : ~d" (length orders)))
+							(ui-list-vendor-orders-tiles orders))))
 		(T ()) )))
 					; Else
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
-
-
 
 
 (defun dod-controller-ven-order-fulfilled ()
@@ -317,15 +315,19 @@
 	(let* ((id (hunchentoot:parameter "id"))
 	       (company-instance (hunchentoot:session-value :login-vendor-company))
 	       (order-instance (get-order-by-id id company-instance))
+	       (payment-mode (slot-value order-instance 'payment-mode))
 	       (customer (get-ord-customer order-instance)) 
 	       (vendor (get-login-vendor))
 	       (wallet (get-cust-wallet-by-vendor customer vendor company-instance))
 	       (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance (get-login-vendor) )))
-	  (if (check-wallet-balance (get-order-items-total-for-vendor vendor  vendor-order-items) wallet)
-	      (progn (set-order-fulfilled "Y"  order-instance company-instance)
-	       (hunchentoot:redirect "/hhub/dodvendindex?context=completedorders"))
-	      ;else 
-	      (display-wallet-for-customer wallet "Not enough balance for the transaction.")))
+	  
+	  (progn (if (equal payment-mode "PRE")
+		     (if (not (check-wallet-balance (get-order-items-total-for-vendor vendor  vendor-order-items) wallet))
+			 (display-wallet-for-customer wallet "Not enough balance for the transaction.")))
+
+		 (set-order-fulfilled "Y"  order-instance company-instance)
+		 (hunchentoot:redirect "/hhub/dodvendindex?context=completedorders")))
+	     
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 

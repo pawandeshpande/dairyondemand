@@ -71,11 +71,14 @@
 
 (defun display-order-header (order-instance)
     (let ((customer (get-ord-customer order-instance))
+	  (payment-mode (slot-value order-instance 'payment-mode))
 	  (shipped-date (slot-value order-instance 'shipped-date)))
     (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "jumbotron"
 	    (:div :class "row" (:div :class "col-md-4"
 				   (:h5 "Order No:") (:h4 (str (slot-value order-instance 'row-id)))
+				   (:h5 "Order Type:") (:h4 (str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
+								       ((equal payment-mode "COD") "Cash On Demand"))))
 				   (:h5 "Customer:") (:h4 (str (slot-value customer 'name)))
 				   (:h5 "Address:") (:h4 (str (slot-value customer 'address))))
 				  

@@ -40,6 +40,11 @@
     :type (number)
     :initarg :order-amt)
 
+(payment-mode
+    :type (string 3)
+    :initarg :payment-mode)
+
+
 
 (comments
     :accessor comments

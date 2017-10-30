@@ -64,9 +64,11 @@ $formcustsignin.submit ( function() {
 })
 
 $(document).ready(
-         function() {
-            $( "#required-on" ).datepicker(  {dateFormat: "dd/mm/yy"} ); 
-         });
+    $("#required-on").focus( 
+    function() {
+            $( "#required-on" ).datepicker(  {dateFormat: "dd/mm/yy", minDate: 1} ); 
+         })
+);
 
 
 
@@ -139,6 +141,8 @@ return true;}
 });
 
 
+
+
 $(document).ready(function () {
 
     $(window).scroll(function () {
@@ -157,6 +161,11 @@ $(document).ready(function () {
     });
 
 });
+
+function goBack (){
+    window.history.back();
+}
+
 
 
 function DeleteConfirm (){

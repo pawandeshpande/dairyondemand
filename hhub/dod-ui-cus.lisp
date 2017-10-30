@@ -89,8 +89,14 @@
 		(:div :class "col-sm-6"  (:h3  (str (format nil "Ph:  ~A " (slot-value customer 'phone))))))
 		(:div :class "row"
 		(if lowbalancep 
-		   (htm  (:div :class "col-sm-6" (:div  (:h3(:span :class "label label-warning" (str (format nil "Rs ~$ - Low Balance. Please recharge the  wallet."  balance)))))))
-		   (htm (:div :class "col-sm-3" (:div  (:h3(:span :class "label label-info" (str (format nil "Balance: Rs. ~$"  balance)))))))))
+		   (htm  (:div :class "col-sm-6 " (:h4 (:span :class "label label-warning" (str (format nil "Rs ~$ - Low Balance. Please recharge the  wallet."  balance))))))
+					   ;else
+		   (htm (:div :class "col-sm-3"  (:h4 (:span :class "label label-info" (str (format nil "Balance: Rs. ~$"  balance))))))))
+		(:div :class "row"
+		(:form :class "cust-wallet-recharge-form" :method "POST" :action "dodsearchcustwalletaction"
+				(:input :class "form-control" :name "phone" :type "hidden" :value (str (format nil "~A" (slot-value customer 'phone))))
+				(:div :class "col-sm-3" (:div :class "form-group"
+			      (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Recharge")))))
 		(:div :class "row"
 		      (:div :class "col-sm-6"  (:h3  (str (format nil " ~A " custom-message)))))))))
 		
@@ -343,10 +349,11 @@
 	        )))))
 
 (defun check&encrypt (password confirmpass salt)
- (unless
-	 (and (or (null password) (zerop (length password))) 
-	      (or (null confirmpass) (zerop (length confirmpass)))
-	      (not (equal password confirmpass))) 
+ (when 
+	 (and (or  password  (length password)) 
+	      (or  confirmpass (length confirmpass))
+	      (equal password confirmpass))
+ 
        (encrypt password salt)))
 
 
@@ -377,9 +384,11 @@
     ; Check for duplicate customer
     ((duplicate-customerp phone company) (hunchentoot:redirect "/hhub/duplicate-cust.html"))
     ; Check whether captcha has been solved 
-    ((null (cdr (car json-response))) (dod-response-captcha-error)  ) 
+    ((null (cdr (car json-response))) (dod-response-captcha-error)  )
+    
     ; Check whether password was entered correctly 
-    ((not (null encryptedpass)) 
+    ((null encryptedpass) (dod-response-passwords-do-not-match-error)) 
+    (encryptedpass  
 	 (progn 
        ; 1 
        (create-customer name address phone email nil encryptedpass salt nil nil nil company)
@@ -387,8 +396,13 @@
        
        (standard-customer-page (:title "Welcome to DAS platform")
 	 (:h3 (str(format nil "Your record has been successfully added" )))
-	 (:a :href "/hhub/customer-login.html" "Login now"))))
-	  (() T))))
+	 (:a :href "/hhub/customer-login.html" "Login now")))))))
+
+(defun dod-response-passwords-do-not-match-error ()
+   (standard-customer-page (:title "Passwords do not match error.")
+    (:h2 "Passwords do not match. Please try again. ")
+    	(:a :class "btn btn-primary" :role "button" :onclick "goBack();"  :href "#" (:span :class "glyphicon glyphicon-arrow-left" "Go Back"))))
+
 
 (defun dod-response-captcha-error ()
   (standard-customer-page (:title "Captcha response error from Google")
@@ -641,15 +655,17 @@
 	       (shipaddr (hunchentoot:parameter "shipaddress")))
 	 
 	  
-	  (cond ((equal payment-mode "PRE")
+	  (progn 
+	    
+	    (if  (equal payment-mode "PRE")
 		      ; at least one vendor wallet has low balance 
 		      (if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
 							(check-wallet-balance (get-order-items-total-for-vendor vendor odts) wallet)) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalance")))
-		((equal payment-mode "COD") T)
-		(T (progn (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total cust custcomp)
-		 (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
-		 (setf (hunchentoot:session-value :login-shopping-cart ) nil)
-		 (hunchentoot:redirect "/hhub/dodcustordsuccess")))))
+		;(if (equal payment-mode "COD")  
+	    (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
+	    (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
+	    (setf (hunchentoot:session-value :login-shopping-cart ) nil)
+	    (hunchentoot:redirect "/hhub/dodcustordsuccess")))
 	 (hunchentoot:redirect "/hhub/customer-login.html")))
 
 

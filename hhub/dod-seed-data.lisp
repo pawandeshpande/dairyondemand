@@ -61,6 +61,18 @@
 ;Get the customer which we have created in the above steps. 
 (defparameter Testcustomer1 (select-customer-by-name (car *customer-params*) dod-company))
 
+
+
+;******Create the demo vendor ******
+(defparameter salt (flexi-streams:octets-to-string  (secure-random:bytes 56 secure-random:*generator*)))
+(defparameter password (encrypt "demo" salt))      
+(defparameter *demo-vendor-params* nil)
+;******Create a vendor for demo company, with fixed phone number *******
+(setf *demo-vendor-params* (list  "Demo Vendor"   "GA Bangalore 560066" "9999999990" "vendor@abc.com"  password salt   "Bangalore" "Karnataka" "560066"  dod-company))
+;Create the customer now.
+(apply #'create-vendor *demo-vendor-params*)
+
+
 ; **** Create the vendor *****
 (defparameter *vendor-params* nil)
 (loop for i from 1 to 10 do 
@@ -70,7 +82,7 @@
 ;Create the vendor now.
 (apply #'create-vendor *vendor-params*)))
 ;Get the vendor which we have created in the above steps. 
-(defparameter Rajesh(select-vendor-by-id 1  dod-company))
+(defparameter Rajesh(select-vendor-by-name "Demo Vendor"  dod-company))
 (defparameter Suresh(select-vendor-by-id 2  dod-company))
 
 (defparameter MilkCatg (select-prdcatg-by-name "%Milk & Dairy Products%" dod-company))

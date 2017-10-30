@@ -6,6 +6,7 @@
     :documentation "value should be Y or N, followed by order instance and company instance"
     (let* ((vendor-order (get-vendor-order-instance (slot-value order-instance 'row-id)))
 	   (customer (get-ord-customer order-instance)) 
+	   (payment-mode (slot-value order-instance 'payment-mode))
 	   (vendor (get-login-vendor))
 	   (wallet (get-cust-wallet-by-vendor customer vendor company-instance))
 	   (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance (get-login-vendor) ))
@@ -37,7 +38,7 @@
 	    
 	    (dod-reset-order-functions (get-login-vendor))
 	    ; Deduct the money from the wallet. 
-	    (deduct-wallet-balance total wallet)
+	    (if (equal payment-mode "PRE") (deduct-wallet-balance total wallet))
 	    
 	    ))))
 
@@ -228,7 +229,7 @@
   
 
   
-(defun persist-order(order-date customer-id request-date ship-date ship-address  context-id order-amt tenant-id )
+(defun persist-order(order-date customer-id request-date ship-date ship-address  context-id order-amt payment-mode  tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-order
 					 :ord-date order-date
 					 :cust-id customer-id
@@ -238,22 +239,23 @@
 					 :context-id context-id
 					 :tenant-id tenant-id
 					 :order-fulfilled "N"
+					 :payment-mode payment-mode 
 					 :status "PEN"
 					 :order-amt order-amt
 					 :deleted-state "N")))
 
 
 
-(defun create-order (order-date customer-instance request-date ship-date ship-address context-id order-amt company-instance)
+(defun create-order (order-date customer-instance request-date ship-date ship-address context-id order-amt payment-mode company-instance)
   (let ((customer-id (slot-value  customer-instance 'row-id) )
 	(tenant-id (slot-value company-instance 'row-id)))
-    (persist-order order-date customer-id request-date ship-date ship-address  context-id order-amt tenant-id)))
+    (persist-order order-date customer-id request-date ship-date ship-address  context-id order-amt payment-mode  tenant-id)))
 
 
 
 (defun create-order-from-pref (order-pref-list order-date request-date ship-date ship-address order-amt  customer-instance company-instance)
   (let ((uuid (uuid:make-v1-uuid )))
-      (progn 	  (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt company-instance)
+      (progn 	  (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt "PRE" company-instance)
 		(let ((order (get-order-by-context-id (print-object uuid nil) company-instance)))
 		      (mapcar (lambda (preference)
 				  (let* ((prd (get-opf-product preference))
@@ -275,10 +277,10 @@
 	(if (member day lst) t nil)))
 
 
-(defun create-order-from-shopcart (order-items products  order-date request-date ship-date ship-address order-amt  customer-instance company-instance)
+(defun create-order-from-shopcart (order-items products  order-date request-date ship-date ship-address order-amt payment-mode  customer-instance company-instance)
   (let ((uuid (uuid:make-v1-uuid )))
     
-    (progn 	(create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt  company-instance)
+    (progn 	(create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt payment-mode  company-instance)
 		(let 
 		    ((order (get-order-by-context-id (print-object uuid nil) company-instance))
 		  
