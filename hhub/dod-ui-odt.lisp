@@ -6,7 +6,7 @@
     (if (is-dod-session-valid?)
 	(let* (( dodorder (get-order-by-id (hunchentoot:parameter "id") (get-login-company)))
 		  (header (list  "Order No" "Product" "Product Qty" "Unit Price"  "Total"  "Action"))
-		  (odt (get-order-details dodorder) ))
+		  (odt (get-order-items dodorder) ))
 	    (if odt (ui-list-order-details header odt) "No order details"))
 	(hunchentoot:redirect "/login")))
 
@@ -77,7 +77,7 @@
 	(:div :class "jumbotron"
 	    (:div :class "row" (:div :class "col-md-4"
 				   (:h5 "Order No:") (:h4 (str (slot-value order-instance 'row-id)))
-				   (:h5 "Order Type:") (:h4 (str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
+				   (:h5 "Payment Mode:") (:h4 (str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
 								       ((equal payment-mode "COD") "Cash On Demand"))))
 				   (:h5 "Customer:") (:h4 (str (slot-value customer 'name)))
 				   (:h5 "Address:") (:h4 (str (slot-value customer 'address))))

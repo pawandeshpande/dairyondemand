@@ -78,7 +78,7 @@
 
 (defun wallet-card (wallet-instance custom-message)
     (let ((customer (get-customer wallet-instance))
-	  (vendor (get-vendor wallet-instance))
+	  
 	  (balance (slot-value wallet-instance 'balance)) 
 	  (lowbalancep (if (check-low-wallet-balance wallet-instance) T NIL)))
 
@@ -441,19 +441,23 @@
 
 
 (defun dod-controller-company-search-page ()
-   (standard-customer-page (:title "Welcome to DAS platform") 
-			   
-     (:div :class "row"
-     (:h2 "Search Apartment/Group")
-     (:div :id "custom-search-input"
-     (:div :class "input-group col-md-12"
-	       (:form :id "theForm" :action "companysearchaction" :OnSubmit "return false;" 
-		      (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Search for an Apartment/Group"))
-     (:span :class "input-group-btn" (:<button :class "btn btn-danger" :type "button" 
-		(:span :class " glyphicon glyphicon-search")))))
-
-
-     (:div :id "finalResult" ""))))
+  (handler-case
+      (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
+	      (standard-customer-page (:title "Welcome to DAS platform") 
+		(:div :class "row"
+		      (:h2 "Search Apartment/Group")
+		      (:div :id "custom-search-input"
+			    (:div :class "input-group col-md-12"
+				  (:form :id "theForm" :action "companysearchaction" :OnSubmit "return false;" 
+					 (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Search for an Apartment/Group"))
+				  (:span :class "input-group-btn" (:<button :class "btn btn-danger" :type "button" 
+									    (:span :class " glyphicon glyphicon-search")))))
+		      (:div :id "finalResult" ""))))
+    (clsql:sql-database-data-error (condition)
+      (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
+							       (stop-das) 
+							       (start-das)
+							       (hunchentoot:redirect "/hhub/customer-login.html"))))))
 
  
 			   
@@ -463,22 +467,30 @@
 
 
 (defun dod-controller-customer-loginpage ()
- (if (is-dod-cust-session-valid?)
-	(hunchentoot:redirect "/hhub/dodcustindex")
-    (standard-customer-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
-	(:div :class "row" 
-	    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
-		(:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin"
-		    (:div :class "account-wall"
-			(:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
-			(:h1 :class "text-center login-title"  "Customer - Login to DAS")
-			(:div :class "form-group"
-			    (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text" ))
-			(:div :class "form-group"
-			    (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
-		
-			(:div :class "form-group"
-			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+  (handler-case 
+      (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
+	      (if (is-dod-cust-session-valid?)
+		  (hunchentoot:redirect "/hhub/dodcustindex")
+		  (standard-customer-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+		    (:div :class "row" 
+			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
+				(:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin"
+				       (:div :class "account-wall"
+					     (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+					     (:h1 :class "text-center login-title"  "Customer - Login to DAS")
+					     (:div :class "form-group"
+						   (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text" ))
+					     (:div :class "form-group"
+						   (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
+					     (:div :class "form-group"
+						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+    (clsql:sql-database-data-error (condition)
+      (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
+							       (stop-das) 
+							       (start-das)
+							       (hunchentoot:redirect "/hhub/customer-login.html"))))))
+
+
 
 
 
@@ -650,24 +662,21 @@
 	       (shopcart-total (get-shop-cart-total))
 	       (custcomp (hunchentoot:session-value :login-customer-company))
 	       (vendor-list (get-shopcart-vendorlist odts custcomp))
-	       (wallet (get-cust-wallet-by-vendor cust vendor custcomp))
 	       (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
 	       (shipaddr (hunchentoot:parameter "shipaddress")))
-	 
 	  
 	  (progn 
 	    
 	    (if  (equal payment-mode "PRE")
 		      ; at least one vendor wallet has low balance 
 		      (if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
-							(check-wallet-balance (get-order-items-total-for-vendor vendor odts) wallet)) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalance")))
+							(check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalance")))
 		;(if (equal payment-mode "COD")  
 	    (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
 	    (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	    (setf (hunchentoot:session-value :login-shopping-cart ) nil)
 	    (hunchentoot:redirect "/hhub/dodcustordsuccess")))
 	 (hunchentoot:redirect "/hhub/customer-login.html")))
-
 
 
 
@@ -740,7 +749,7 @@
 		  (product (search-prd-in-list (parse-integer prd-id) productlist))
 		  (vendor (product-vendor product))
 		  (vendor-id (slot-value vendor 'row-id))
-		  (wallet (get-cust-wallet-for-vendor (get-login-customer) vendor (get-login-customer-company)))
+		  (wallet (get-cust-wallet-by-vendor (get-login-customer) vendor (get-login-customer-company)))
 		  (category-id (slot-value product 'catg-id))
 		  (odt (create-odtinst-shopcart nil product  1 (slot-value product 'unit-price) (hunchentoot:session-value :login-customer-company))))
 	  (if wallet 
@@ -846,7 +855,7 @@
 
 
 (defun dod-cust-login (&key phone password)
-   ; (handler-case 
+    (handler-case 
 	;expression
 
        (let* ((customer (car (clsql:select 'dod-cust-profile :where [and
@@ -879,14 +888,16 @@
 	  (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
-	  ))))
+	  )))
 
         ; Handle this condition
    
- ;     (clsql:sql-database-data-error (condition)
-;	  (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn 
+      (clsql:sql-database-data-error (condition)
+	  (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
+								   (stop-das) 
+								   (start-das)
 ;								   (clsql:reconnect :database *dod-db-instance*)
-;								   (hunchentoot:redirect "/hhub/customer-login.html"))))
+								   (hunchentoot:redirect "/hhub/customer-login.html"))))))
  ;     (clsql:sql-fatal-error (errorinst) (if (equal (clsql:sql-error-database-message errorinst) "Database is closed.") 
 ;					     (progn (clsql:stop-sql-recording :type :both)
 ;					            (clsql:disconnect) 

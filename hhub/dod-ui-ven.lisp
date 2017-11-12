@@ -29,23 +29,29 @@
 
 
 (defun dod-controller-vendor-loginpage ()
-    (if (is-dod-vend-session-valid?)
-	(hunchentoot:redirect "/dodvendindex")
-    (standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
-	(:div :class "row" 
-	    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
-		(:form :class "form-vendorsignin" :role "form" :method "POST" :action "dodvendlogin"
-		    (:div :class "account-wall"
-			(:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
-			(:h1 :class "text-center login-title"  "Vendor - Login to DAS")
-			(:div :class "form-group"
-			    (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex:9999999990" :type "text" ))
-				(:div :class "form-group"
-			    (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
-		
-			(:div :class "form-group"
-			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
-  
+  (handler-case
+      (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
+	      (if (is-dod-vend-session-valid?)
+		  (hunchentoot:redirect "/dodvendindex")
+		  (standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+		    (:div :class "row" 
+			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
+				(:form :class "form-vendorsignin" :role "form" :method "POST" :action "dodvendlogin"
+				       (:div :class "account-wall"
+					     (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+					     (:h1 :class "text-center login-title"  "Vendor - Login to DAS")
+					     (:div :class "form-group"
+						   (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex:9999999990" :type "text" ))
+					     (:div :class "form-group"
+						   (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
+					     (:div :class "form-group"
+						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+	      (clsql:sql-database-data-error (condition)
+					     (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
+												      (stop-das) 
+												      (start-das)
+												      (hunchentoot:redirect "/hhub/vendor-login.html"))))))
+
 
 (defun dod-controller-vendor-search-cust-wallet-page ()
     (if (is-dod-vend-session-valid?)
@@ -191,6 +197,7 @@
 
 
 (defun dod-vend-login (&key  phone password)
+  (handler-case 
   (let* ((vendor (car (clsql:select 'dod-vend-profile :where [and
 				   [= [slot-value 'dod-vend-profile 'phone] phone]
 				   [= [:deleted-state] "N"]]
@@ -202,8 +209,8 @@
 	(vendor-name (if vendor (slot-value vendor 'name)))
 	(vendor-tenant-id (if vendor (slot-value (car  (vendor-company vendor)) 'row-id)))
 	(vendor-company-name (if vendor (slot-value (car (if vendor (vendor-company vendor))) 'name)))
-	(vendor-company (if vendor (car (vendor-company vendor))))
-	(log (if password-verified (hunchentoot:log-message* :info (format nil  "phone : ~A password : ~A" phone password)))))
+	(vendor-company (if vendor (car (vendor-company vendor)))))
+	;(log (if password-verified (hunchentoot:log-message* :info (format nil  "phone : ~A password : ~A" phone password)))))
 	 
 	
    (when (and  vendor
@@ -221,9 +228,20 @@
        (setf (hunchentoot:session-value :login-vendor-company) vendor-company)
        (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company vendor-company))
        (setf (hunchentoot:session-value :order-func-list) (dod-gen-order-functions vendor))
-       (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor))
-       
-       ))))
+       (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor)))))
+    ;handle the exception. 
+      (clsql:sql-database-data-error (condition)
+	  (if (equal (clsql:sql-error-error-id condition) 2006 ) 
+	      (progn
+		(stop-das) 
+		(start-das)
+		(hunchentoot:redirect "/hhub/customer-login.html"))))))
+  
+
+
+
+
+
 
 (defun dod-controller-vendor-products ()
 (let ((vendor-products-func (first (hunchentoot:session-value :login-vendor-products-functions))))
@@ -300,8 +318,9 @@
 		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/hhub/dodvenexpexl?reqdate=~A" reqdate)))
 		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers dodorders (get-login-vendor)))
 		((equal context "pendingorders") 
-		 (progn (str (format nil "Pending Orders : ~d" (length dodorders)))
-			(ui-list-vendor-orders-tiles dodorders)))
+		 (progn (htm (:span :class "badge" (str (format nil " ~A " (length dodorders))))
+		   (str (format nil " Pending Orders.")))
+		   (ui-list-vendor-orders-tiles dodorders)))
 		((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
 						     (progn (str (format nil "Completed Orders : ~d" (length orders)))
 							(ui-list-vendor-orders-tiles orders))))

@@ -23,13 +23,13 @@
   `(cl-who:with-html-output (*standard-output* nil)
      (:div :class "navbar navbar-default navbar-inverse navbar-fixed-top"  
 	   (:ul :class "nav navbar-nav"
-		      (:li :class "active" (:a :href "/dodindex" "Home"))
-		      (:li  (:a :href "/list-customers" "Customers"))
-		      (:li  (:a :href "/list-vendors" "Vendors"))
-		      (:li  (:a :href "/list-orders" "Orders"))
-		      (:li  (:a :href "/list-orderprefs" "Order Preferences"))
-     		      (:li  (:a :href "/list-products" "Products"))
-		      (:li  (:a :href "/dodlogout" "Logout"))))))
+		      (:li :class "active" (:a :href "/hhub/dodindex" "Home"))
+		      (:li  (:a :href "/hhub/list-customers" "Customers"))
+		      (:li  (:a :href "/hhub/list-vendors" "Vendors"))
+		      (:li  (:a :href "/hhub/list-orders" "Orders"))
+		      (:li  (:a :href "/hhub/list-orderprefs" "Order Preferences"))
+     		      (:li  (:a :href "/hhub/list-products" "Products"))
+		      (:li  (:a :href "/hhub/dodlogout" "Logout"))))))
 
 
 
@@ -38,7 +38,7 @@
 (defmacro standard-page-handler ( &rest body)
   (if (is-dod-session-valid?)
       `(,@body)
-      (hunchentoot:redirect "/login")))
+      (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
 (defmacro standard-page ((&key title) &body body)
@@ -149,15 +149,15 @@
   (if (is-dod-session-valid?)
       (standard-page (:title "Welcome to Dairy Ondemand")
 
-	(when (verify-superadmin)(htm (:p "Want to create a new company?" (:a :href "/new-company" "here"))
-				      	(:p "List companies?" (:a :href "/list-companies" "here"))))
+	(when (verify-superadmin)(htm (:p "Want to create a new company?" (:a :href "/hhub/new-company" "here"))
+				      	(:p "List companies?" (:a :href "/hhub/list-companies" "here"))))
 
 	(unless (verify-superadmin)
 	  (htm 
-	(:p "Want to create a new customer?" (:a :href "/new-customer" "here"))
-	(:p "List Customers" (:a :href "/list-customers" "here"))
+	(:p "Want to create a new customer?" (:a :href "/hhub/new-customer" "here"))
+	(:p "List Customers" (:a :href "/hhub/list-customers" "here"))
 	)))
-	(hunchentoot:redirect "/opr-login.html")))
+	(hunchentoot:redirect "/hhub/opr-login.html")))
   
 (setq *logged-in-users* (make-hash-table :test 'equal))
 
@@ -172,10 +172,10 @@
 
 (htm (:div :class "row"
 	   (:div :class "col-md-12" :align "right"
-		 (:a :class "btn btn-primary" :role "button" :href "/dodattrcart" (:span :class "glyphicon glyphicon-shopping-cart") " Attributes  " (:span :class "badge" (str (format nil " ~A " (length lstattrcart))) ))))
+		 (:a :class "btn btn-primary" :role "button" :href "/hhub/dodattrcart" (:span :class "glyphicon glyphicon-shopping-cart") " Attributes  " (:span :class "badge" (str (format nil " ~A " (length lstattrcart))) ))))
 		    (:hr))		       
 (ui-list-attributes lstattributes lstattrcart)))
-(hunchentoot:redirect "/opr-login.html")))
+(hunchentoot:redirect "/hhub/opr-login.html")))
 
     
 
@@ -208,13 +208,13 @@
 	    ( or (null cname) (zerop (length cname)))
 	    ( or (null uname) (zerop (length uname)))
 	    ( or (null passwd) (zerop (length passwd))))
-      (if (equal (dod-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/opr-login.html") (hunchentoot:redirect  "/dodindex")))))
+      (if (equal (dod-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/hhub/opr-login.html") (hunchentoot:redirect  "/hhub/dodindex")))))
    
   
    (defun dod-controller-logout ()
      (progn (dod-logout (get-current-login-username))
 	    (hunchentoot:remove-session *current-user-session*)
-	    (hunchentoot:redirect "/opr-login.html")))
+	    (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
 (defun get-current-login-company ()
@@ -331,7 +331,7 @@
 	       (:p (:input :type "submit" 
 			   :value "Add" 
 			   :class "btn"))))
-      (hunchentoot:redirect "/login")))
+      (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
 
@@ -360,8 +360,8 @@
 	;; By this time the new company is created.
 	(let ((company (car (clsql:select 'dod-company :where [= [:name] cname] :caching nil :flatp t)))) (create-dod-user  name username password email (slot-value company 'row-id)))
                       	  
-	(hunchentoot:redirect  "dodindex"))
-      (hunchentoot:redirect "/login")))
+	(hunchentoot:redirect  "/hhub/dodindex"))
+      (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
 (setq hunchentoot:*dispatch-table*
