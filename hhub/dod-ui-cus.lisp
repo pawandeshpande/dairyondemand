@@ -315,12 +315,16 @@
       	(:form :class "form-custregister" :role "form" :method "POST" :action "dodcustregisteraction"
 	   (:div :class "row"
 			(:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
-				(:h1 :class "text-center login-title"  "Customer - Register to DAS")
+				(:h1 :class "text-center login-title"  "New Registration to DAS")
 				(:hr)) 
 	       (:div :class "row" 
 	    (:div :class "col-lg-6 col-md-6 col-sm-6"
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "tenant-name" :value (format nil "~A" cname) :type "text" :readonly T ))
+		 
+		   (:div  :class "form-group" (:label :for "reg-type" "Register as:" )
+				    (customer-vendor-dropdown))
+			   
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "name" :placeholder "Full Name (Required)" :type "text" ))
 		  (:div :class "form-group"
@@ -359,6 +363,7 @@
 
 (defun dod-controller-cust-register-action ()
 (let* ((captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
+       (reg-type (hunchentoot:parameter "reg-type"))
        (paramname (list "secret" "response" ) ) 
        (paramvalue (list "6LeiXSQUAAAAAFDP0jgtajXXvrOplfkMR9rWnFdO" captcha-resp))
        (param-alist (pairlis paramname paramvalue ))
@@ -388,7 +393,18 @@
     
     ; Check whether password was entered correctly 
     ((null encryptedpass) (dod-response-passwords-do-not-match-error)) 
-    (encryptedpass  
+    
+    ((and encryptedpass (equal reg-type "VEN"))  
+	 (progn 
+       ; 1 
+       (create-vendor name address phone email  encryptedpass salt nil nil nil company)
+       ; 2
+       
+       (standard-customer-page (:title "Welcome to DAS platform")
+	 (:h3 (str(format nil "Your record has been successfully added" )))
+	 (:a :href "/hhub/customer-login.html" "Login now"))))
+    
+    ((and encryptedpass (equal reg-type "CUS"))  
 	 (progn 
        ; 1 
        (create-customer name address phone email nil encryptedpass salt nil nil nil company)
@@ -601,13 +617,19 @@
 	 do (if (equal (slot-value prd 'subscribe-flag) "Y")  (htm  (:option :value  (slot-value prd 'row-id) (str (slot-value prd 'prd-name))))))))))
 
   
-;; This is products dropdown
+;; This is payment-mode dropdown
 (defun  payment-mode-dropdown ()
   (cl-who:with-html-output (*standard-output* nil)
      (htm (:select :class "form-control"  :name "payment-mode"
 		   (:option    :value  "PRE" :selected "true"  (str "Prepaid Wallet"))
 		   (:option :value "COD" (str "Cash On Demand"))))))
 
+;; This is customer/vendor  dropdown
+(defun customer-vendor-dropdown ()
+  (cl-who:with-html-output (*standard-output* nil)
+     (htm (:select :class "form-control"  :name "reg-type"
+		   (:option    :value  "CUS" :selected "true"  (str "Customer"))
+		   (:option :value "VEN" (str "Vendor"))))))
 
 
 
@@ -685,24 +707,6 @@
  (let ((vendor-id (slot-value vendor 'row-id)))
   (reduce #'+ (remove nil (mapcar (lambda (item) (if (equal vendor-id (slot-value item 'vendor-id)) 
 					 (* (slot-value item 'unit-price) (slot-value item 'prd-qty)))) order-items)))))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

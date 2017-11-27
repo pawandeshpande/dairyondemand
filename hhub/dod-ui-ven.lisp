@@ -71,8 +71,13 @@
 (defun dod-controller-vendor-search-cust-wallet-action ()
 (let* ((phone (hunchentoot:parameter "phone"))
 	(customer (select-customer-by-phone phone (get-login-vendor-company)))
-	(wallet (get-cust-wallet-by-vendor customer (get-login-vendor) (get-login-vendor-company))))
-(if (is-dod-vend-session-valid?)
+	(wallet (if customer (get-cust-wallet-by-vendor customer (get-login-vendor) (get-login-vendor-company)))))
+ 
+(if (null wallet) 
+(standard-vendor-page (:title "Welcome to DAS Platform")
+ (:div :class "row" 
+	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 "Wallet does not exist"))))
+(if  (is-dod-vend-session-valid?)
 (standard-vendor-page (:title "Welcome to DAS Platform")
  
   (:div :class "row" 
@@ -83,18 +88,18 @@
 	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Address: ~A" (if customer (slot-value customer 'address)))))))
 
   (:div :class "row" 
-	    (:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Balance = Rs.~$" (if wallet (slot-value wallet 'balance)))))))
+	    (:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Balance = Rs.~$" (if wallet (slot-value wallet 'balance) 0.00 ) )))))
 	(:div :class "row" 
 	    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 		  (:form :class "form-vendor-update-balance" :role "form" :method "POST" :action "dodupdatewalletbalance"
 		    (:div :class "account-wall"
 			  (:div :class "form-group"
 			    (:input :class "form-control" :name "balance" :placeholder "recharge amount" :type "text" ))
-			  (:input :class "form-control" :name "wallet-id" :value (slot-value wallet 'row-id) :type "hidden")
+			  (:input :class "form-control" :name "wallet-id" :value (if wallet (slot-value wallet 'row-id) 0.00) :type "hidden")
 			   (:input :class "form-control" :name "phone" :value phone :type "hidden")
 			  (:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
-(hunchentoot:redirect "/hhub/vendor-login.html"))))
+(hunchentoot:redirect "/hhub/vendor-login.html")))))
 
 
 (defun dod-controller-update-wallet-balance ()

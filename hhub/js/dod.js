@@ -64,7 +64,7 @@ $formcustsignin.submit ( function() {
 })
 
 $(document).ready(
-    $("#required-on").focus( 
+    $("#required-on").select( 
     function() {
             $( "#required-on" ).datepicker(  {dateFormat: "dd/mm/yy", minDate: 1} ); 
          })
