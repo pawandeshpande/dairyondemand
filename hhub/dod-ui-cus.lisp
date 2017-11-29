@@ -526,7 +526,7 @@
 			         (:input :type "hidden" :name "product-id" :value (format nil "~a" (slot-value product 'row-id)))
 				 ; (products-dropdown "product-id"  (hunchentoot:session-value :login-prd-cache)))
 			    (:div :class "form-group row" (:label :for "prdqty" "Product Quantity")
-				(:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :value "1" :size "4" :maxlength "2" :type "text"))
+				(:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :value "1" :min "1" :max "99"  :type "number"))
 			    (:div :class "form-group row" 
 			    (:label :class "checkbox-inline"  (:input :type "checkbox" :name "subs-sun"  :value "Sunday" :checked "" "Sunday" ))
 			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-mon" :value "Monday" :checked "" "Monday"))

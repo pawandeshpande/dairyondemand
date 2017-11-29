@@ -30,6 +30,14 @@
 																		    (:a :href (format nil  "editproduct?id=~A" (slot-value product 'row-id)) :onclick "return false"  "Edit")
 		 
 																		    ))))) data)))))
+
+(defun ui-list-prod-catg-dropdown (name catglist)
+  (cl-who:with-html-output (*standard-output* nil)
+    (htm (:select :class "form-control"  :name name  
+      (loop for catg in catglist
+	 do   (htm  (:option :value  (slot-value catg 'row-id) (str (slot-value catg 'catg-name)))))))))
+
+
 (defun ui-list-prod-catg (catglist)
   (cl-who:with-html-output (*standard-output* nil :prologue t :indent t)
 	(:div :class "row-fluid"	  (mapcar (lambda (prdcatg)
@@ -40,6 +48,8 @@
 
 (defun ui-list-vendor-products (data)
   (cl-who:with-html-output (*standard-output* nil)
+    	(:a :class "btn btn-primary" :role "button" :href "dodvenaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Product  ")
+	(:hr)
 	(:div :class "row-fluid"	  (mapcar (lambda (product)
 						      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
 							       (:div :class "product-box"   (product-card-for-vendor  product )))))
@@ -105,9 +115,9 @@
     (let ((prd-name (slot-value product-instance 'prd-name))
 	     (unit-price (slot-value product-instance 'unit-price))
 	     (prd-image-path (slot-value product-instance 'prd-image-path))
-	     (prd-id (slot-value product-instance 'row-id))
-	  (subscribe-flag (slot-value product-instance 'subscribe-flag))
-	     (prd-vendor (product-vendor product-instance)))
+	     
+	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
+	    
 	(cl-who:with-html-output (*standard-output* nil)
 	  
 		(:div :class "row"

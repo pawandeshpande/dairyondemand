@@ -28,6 +28,57 @@
 
 
 
+
+
+(defun dod-controller-vendor-add-product-page ()
+  (if (is-dod-vend-session-valid?)
+      (let ((catglist (get-prod-cat (get-login-vendor-tenant-id))))
+
+    (standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+		    (:div :class "row" 
+			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
+				(:form :class "form-vendorprodadd" :role "form" :method "POST" :action "dodvenaddproductaction" :enctype "multipart/form-data" 
+				       (:div :class "account-wall"
+					     (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+					     (:h1 :class "text-center login-title"  "Add new product")
+					     (:div :class "form-group"
+						   (:input :class "form-control" :name "prdname" :placeholder "Enter Product Name ( max 30 characters) " :type "text" ))
+					     (:div :class "form-group"
+						   (:input :class "form-control" :name "prdprice" :placeholder "Price"  :type "number" :min "0.00" :max "10000.00" :step "1" ))
+
+					     (:div :class "form-group"
+						   (:input :class "form-control" :name "qtyperunit" :placeholder "Quantity per unit. Ex - KG, Grams, Nos" :type "text" ))
+					     (:div  :class "form-group" (:label :for "prodcatg" "Select Produt Category:" )
+					     (ui-list-prod-catg-dropdown "prodcatg" catglist))
+					     (:br) 
+					     (:div :class "form-group" (:label :for "prodimage" "Select Product Image:")
+						   (:input :class "form-control" :name "prodimage" :placeholder "Product Image" :type "file" ))
+					      (:div :class "form-group"
+						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))))
+					    
+					     
+		
+(defun dod-controller-vendor-add-product-action ()
+  (if (is-dod-vend-session-valid?)
+  (let* ((prodname (hunchentoot:parameter "prdname"))
+	(prodprice (parse-integer (hunchentoot:parameter "prdprice")))
+	(qtyperunit (hunchentoot:parameter "qtyperunit"))
+	(catg-id (hunchentoot:parameter "prodcatg"))
+	(prodimageparams (hunchentoot:post-parameter "prodimage"))
+	;(destructuring-bind (path file-name content-type) prodimageparams))
+	 (tempfilewithpath (first prodimageparams))
+	(file-name (second prodimageparams))
+	(content-type (third prodimageparams)))
+    (progn 
+      (if (probe-file tempfilewithpath )
+	  (rename-file tempfilewithpath (make-pathname :directory "/home/hunchentoot/dairyondemand/hhub/resources/" :name file-name)))
+      (create-product prodname (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice (format nil "resources/~A" file-name)  "N" (get-login-vendor-company))
+      (hunchentoot:redirect "/hhub/dodvenproducts")))
+  (hunchentoot:redirect "vendor-login.html")))
+
+    
+
+
 (defun dod-controller-vendor-loginpage ()
   (handler-case
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
@@ -79,7 +130,6 @@
 	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 "Wallet does not exist"))))
 (if  (is-dod-vend-session-valid?)
 (standard-vendor-page (:title "Welcome to DAS Platform")
- 
   (:div :class "row" 
 	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Name: ~A" (if customer (slot-value customer 'name)))))))
   (:div :class "row" 
@@ -382,6 +432,10 @@
 (defun get-login-vend-company ()
     :documentation "Get the login vendor company."
     ( hunchentoot:session-value :login-vendor-company))
+
+(defun get-login-vendor-tenant-id () 
+  :documentation "Get the login vendor tenant-id"
+  (hunchentoot:session-value :login-vendor-tenant-id))
 
 (defun is-dod-vend-session-valid? ()
     :documentation "Checks whether the current login session is valid or not."
