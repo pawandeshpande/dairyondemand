@@ -102,16 +102,32 @@
     :db-constraints :not-null
     :type integer
     :initarg :row-id)
+
+(cust-id
+ :type integer
+ :initarg :cust-id)
+(customer 
+ :accessor get-customer 
+ :db-kind :join
+ :db-info (:join-class dod-cust-profile
+		       :home-key cust-id
+		       :foreign-key row-id
+		       :set nil))
    
 (order-id
-    :accessor odt-order-id
-    :TYPE integer
-    :initarg :order-id)
+ :TYPE integer
+ :initarg :order-id)
 
+(order
+ :accessor get-order
+ :db-kind :join
+ :db-info (:join-class dod-order
+		       :home-key order-id
+		       :foreign-key row-id
+		       :set nil))
 
 (vendor-id
-    :accessor odt-vendor-id
-    :db-constraints :NOT-NULL
+ :db-constraints :NOT-NULL
     :type integer
     :initarg :vendor-id)
 
@@ -122,6 +138,37 @@
 		     :home-key vendor-id
 		     :foreign-key row-id
 		     :set nil))
+
+(ord-date
+    :accessor order-date
+    :DB-CONSTRAINTS :NOT-NULL
+    :TYPE clsql:date
+    :initarg :ord-date)
+
+(req-date
+    :accessor get-requested-date
+    :DB-CONSTRAINTS :NOT-NULL
+    :TYPE clsql:date
+    :initarg :req-date)
+
+(shipped-date
+    :accessor get-shipped-date
+    :TYPE clsql:date
+    :INITARG :shipped-date)   
+
+
+ (ship-address
+    :ACCESSOR get-ship-address 
+    :type (string 100)
+    :initarg :ship-address)
+
+   (order-amt
+    :type (number)
+    :initarg :order-amt)
+
+(payment-mode
+    :type (string 3)
+    :initarg :payment-mode)
 
 (fulfilled
     :type (string 1)

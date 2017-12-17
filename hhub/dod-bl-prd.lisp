@@ -98,9 +98,10 @@
    
 
   
-(defun persist-product(prdname vendor-id catg-id qtyperunit unitprice img-file-path subscribe-flag tenant-id )
+(defun persist-product(prdname description vendor-id catg-id qtyperunit unitprice img-file-path subscribe-flag tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-prd-master
 				    :prd-name prdname
+				    :description description
 				    :vendor-id vendor-id
 				    :catg-id catg-id
 				    :qty-per-unit qtyperunit
@@ -112,11 +113,11 @@
  
 
 
-(defun create-product (prdname vendor-instance category qty-per-unit unit-price img-file-path subscribe-flag company-instance)
+(defun create-product (prdname description  vendor-instance category qty-per-unit unit-price img-file-path subscribe-flag company-instance)
   (let ((vendor-id (slot-value vendor-instance 'row-id))
-	(catg-id (slot-value category 'row-id))
+	(catg-id (if category (slot-value category 'row-id)))
 	(tenant-id (slot-value company-instance 'row-id)))
-      (persist-product prdname vendor-id catg-id qty-per-unit unit-price img-file-path subscribe-flag  tenant-id)))
+      (persist-product prdname description vendor-id catg-id qty-per-unit unit-price img-file-path subscribe-flag  tenant-id)))
 
 ;(defun copy-products (src-company dst-company)
 ;    (let ((prdlist (select-products-by-company src-company)))
@@ -169,6 +170,27 @@
 		:caching *dod-database-caching* :flatp t))))
 
 
+(defun add-new-node-prdcatg (name company-instance) 
+  (let* ((tenant-id (slot-value company-instance 'row-id))
+	 (query (format nil 
+		       "LOCK TABLE DOD_PRD_CATG  WRITE;SELECT @myRight := rgt FROM DOD_PRD_CATG  WHERE catg_name = 'root';UPDATE DOD_PRD_CATG  SET rgt = rgt + 2 WHERE rgt > @myRight;UPDATE DOD_PRD_CATG SET lft = lft + 2 WHERE lft > @myRight;INSERT INTO DOD_PRD_CATG (catg_name, lft, rgt, tenant_id, active_flag, deleted_state ) VALUES('~A', @myRight + 1, @myRight + 2, ~A, 'Y', 'N');UNLOCK TABLES;" name tenant-id)))
+    (print query) 
+    (clsql:query query :field-names nil :flatp t)))
+
+
+(defun add-new-prdcatg-node-as-child (parentname childname  company-instance) 
+  (let* ((tenant-id (slot-value company-instance 'row-id))
+	 (query (format nil 
+		       "LOCK TABLE DOD_PRD_CATG  WRITE;
+SELECT @myLeft := lft FROM DOD_PRD_CATG WHERE catg_name = '~A'; 
+UPDATE DOD_PRD_CATG  SET rgt = rgt + 2 WHERE rgt > @myLeft;
+UPDATE DOD_PRD_CATG  SET lft = lft + 2 WHERE lft > @myLeft;
+INSERT INTO DOD_PRD_CATG (catg_name, lft, rgt, tenant_id, active_flag, deleted_state) VALUES('~A', @myLeft + 1, @myLeft + 2, ~A, 'Y', 'N');
+UNLOCK TABLES;" parentname childname tenant-id)))
+    (clsql:query query :field-names nil :flatp t)))
+
+
+
 (defun update-prdcatg (prdcatg-inst); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance prdcatg-inst))
 
@@ -196,19 +218,19 @@
    
 
   
-(defun persist-prdcatg(catgname description picture-path tenant-id )
+(defun persist-prdcatg(catgname lft rgt tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-prd-catg
 				    :catg-name catgname
-				    :description description 
-				    :picture-path picture-path
+				    :lft lft
+				    :rgt rgt 
 				    :tenant-id tenant-id
 				    :active-flag "Y"
 				    :deleted-state "N")))
  
 
 
-(defun create-prdcatg (catgname description picture-path company-instance)
+(defun create-prdcatg (catgname lft rgt  company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
-      (persist-prdcatg catgname description picture-path tenant-id)))
+      (persist-prdcatg catgname lft rgt tenant-id)))
 
 

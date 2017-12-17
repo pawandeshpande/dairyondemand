@@ -17,6 +17,10 @@
 
 
 
+(defun equal-companiesp (cmp1 cmp2)
+  (equal (slot-value cmp1 'row-id) (slot-value cmp2 'row-id)))
+
+
 (defun select-company-by-name (name-like-clause)
 (car (clsql:select 'dod-company :where [and
 		[= [:deleted-state] "N"]

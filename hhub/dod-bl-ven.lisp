@@ -74,3 +74,38 @@
 
  
 
+; DOD_VENDOR_TENANTS related functions
+(defun create-vendor-tenant (vendor default-flag company)
+  (let ((tenant-id (slot-value company 'row-id))
+	(vendor-id (slot-value vendor 'row-id)))
+    (clsql:update-records-from-instance (make-instance 'dod-vendor-tenants
+						       :vendor-id vendor-id
+						       :tenant-id tenant-id
+						       :default-flag default-flag
+						       :deleted-state "N"))))
+
+(defun delete-vendor-tenant (vendor-tenantlist company)
+   (let ((tenant-id (slot-value company 'row-id)))
+  (mapcar (lambda (id)  (let ((dodvendortenant (car (clsql:select 'dod-vendor-tenants :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+			  (setf (slot-value dodvendortenant 'deleted-state) "Y")
+			  (clsql:update-record-from-slot dodvendortenant  'deleted-state))) vendor-tenantlist )))
+
+
+
+
+(defun get-vendor-tenants (vendor)
+  (let ((vendor-id (slot-value vendor 'row-id)))
+ (clsql:select 'dod-vendor-tenants  :where
+		[and [= [:deleted-state] "N"]
+		[= [:vendor-id] vendor-id]]
+	           :caching nil :flatp t )))
+
+
+
+(defun get-vendor-tenants-as-companies (vendor) 
+  (let ((vendor-tenants-list (get-vendor-tenants vendor)))
+    (mapcar (lambda (vt) 
+	      (let ((tenant-id (slot-value vt 'tenant-id)))
+		(select-company-by-id tenant-id))) vendor-tenants-list)))
+
+    

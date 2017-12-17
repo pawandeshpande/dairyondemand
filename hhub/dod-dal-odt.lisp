@@ -2,7 +2,7 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
-(clsql:def-view-class dod-order-details ()
+(clsql:def-view-class dod-order-items ()
   ((row-id
     :db-kind :key
     :db-constraints :not-null
@@ -13,6 +13,13 @@
     :accessor odt-order-id
     :TYPE integer
     :initarg :order-id)
+(orderobject 
+ :accessor odt-orderobject 
+ :db-kind :join
+ :db-info (:join-class dod-order
+		       :home-key order-id 
+		       :foreign-key row-id
+		       :set nil))
 
 (prd-id
     :accessor odt-prd-id
@@ -89,7 +96,7 @@
                           :SET nil)))
 
    
-  (:BASE-TABLE dod_order_details))
+  (:BASE-TABLE dod_order_items))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Create class dod-order-details-track

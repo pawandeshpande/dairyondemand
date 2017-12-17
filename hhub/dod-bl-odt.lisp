@@ -7,19 +7,23 @@
 :documentation "Returns the list of order details instances given order-instance as input"
   (let ((tenant-id (slot-value order-instance 'tenant-id))
 	(order-id (slot-value order-instance 'row-id)))
- (clsql:select 'dod-order-details  :where
+ (clsql:select 'dod-order-items  :where
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[=[:order-id] order-id]]    :caching nil :flatp t )))
 
 
 
+(defun delete-all-order-items (order-instance company)
+  (let ((order-items (get-order-items order-instance)))
+    (if order-items (delete-order-details order-items company))))
+
 
 (defun count-order-items-completed (order-instance company) 
   :documentation "Checks whether all the order items are in completed status for a given order" 
 (let ((tenant-id (slot-value company 'row-id))
       (order-id (slot-value order-instance 'row-id)))
-  (first (clsql:select [count [*]] :from 'dod-order-details :where 
+  (first (clsql:select [count [*]] :from 'dod-order-items :where 
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[= [:status] "CMP"]
@@ -31,7 +35,7 @@
   :documentation "Checks whether all the order items are in completed status for a given order" 
 (let ((tenant-id (slot-value company 'row-id))
       (order-id (slot-value order-instance 'row-id)))
-  (first (clsql:select [count [*]] :from 'dod-order-details :where 
+  (first (clsql:select [count [*]] :from 'dod-order-items :where 
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[= [:status] "PEN"]
@@ -44,7 +48,7 @@
 	     (vendor-id (slot-value vendor-instance 'row-id))
 	      (order-id (slot-value order-instance 'row-id)))
 	
- (clsql:select 'dod-order-details  :where
+ (clsql:select 'dod-order-items  :where
 		[and [= [:deleted-state] "N"]
 		     [= [:tenant-id] tenant-id]
 		     [= [:vendor-id] vendor-id]
@@ -52,14 +56,14 @@
 
 
 
-(defun get-order-items-for-vendor (vendor-instance)
-    (let* ((tenant-id (slot-value vendor-instance 'tenant-id))
+(defun get-order-items-for-vendor (vendor-instance rowcount company)
+    (let* ((tenant-id (slot-value company 'row-id))
 	     (vendor-id (slot-value vendor-instance 'row-id)))
 	
- (clsql:select 'dod-order-details  :where
+ (clsql:select 'dod-order-items  :where
 		[and [= [:deleted-state] "N"]
 		     [= [:tenant-id] tenant-id]
-		     [= [:vendor-id] vendor-id]]
+		     [= [:vendor-id] vendor-id]] :order-by :order-id :limit rowcount
 		        :caching nil :flatp t )))
 
 	     
@@ -68,14 +72,12 @@
 
 
 
-(defun get-order-details-by-prd (prd-id order-instance)
- (let ((tenant-id (slot-value order-instance 'tenant-id))
-	(order-id (slot-value order-instance 'row-id)))
- (car (clsql:select 'dod-order-details  :where
+(defun get-order-items-by-product-id (prd-id order-id tenant-id)
+ (car (clsql:select 'dod-order-items  :where
 		[and [= [:deleted-state] "N"]
      [= [:tenant-id] tenant-id]
      [= [:prd-id] prd-id]
-		[=[:order-id] order-id]]    :caching nil :flatp t ))))
+		[=[:order-id] order-id]]    :caching nil :flatp t )))
     
 
 
@@ -84,16 +86,16 @@
   (clsql:update-records-from-instance odt-instance))
 
 
-(defun delete-order-details ( list company-instance)
+(defun delete-order-items (list company-instance)
     (let ((tenant-id (slot-value company-instance 'row-id)))
-  (mapcar (lambda (id)  (let ((dodorder (car (clsql:select 'dod-order-details :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+  (mapcar (lambda (id)  (let ((dodorder (car (clsql:select 'dod-order-items :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
 			  (setf (slot-value dodorder 'deleted-state) "Y")
 			  (clsql:update-record-from-slot dodorder  'deleted-state))) list )))
 
 
 (defun restore-deleted-order-details ( list company-instance )
     (let ((tenant-id (slot-value company-instance 'row-id)))
-(mapcar (lambda (id)  (let ((dodorder (car (clsql:select 'dod-order-details :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+(mapcar (lambda (id)  (let ((dodorder (car (clsql:select 'dod-order-items :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
     (setf (slot-value dodorder 'deleted-state) "N")
     (clsql:update-record-from-slot dodorder 'deleted-state))) list )))
 
@@ -101,7 +103,7 @@
 
   
 (defun persist-order-items(order-id product-id vendor-id unit-price product-qty  tenant-id )
- (clsql:update-records-from-instance (make-instance 'dod-order-details
+ (clsql:update-records-from-instance (make-instance 'dod-order-items
 						    :order-id order-id
 						    :prd-id product-id
 					 :vendor-id vendor-id
@@ -113,13 +115,6 @@
 					 :deleted-state "N")))
 
 
-(defun persist-vendor-orders(order-id vendor-id tenant-id )
- (clsql:update-records-from-instance (make-instance 'dod-vendor-orders
-					 :order-id order-id
-					 :vendor-id vendor-id
-					 :status "PEN"
-					 :fulfilled "N"
-					 :tenant-id tenant-id )))
 
 
 
@@ -138,7 +133,7 @@
        	(vendor-id (slot-value (product-vendor product) 'row-id)) 
 	(tenant-id (slot-value company-instance 'row-id))
 	   (order-id (if order (slot-value order 'row-id) nil)))
-    (make-instance 'dod-order-details
+    (make-instance 'dod-order-items
 						    :order-id order-id
 						    :vendor-id vendor-id
 						    :prd-id product-id

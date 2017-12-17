@@ -85,16 +85,50 @@
     (tenant-id
     :type integer
     :initarg :tenant-id)
-   (COMPANY
+(COMPANY
     :ACCESSOR vendor-company
     :DB-KIND :JOIN
     :DB-INFO (:JOIN-CLASS dod-company
 	                  :HOME-KEY tenant-id
                           :FOREIGN-KEY row-id
                           :SET T)))
+   
 
    
   (:BASE-TABLE dod_vend_profile))
 
 
 
+; DOD_VENDOR_TENANTS table is created to support multiple tenants for a given vendor. 
+
+(clsql:def-view-class dod-vendor-tenants ()
+  ((row-id
+    :db-kind :key
+    :db-constraints :not-null
+    :type integer
+    :initarg :row-id)
+   (vendor-id
+    :accessor vendor-id
+    :DB-CONSTRAINTS :NOT-NULL
+    :TYPE integer 
+    :INITARG :vendor-id)
+   (tenant-id 
+    :type integer 
+    :initarg :tenant-id)
+    (COMPANY
+    :ACCESSOR get-vendor-tenants-list
+    :DB-KIND :JOIN
+    :DB-INFO (:JOIN-CLASS dod-company
+	                  :HOME-KEY tenant-id
+                          :FOREIGN-KEY row-id
+                          :SET T))
+   (default-flag 
+       :type (string 1) 
+     :void-value "N" 
+     :initarg :default-flag)
+
+   (deleted-state
+    :type (string 1)
+    :void-value "N"
+    :initarg :deleted-state))
+  (:BASE-TABLE dod_vendor_tenants))

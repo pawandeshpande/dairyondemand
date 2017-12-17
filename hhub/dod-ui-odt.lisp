@@ -48,7 +48,8 @@
     (cl-who:with-html-output (*standard-output* nil)
 
 	(:h3 "Order Details") 
-	(:table :class "table table-striped"  (:thead (:tr
+	(:div :class "jumbotron row"
+	(:table :class "table table-hover"  (:thead (:tr
 					  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
 					      (mapcar (lambda (odt)
 						 (let ((odt-product  (get-odt-product odt))
@@ -61,17 +62,42 @@
 							     (:td  :height "12px" (str (format nil  "~d" prd-qty)))
 							     (:td  :height "12px" (str (format nil  "Rs. ~$" unit-price)))
 							     (:td  :height "12px" (str (format nil "Rs. ~$" (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty)))))
-							     (if (and (equal status "PEN")
-								      (equal fulfilled "N"))
-								 (htm (:td  :height "12px" (str (format nil "Pending"))))
-								 (htm (:td  :height "12px" (str (format nil "Fulfilled")))))
-							     (:td  :height "12px" (:a :onclick "return DeleteConfirm();" :href  (format nil "/hhub/doddelcustorditem?id=~A&ord=~A" (slot-value odt 'row-id) ordid) :onclick "return false" "Cancel"))
-)))) (if (not (typep data 'list)) (list data) data))))))
+							     (cond ((and (equal status "PEN") (equal fulfilled "N")) (htm (:td  :height "12px" (str (format nil "Pending")))
+															  (:td  :height "12px" (:a :onclick "return DeleteConfirm();" :href  (format nil "/hhub/doddelcustorditem?id=~A&ord=~A" (slot-value odt 'row-id) ordid) :onclick "return false" "Cancel"))))
+								   ((and (equal status "CMP") (equal fulfilled "Y"))  (htm (:td  :height "12px" (str (format nil "Fulfilled"))))))
+							     
+			
+							     
+							     
+)))) (if (not (typep data 'list)) (list data) data)))))))
 
 
-(defun display-order-header (order-instance)
+(defun display-order-header-for-customer (order-instance)
     (let ((customer (get-ord-customer order-instance))
 	  (payment-mode (slot-value order-instance 'payment-mode))
+	  (amt (slot-value order-instance 'order-amt))
+	  (shipped-date (slot-value order-instance 'shipped-date)))
+    (cl-who:with-html-output (*standard-output* nil)
+	(:div :class "jumbotron"
+	    (:div :class "row" (:div :class "col-md-4"
+				   (:h5 "Order No:") (:h4 (str (slot-value order-instance 'row-id)))
+				   (:h5 "Payment Mode:") (:h4 (str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
+								       ((equal payment-mode "COD") "Cash On Demand")))))
+				  
+				  
+		(:div :class "col-md-4"
+		      (:h5 "Status: " ) (:h4 (str (slot-value order-instance 'status)))
+		      (:h5 "Order Date:") (:h4 (str (get-date-string (slot-value order-instance 'ord-date))))
+		    (:h5 "Requested On:")(:h4 (str (get-date-string (slot-value order-instance 'req-date))))
+		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date)))))
+		(:div :class "col-md-4"
+		       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" amt))))
+		      ))))))
+
+(defun display-order-header-for-vendor (order-instance)
+    (let ((customer (get-ord-customer order-instance))
+	  (payment-mode (slot-value order-instance 'payment-mode))
+	  (amt (slot-value order-instance 'order-amt))
 	  (shipped-date (slot-value order-instance 'shipped-date)))
     (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "jumbotron"
@@ -87,4 +113,7 @@
 				   (:h5 "Status: " ) (:h4 (str (slot-value order-instance 'status)))
 				   (:h5 "Order Date:") (:h4 (str (get-date-string (slot-value order-instance 'ord-date))))
 		    (:h5 "Requested On:")(:h4 (str (get-date-string (slot-value order-instance 'req-date))))
-		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date))))))))))
+		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date)))))
+		(:div :class "col-md-4"
+		       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" amt))))
+		      ))))))

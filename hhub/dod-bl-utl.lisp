@@ -37,6 +37,11 @@ corresponding universal time."
                        (date-ymd dateobj)  (format nil "~2,'0d/~2,'0d/~4,'0d" day mon yr)))
 
 
+(defun get-date-string-mysql (dateobj) 
+  "Returns current date as a string in DD-MM-YYYY format."
+  (multiple-value-bind (yr mon day)
+                       (date-ymd dateobj)  (format nil "~4,'0d-~2,'0d-~2,'0d 00:00:00" yr mon day)))
+
 (defun get-cipher (salt)
   (ironclad:make-cipher :blowfish
     :mode :ecb

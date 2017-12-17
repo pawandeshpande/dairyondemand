@@ -156,8 +156,9 @@ padding: 20px;
 background-color: #f9ffff;
 border: 1px solid;
 border-color: #0080fd;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-
+box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+width: 350px; 
+height:250px;
  transition: all 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 }; 
 
@@ -231,15 +232,30 @@ border-color: #0080fd;
 }
 
 
+.order-box {
 
-
-.order-box{
 position: relative;
 display: inline-block;
 border-radius: 5px;
 padding: 20px;
 background-color: #f9ffff;
 border: 1px solid;
+border-color: #0080fd;
+box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+width: 150px; 
+height:120px;
+
+};
+
+.order1-box{
+position: relative;
+display: inline-block;
+border-radius: 5px;
+padding: 20px;
+background-color: #f9ffff;
+border: 1px solid;
+width: 150px; 
+height: 120px; 
 border-color: #0080fd;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   transition: all 0.3s ease-in-out;

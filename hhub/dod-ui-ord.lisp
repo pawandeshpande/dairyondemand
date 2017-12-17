@@ -35,7 +35,7 @@
       (mapcar (lambda (item) (str (format nil "~A," item ))) header)
       (str (format nil " ~C~C" #\return #\linefeed))
            (mapcar (lambda (ord )
-		       (let* ((odtlst (get-order-items-for-vendor  vendor-instance))
+		       (let* ((odtlst (get-order-items-for-vendor  vendor-instance 1000 (get-login-vendor-company)))
 				(total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
 		  (customer (get-ord-customer ord)))
@@ -54,13 +54,16 @@
 
 
 
-(defun ui-list-vendor-orders (ordlist)
-    (let*  ((vendor (hunchentoot:session-value :login-vendor))
-	       (vendor-company (hunchentoot:session-value :login-vendor-company)) 
+(defun ui-list-vendor-orders-by-products (ordlist)
+    (let*  ((vendor (get-login-vendor))
+	    (tenant-id (get-login-vendor-tenant-id))
+	       (vendor-company (get-login-vendor-company))
 	       (products  (select-products-by-vendor vendor vendor-company))
 	     (odtlst (mapcar (lambda (prd)
+			       (let ((prd-id (slot-value prd 'row-id)))
 			(delete nil (mapcar (lambda (ord)
-				    (get-order-details-by-prd (slot-value prd 'row-id) ord))  ordlist) :test #'equal))
+					      (let ((order-id (slot-value ord 'order-id)))
+					      (get-order-items-by-product-id  prd-id  order-id tenant-id)))  ordlist) :test #'equal)))
 				   products)))
 
 	 (cl-who:with-html-output (*standard-output* nil)	       
@@ -77,7 +80,7 @@
     			    (str (slot-value prd 'qty-per-unit)))
 					    
 		       (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
-			  (:h5 "Rs " (str (slot-value prd 'unit-price)) " Each"))
+			  (:h5 (str (format nil "Rs ~$ Each" ( slot-value prd 'unit-price)))))
 		     (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
 			  (:span :class "badge" (str quantity)))
 
@@ -88,7 +91,7 @@
 (defun ui-list-vendor-orders-by-customers (ordlist vendor-instance)
  	 (cl-who:with-html-output (*standard-output* nil)	       
      (mapcar (lambda (ord )
-		 (let*  ((odtlst (get-order-items-for-vendor  vendor-instance))
+		 (let*  ((odtlst (get-order-items-for-vendor  vendor-instance 1000 (get-login-vendor-company)))
 			      (total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
 		  (customer (get-ord-customer ord)))
@@ -128,17 +131,17 @@
           (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustindex") "Shop Now")
     (:h3 "Orders")
   
-      (:table :class "table table-striped"  (:thead (:tr
+      (:table :class "table table-responsive table-hover"  (:thead (:tr
  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
 								  (mapcar (lambda (order)
 									    (htm (:tr (:td  :height "12px" (str (slot-value order 'row-id)))
 											(:td  :height "12px" (str (get-date-string (slot-value order 'ord-date))))
 										       (:td  :height "12px" (str (get-date-string (slot-value order 'req-date))))
 											   (if (equal (slot-value order 'order-fulfilled) "Y")
-											      (htm  (:td :height "12px" (:span :class "label label-info" "FULFILLED")))
+											      (htm  (:td :height "12px"   (:a :href  (format nil  "dodmyorderdetails?id=~A" (slot-value order 'row-id)) (:span :class "label label-primary" "Details" ))  "&nbsp;&nbsp;" (:span :class "label label-info" "FULFILLED")
+))
 											       ; ELSE
-										       	  (htm  (:td :height "12px" (:a :onclick "return DeleteConfirm();" :href (format nil  "delorder?id=~A" (slot-value order 'row-id)) (:b :class "label label-primary"  "Cancel Order")) "&nbsp;&nbsp;"
-											   (:a :href  (format nil  "dodmyorderdetails?id=~A" (slot-value order 'row-id)) (:span :class "label label-primary" "Details" ))))
+										       	  (htm  (:td :height "12px" (:a :href  (format nil  "dodmyorderdetails?id=~A" (slot-value order 'row-id)) (:span :class "label label-primary" "Details" ))))
 											    )))) (if (not (typep data 'list)) (list data) data) )))))
 
 (defun concat-ord-dtl-name (order-instance)
@@ -148,17 +151,20 @@
 
 
 
+
+
 (defun ui-list-vendor-orders-tiles (data)
     (cl-who:with-html-output (*standard-output* nil)
      (:div :class "row-fluid"	 (if data (mapcar (lambda (order)
-						      (htm (:div :class "col-sm-4 col-xs-3 col-md-1 col-lg-1" 
+						      (htm  (:div :class "col-sm-6 col-xs-6 col-md-4 col-lg-3" 
 							       (:div :class "order-box"   (vendor-order-card order )))))
 					      data)))))
 
 
 (defun vendor-order-card (order-instance)
-    (let* ((customer (get-ord-customer order-instance))
-	  (order-id (slot-value order-instance 'row-id))
+    (let* ((id (slot-value order-instance 'cust-id))
+	   (customer (select-customer-by-id id (get-login-vendor-company)))
+	  (order-id (slot-value order-instance 'order-id))
 	  (name (slot-value customer 'name))
 	  (address (slot-value customer 'address)))
 	(cl-who:with-html-output (*standard-output* nil)

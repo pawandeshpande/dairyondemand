@@ -57,11 +57,12 @@
   
 
 (defun ui-list-customer-products (data lstshopcart)
-    (cl-who:with-html-output (*standard-output* nil)
-	(:div :class "row-fluid"	  (mapcar (lambda (product)
+  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)	
+    (:div :id "finalResult"  
+    (:div :class "row-fluid"	  (mapcar (lambda (product)
 						      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
 							       (:div :class "product-box"   (product-card product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))))
-					      data))))
+					      data)))))
 
 
 (defun product-card-shopcart (product-instance odt-instance)
@@ -99,14 +100,11 @@
 
 (defun prdcatg-card (prdcatg-instance)
     (let ((catg-name (slot-value prdcatg-instance 'catg-name))
-	     (description  (slot-value prdcatg-instance 'description))
-	     (picture-path (slot-value prdcatg-instance 'picture-path))
 	  (row-id (slot-value prdcatg-instance 'row-id)))
 	(cl-who:with-html-output (*standard-output* nil)
 		(:div :class "row"
-		(:div :class "col-sm-12" (:a :href (format nil "dodproducts?id=~A" row-id) (:img :src  (format nil "~A" picture-path) :height "83" :width "100" :alt catg-name " ")))
-		(:div :class "row"
-		(:div :class "col-sm-12" (:h4(:span :class "label label-default"(str description)))))))))
+		(:div :class "col-sm-12" (:a :href (format nil "dodproducts?id=~A" row-id) (str catg-name)))))))
+		
 
 
 	
@@ -115,14 +113,14 @@
     (let ((prd-name (slot-value product-instance 'prd-name))
 	     (unit-price (slot-value product-instance 'unit-price))
 	     (prd-image-path (slot-value product-instance 'prd-image-path))
-	     
+	      (prd-id (slot-value product-instance 'row-id))
 	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
 	    
 	(cl-who:with-html-output (*standard-output* nil)
 	  
 		(:div :class "row"
 		    
-		(:div :class "col-sm-6"  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " "))
+		(:div :class "col-sm-6" (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
 		(:div :class "col-sm-3"	(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))))
 		    (:div :class "row"
 		    (:div :class "col-sm-6"
@@ -131,47 +129,47 @@
 
 		    (:div :class "row"
 			
-			  (if (equal subscribe-flag "Y") (htm (:div :class "col-sm-6"  (:h3 (:span :class "label label-default" "Can be Subscribed"))))) ))))
+			  (if (equal subscribe-flag "Y") (htm (:div :class "col-sm-6"  (:h5 (:span :class "label label-default" "Can be Subscribed"))))) ))))
 
 (defun product-card (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))
-	     (unit-price (slot-value product-instance 'unit-price))
-	     (prd-image-path (slot-value product-instance 'prd-image-path))
-	     (prd-id (slot-value product-instance 'row-id))
-	  (subscribe-flag (slot-value product-instance 'subscribe-flag))
-	     (prd-vendor (product-vendor product-instance)))
+	  (unit-price (slot-value product-instance 'unit-price))
+	  (prd-image-path (slot-value product-instance 'prd-image-path))
+	 
+	  (prd-id (slot-value product-instance 'row-id))
+	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
+
 	(cl-who:with-html-output (*standard-output* nil)
 	  
 		(:div :class "row"
 		    
-		(:div :class "col-sm-6" (:a :href (format nil "dodprddetails?id=~A" prd-id) (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
-		(:div :class "col-sm-3"	(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))))
-		    (:div :class "row"
-		    (:div :class "col-sm-6"
-		(:h5 :class "product-name"  (str prd-name) )
-		(:p :class "vendor-name"  (str (format nil "Supplier - "))  (:a :href (format nil  "dodvendordetails?id=~A" (slot-value prd-vendor 'row-id)) (str (vendor-name prd-vendor))))
-			))
+		(:div  :class "col-xs-6" (:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
+		(:div  :class "col-xs-3"	(:div  (:h3 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))))
 
-		    (:div :class "row"
+				
+		(:div :class "row"
+		      (:div :class "col-xs-12" 		(:h5 :class "product-name"  (str prd-name))))
+		
+		(:div :class "row"
 			
-		    (if  prdincart-p (htm   (:div :class "col-sm-6" (:a :class "btn btn-sm btn-success" :role "button"  :onclick "return false;" :href (format nil "javascript:void(0);") (:span :class "glyphicon glyphicon-ok"  ))))
+			  (if (equal subscribe-flag "Y") (htm 
+							(:form :class "form-subscribe" :method "POST" :action "dodprodsubscribe"
+							       (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
+							(:div :class "col-xs-6"  (:button :data-toggle "tooltip" :title "Subscribe"  :class "btn btn-sm btn-primary" :name "btnsubscribe" :type "submit" (:span :class "glyphicon glyphicon glyphicon-hand-up") " Subscribe")))))
+
+			  (if  prdincart-p (htm   (:div :class "col-xs-6"  (:a :class "btn btn-sm btn-success" :role "button"  :onclick "return false;" :href (format nil "javascript:void(0);") (:span :class "glyphicon glyphicon-ok"  ))))
 			 ;else 
 			 
 		     (htm    (:form :class "form-product" :method "POST" :action "dodcustaddtocart" 
 		      (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
-			  (:div :class "col-sm-6" (:button :class "btn btn-sm btn-primary" :type "submit" :name "btnaddtocart" "Add To Cart")))))
-		 
-			 
-		        (if (equal subscribe-flag "Y") (htm 
-							(:form :class "form-subscribe" :method "POST" :action "dodprodsubscribe"
-							       (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
-							(:div :class "col-sm-6"  (:button :class "btn btn-sm btn-primary" :name "btnsubscribe" :type "submit" "Subscribe"))))) ))))
+			  (:div  :class "col-xs-6"   (:button :data-toggle "tooltip" :title "Add to cart"  :class "btn btn-sm btn-primary" :type "submit" :name "btnaddtocart" (:span :class "glyphicon glyphicon-plus") " Add"))))) ))))
 
-(defun product-card-with-details (product-instance prdincart-p)
+(defun product-card-with-details-for-customer (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))
-	     (qty-per-unit (slot-value product-instance 'qty-per-unit))
-	     (unit-price (slot-value product-instance 'unit-price))
-	     (prd-image-path (slot-value product-instance 'prd-image-path))
+	  (qty-per-unit (slot-value product-instance 'qty-per-unit))
+	  (unit-price (slot-value product-instance 'unit-price))
+	  (description (slot-value product-instance 'description))
+	  (prd-image-path (slot-value product-instance 'prd-image-path))
 	     (prd-id (slot-value product-instance 'row-id))
 	     (prd-vendor (product-vendor product-instance)))
 	(cl-who:with-html-output (*standard-output* nil)
@@ -188,6 +186,7 @@
 		(:hr)
 		(:div  (:h2 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))) ))
 		(:hr)
+		(:div (:h4 (str description)))
 		(if  prdincart-p (htm (:a :class "btn btn-success" :role "button"  :onclick "return false;" :href (format nil "javascript:void(0);") (:span :class "glyphicon glyphicon-ok"  )))
 		    (htm (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
 			(:input :type "hidden" :name "action" :value "addtocart")
@@ -195,4 +194,28 @@
 
 
 
+(defun product-card-with-details-for-vendor (product-instance)
+    (let ((prd-name (slot-value product-instance 'prd-name))
+	  (qty-per-unit (slot-value product-instance 'qty-per-unit))
+	  (unit-price (slot-value product-instance 'unit-price))
+	  (description (slot-value product-instance 'description))   
+	  (prd-image-path (slot-value product-instance 'prd-image-path)))
+	     
+
+	(cl-who:with-html-output (*standard-output* nil)
+	    (:div :class "container"
+		(:div :class "row"
+		    ; Product image only here
+		    (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-6 image-responsive"
+(:img :src  (format nil "~A" prd-image-path) :height "300" :width "400" :alt prd-name " "))
+(:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-6"
+    	    (:form :class "form-product" :method "POST" :action "dodcustaddtocart" 
+		(:h1  (str prd-name))
+		(:div (str qty-per-unit))
+		
+		(:hr)
+		(:div  (:h2 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))) ))
+		(:hr)
+				(:div (:h4 (str description)))
+		)))))))
 

@@ -4,6 +4,119 @@
 (defvar *current-vendor-session* nil)
 
 
+
+(defun dod-controller-vendor-revenue ()
+(if (is-dod-vend-session-valid?)
+    ;list all the completed orders for Today. 
+    (let* ((todaysorders (dod-get-cached-completed-orders-today))
+	  (total (if todaysorders (reduce #'+ (mapcar (lambda (ord) (slot-value ord 'order-amt)) todaysorders)))))
+    (standard-vendor-page (:title "Welcome to DAS Platform- Vendor")
+      (:div :class "row"
+	    (:div :class "col-xs-12 col-sm-4 col-md-4 col-lg-4" 
+		   "Completed orders "
+		  (:span :class "badge" (str (format nil " ~d " (length todaysorders))))) 
+	(:div :class  "col-xs-12 col-sm-4 col-md-4 col-lg-4"  :align "right" (:h1(:span :class "label label-default" "Todays Revenue")))	  
+      (:div :class  "col-xs-12 col-sm-4 col-md-4 col-lg-4"  :align "right" 
+	    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))))
+      (:hr)
+      (ui-list-vendor-orders-tiles todaysorders)))
+;else
+    (hunchentoot:redirect "/hhub/vendor-login.html")))
+ 
+(defun dod-controller-refresh-pending-orders ()
+  (if (is-dod-vend-session-valid?)
+      (progn 
+	(dod-reset-order-functions (get-login-vendor) (get-login-vendor-company))
+	(hunchentoot:redirect "/hhub/dodvendindex?context=pendingorders"))
+;else
+           (hunchentoot:redirect "/hhub/vendor-login.html")))
+
+(defun dod-controller-display-vendor-tenants ()
+  (if (is-dod-vend-session-valid?)
+      (let* ((vendor-company (get-login-vendor-company))
+	     (cmplist (hunchentoot:session-value :login-vendor-tenants)))
+	   
+	(standard-vendor-page (:title "Welcome to DAS Platform - Vendor")
+	  (:a :class "btn btn-primary" :role "button" :href "dodvendsearchtenantpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Tenant  ")
+	  (:hr)
+	  (:h5 (str (format nil "Currently logged into tenant - ~A" (slot-value vendor-company 'name))))
+	  (:div :class "list-group col-sm-6 col-md-6 col-lg-6"
+	 (if cmplist (mapcar (lambda (cmp)
+			       (unless (equal (slot-value vendor-company 'name)  (slot-value cmp 'name))
+	    (htm  (:a :class "list-group-item" :href (format nil "dodvendswitchtenant?id=~A"  (slot-value cmp 'row-id)) (str (format nil "Login to ~A " (slot-value cmp 'name))))
+		  ))) cmplist)))))
+      (hunchentoot:redirect "/hhub/vendor-login.html")))
+
+
+
+
+(defun dod-controller-cmpsearch-for-vend-page ()
+  (if (is-dod-vend-session-valid?)
+      (standard-vendor-page (:title "Welcome to DAS platform") 
+	(:div :class "row"
+	      (:h2 "Search Apartment/Group")
+	      (:div :id "custom-search-input"
+		    (:div :class "input-group col-md-12"
+			  (:form :id "theForm" :action "dodvendsearchtenantaction" :OnSubmit "return false;" 
+				 (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Search for an Apartment/Group"))
+			  (:span :class "input-group-btn" (:<button :class "btn btn-danger" :type "button" 
+								(:span :class " glyphicon glyphicon-search")))))
+	      (:div :id "finalResult" "")))
+      (hunchentoot:redirect "/hhub/vendor-login.html")))
+
+
+
+
+
+(defun dod-controller-cmpsearch-for-vend-action ()
+  (let*  ((qrystr (hunchentoot:parameter "livesearch"))
+	  (matching-tenants-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr)))
+	  (existing-tenants-list (get-vendor-tenants-as-companies (get-login-vendor)))
+	  (final-list (set-difference matching-tenants-list existing-tenants-list :test #'equal-companiesp)))
+    (ui-list-cmp-for-vend-tenant final-list)))
+
+
+
+(defun ui-list-cmp-for-vend-tenant (company-list)
+  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+  ; (standard-customer-page (:title "Welcome to DAS Platform")
+    (if company-list 
+	(htm (:div :class "row-fluid"	  (mapcar (lambda (cmp)
+						      (htm 
+						       (:form :method "POST" :action "dodvendaddtenantaction" :id "dodvendaddtenantform" 
+							      (:div :class "col-sm-4 col-lg-3 col-md-4"
+								    (:div :class "form-group"
+									  (:input :class "form-control" :name "cname" :type "hidden" :value (str (format nil "~A" (slot-value cmp 'name)))))
+								    (:div :class "form-group"  (:label :for "default" "Always login with this Group" )
+									  (:select :class "form-control"  :name "default"  
+									    (:option :value  "Y" "Make Default")
+									    (:option :value "N" "No")))
+
+								    (:div :class "form-group"
+									  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" (str (format nil "~A" (slot-value cmp 'name)))))))))  company-list)))
+	;else
+	(htm (:div :class "col-sm-12 col-md-12 col-lg-12"
+	      (:h3 "No records found"))))))
+
+
+
+(defun dod-controller-vend-add-tenant-action ()
+  (if (is-dod-vend-session-valid?)
+      (let* ((cname (hunchentoot:parameter "cname"))
+	     (default-flag (hunchentoot:parameter "default"))
+	    (company (select-company-by-name cname)))
+	(progn 
+	  (if (equal default-flag "Y") 
+	  (create-vendor-tenant (get-login-vendor) "Y"  company)
+	  (create-vendor-tenant (get-login-vendor) "N"  company))
+	  (hunchentoot:redirect "/hhub/dodvendortenants")))
+      ;else
+      (hunchentoot:redirect "/hhub/vendor-login.html")))
+
+
+
+
+
 (defun dod-controller-list-vendors ()
 (if (is-dod-session-valid?)
    (let (( dodvendors (select-vendors-for-company (get-login-company)))
@@ -43,24 +156,31 @@
 					     (:h1 :class "text-center login-title"  "Add new product")
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "prdname" :placeholder "Enter Product Name ( max 30 characters) " :type "text" ))
+					    
+					     (:div :class "form-group"
+						  (:label :for "description")
+						  (:textarea :class "form-control" :name "description" :placeholder "Enter Product Description ( max 1000 characters) "  :rows "5" :onkeyup "countChar(this)"  ))
+					      (:div :class "form-group" :id "charcount")
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "prdprice" :placeholder "Price"  :type "number" :min "0.00" :max "10000.00" :step "1" ))
-
+					    
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "qtyperunit" :placeholder "Quantity per unit. Ex - KG, Grams, Nos" :type "text" ))
-					     (:div  :class "form-group" (:label :for "prodcatg" "Select Produt Category:" )
-					     (ui-list-prod-catg-dropdown "prodcatg" catglist))
+					     (:div  :class "form-group" (:label :for "prodcatg" "Select Produt Category:" ))
+					     (hunchentoot:log-message* :info (format nil  "inside add product page ")
+								       (ui-list-prod-catg-dropdown "prodcatg" catglist))
 					     (:br) 
 					     (:div :class "form-group" (:label :for "prodimage" "Select Product Image:")
 						   (:input :class "form-control" :name "prodimage" :placeholder "Product Image" :type "file" ))
 					      (:div :class "form-group"
-						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))))
-					    
+						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+(hunchentoot:redirect "/hhub/vendor-login.html")))					    
 					     
 		
 (defun dod-controller-vendor-add-product-action ()
   (if (is-dod-vend-session-valid?)
   (let* ((prodname (hunchentoot:parameter "prdname"))
+	 (description (hunchentoot:parameter "description"))
 	(prodprice (parse-integer (hunchentoot:parameter "prdprice")))
 	(qtyperunit (hunchentoot:parameter "qtyperunit"))
 	(catg-id (hunchentoot:parameter "prodcatg"))
@@ -72,9 +192,11 @@
     (progn 
       (if (probe-file tempfilewithpath )
 	  (rename-file tempfilewithpath (make-pathname :directory "/home/hunchentoot/dairyondemand/hhub/resources/" :name file-name)))
-      (create-product prodname (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice (format nil "resources/~A" file-name)  "N" (get-login-vendor-company))
+      (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice (format nil "resources/~A" file-name)  "N" (get-login-vendor-company))
+      (dod-reset-vendor-products-functions (get-login-vendor))
       (hunchentoot:redirect "/hhub/dodvenproducts")))
-  (hunchentoot:redirect "vendor-login.html")))
+
+  (hunchentoot:redirect "/hhub/vendor-login.html")))
 
     
 
@@ -83,7 +205,7 @@
   (handler-case
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
 	      (if (is-dod-vend-session-valid?)
-		  (hunchentoot:redirect "/dodvendindex")
+		  (hunchentoot:redirect "/hhub/dodvendindex?context=home")
 		  (standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
 		    (:div :class "row" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
@@ -112,7 +234,7 @@
 		(:form :class "form-cust-wallet-search" :role "form" :method "POST" :action "dodsearchcustwalletaction"
 		    (:div :class "account-wall"
 			  (:div :class "form-group"
-			    (:input :class "form-control" :name "phone" :placeholder "Enter Customer Phone Number" :type "text" ))
+			    (:input :class "form-control" :name "phone" :placeholder "Enter Customer Phone Number" :type "number" :size "10" ))
 					
 			(:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
@@ -120,7 +242,8 @@
 ))
 
 (defun dod-controller-vendor-search-cust-wallet-action ()
-(let* ((phone (hunchentoot:parameter "phone"))
+(if (is-dod-vend-session-valid?)
+  (let* ((phone (hunchentoot:parameter "phone"))
 	(customer (select-customer-by-phone phone (get-login-vendor-company)))
 	(wallet (if customer (get-cust-wallet-by-vendor customer (get-login-vendor) (get-login-vendor-company)))))
  
@@ -128,7 +251,7 @@
 (standard-vendor-page (:title "Welcome to DAS Platform")
  (:div :class "row" 
 	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 "Wallet does not exist"))))
-(if  (is-dod-vend-session-valid?)
+;else
 (standard-vendor-page (:title "Welcome to DAS Platform")
   (:div :class "row" 
 	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Name: ~A" (if customer (slot-value customer 'name)))))))
@@ -148,8 +271,8 @@
 			  (:input :class "form-control" :name "wallet-id" :value (if wallet (slot-value wallet 'row-id) 0.00) :type "hidden")
 			   (:input :class "form-control" :name "phone" :value phone :type "hidden")
 			  (:div :class "form-group"
-			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
-(hunchentoot:redirect "/hhub/vendor-login.html")))))
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
 (defun dod-controller-update-wallet-balance ()
@@ -172,11 +295,13 @@
 (if (is-dod-vend-session-valid?)
     (standard-vendor-page (:title "Welcome to Highrisehub")
        (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
-       (:form :class "form-update-wallet" :method "POST" :action "dodsearchcustwalletpage"
-	      (:div :class "row"
-		     (:div :class "col-sm-6 col-md-4 col-md-offset-4"
-		     (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Recharge Customer Wallet")))))
-    (hunchentoot:redirect "vendor-login.html")))
+       (:hr)
+       (:div :class "list-group col-sm-6 col-md-6 col-lg-6"
+		    (:a :class "list-group-item" :href "dodsearchcustwalletpage" "Recharge Customer Wallet")
+		    (:a :class "list-group-item" :href "dodvendortenants" "My Groups")
+		    (:a :class "list-group-item" :href "#" "Contact Information")
+		    (:a :class "list-group-item" :href "#" "Settings")))
+    (hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
 
@@ -228,98 +353,132 @@
 		     (:a :class "navbar-brand" :href "#" :title "DAS" (:img :style "width: 30px; height: 30px;" :src "resources/demand&supply.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
-			 (:li :class "active" :align "center" (:a :href "dodvendindex" "Home"))
+			 (:li :class "active" :align "center" (:a :href "dodvendindex?context=home"  (:span :class "glyphicon glyphicon-home")  " Home"))
 			 (:li :align "center" (:a :href "dodvenproducts"  "My Products"))
-			 (:li :align "cener"  (:a :href "dodvendindex?context=pendingorders"  "Pending Orders"))
 			 (:li :align "center" (:a :href "dodvendindex?context=completedorders"  "Completed Orders"))
-			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
+			 (:li :align "center" (:a :href "#" (print-web-session-timeout)))
+			 (:li :align "center" (:a :href "#" (str (format nil "Tenant: ~A" (get-login-vendor-company-name))))))
+		     
 		     (:ul :class "nav navbar-nav navbar-right"
-			 (:li :align "center" (:a :href "dodvendprofile" "My Profile" )) 
-			 (:li :align "center" (:a :href "https://goo.gl/forms/XaZdzF30Z6K43gQm2" "Feedback" ))
-			     (:li :align "center" (:a :href "https://goo.gl/forms/SGizZXYwXDUiTgVY2" (:span :class "glyphicon glyphicon-bug") "Bug" ))
+			 (:li :align "center" (:a :href "dodvendprofile"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
+			 (:li :align "center" (:a :href "https://goo.gl/forms/XaZdzF30Z6K43gQm2"  (:span :class "glyphicon glyphicon-envelope") " " ))
+			     (:li :align "center" (:a :href "https://goo.gl/forms/SGizZXYwXDUiTgVY2" (:span :class "glyphicon glyphicon-bug") " Bug" ))
 			     (:li :align "center" (:a :href "dodvendlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
+
+
 
 (defun dod-controller-vend-login ()
   (let  ((phone (hunchentoot:parameter "phone"))
 	 (password (hunchentoot:parameter "password")))
     (unless (and  ( or (null phone) (zerop (length phone)))
 		  (or (null password) (zerop (length password))))
-      (if (equal (dod-vend-login  :phone phone :password password) NIL) 
+      (if (equal (dod-vend-login :phone  phone :password  password) NIL) 
 	  (hunchentoot:redirect "/hhub/vendor-login.html")
 	  ;else
-	  (hunchentoot:redirect "/hhub/dodvendindex")))))
+	  (hunchentoot:redirect "/hhub/dodvendindex?context=home")))))
 
 
 
-(defun dod-vend-login (&key  phone password)
+(defun dod-vend-login (&key phone password )
   (handler-case 
-  (let* ((vendor (car (clsql:select 'dod-vend-profile :where [and
+      (let* ((vendor (car (clsql:select 'dod-vend-profile :where [and
 				   [= [slot-value 'dod-vend-profile 'phone] phone]
 				   [= [:deleted-state] "N"]]
 				   :caching nil :flatp t)))
-	(pwd (if vendor (slot-value vendor 'password)))
-	(salt (if vendor (slot-value vendor 'salt)))
-	(password-verified (if vendor  (check-password password salt pwd)))
-	(vendor-id (if vendor (slot-value vendor 'row-id)))
-	(vendor-name (if vendor (slot-value vendor 'name)))
-	(vendor-tenant-id (if vendor (slot-value (car  (vendor-company vendor)) 'row-id)))
-	(vendor-company-name (if vendor (slot-value (car (if vendor (vendor-company vendor))) 'name)))
-	(vendor-company (if vendor (car (vendor-company vendor)))))
-	;(log (if password-verified (hunchentoot:log-message* :info (format nil  "phone : ~A password : ~A" phone password)))))
-	 
-	
-   (when (and  vendor
-	       password-verified
-	       (null (hunchentoot:session-value :login-vendor-name))) ;; vendor should not be logged-in in the first place.
-     (progn
-       (format T "Starting session")
-        
-       (setf *current-vendor-session* (hunchentoot:start-session))
-       (setf (hunchentoot:session-value :login-vendor ) vendor)
-       (setf (hunchentoot:session-value :login-vendor-name) vendor-name)
-       (setf (hunchentoot:session-value :login-vendor-id) vendor-id)
-       (setf (hunchentoot:session-value :login-vendor-tenant-id) vendor-tenant-id)
-       (setf (hunchentoot:session-value :login-vendor-company-name) vendor-company-name)
-       (setf (hunchentoot:session-value :login-vendor-company) vendor-company)
-       (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company vendor-company))
-       (setf (hunchentoot:session-value :order-func-list) (dod-gen-order-functions vendor))
-       (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor)))))
-    ;handle the exception. 
-      (clsql:sql-database-data-error (condition)
-	  (if (equal (clsql:sql-error-error-id condition) 2006 ) 
-	      (progn
-		(stop-das) 
-		(start-das)
-		(hunchentoot:redirect "/hhub/customer-login.html"))))))
-  
+	     (pwd (if vendor (slot-value vendor 'password)))
+	     (salt (if vendor (slot-value vendor 'salt)))
+	     (password-verified (if vendor  (check-password password salt pwd)))
+	     (vendor-company (if vendor (car (vendor-company vendor)))))
+					;(log (if password-verified (hunchentoot:log-message* :info (format nil  "phone : ~A password : ~A" phone password)))))
+	(when (and  vendor
+		    password-verified
+		    (null (hunchentoot:session-value :login-vendor-name))) ;; vendor should not be logged-in in the first place.
+	  (progn
+	    (format T "Starting session")
+	    (setf *current-vendor-session* (hunchentoot:start-session))
+	    (set-vendor-session-params  vendor-company vendor))))
 
+					;handle the exception. 
+    (clsql:sql-database-data-error (condition)
+      (if (equal (clsql:sql-error-error-id condition) 2006 ) 
+	  (progn
+	    (stop-das) 
+	    (start-das)
+	    (hunchentoot:redirect "/hhub/customer-login.html"))))))
 
+(defun dod-controller-vendor-switch-tenant ()
+(if (is-dod-vend-session-valid?) 
+(let* ((company (select-company-by-id (hunchentoot:parameter "id")))
+       (vendor (get-login-vendor)))
+      
+  (progn
+	(set-vendor-session-params company vendor)
+	(hunchentoot:redirect "/hhub/dodvendindex?context=home")))
+  ;else  
+(hunchentoot:redirect "/hhub/vendor-login.html")))
 
+(defun set-vendor-session-params ( company  vendor)
+ (progn 
 
+   					;set vendor company related params 
+   (setf (hunchentoot:session-value :login-vendor-tenant-id) (slot-value company 'row-id ))
+   (setf (hunchentoot:session-value :login-vendor-company-name) (slot-value company 'name))
+   (setf (hunchentoot:session-value :login-vendor-company) company)
+   ;(setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company company))
+   ;set vendor related params 
+   (if vendor (setf (hunchentoot:session-value :login-vendor ) vendor))
+   (if vendor (setf (hunchentoot:session-value :login-vendor-name) (slot-value vendor 'name)))
+   (if vendor (setf (hunchentoot:session-value :login-vendor-id) (slot-value vendor 'row-id)))
+   (if vendor (setf (hunchentoot:session-value :login-vendor-tenants) (get-vendor-tenants-as-companies vendor)))
+   (if vendor (setf (hunchentoot:session-value :order-func-list) (dod-gen-order-functions vendor company)))
+   (if vendor (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor)))   
+   (dod-reset-vendor-products-functions (get-login-vendor))))
+   
+   
+   
+
+(defun dod-controller-prd-details-for-vendor ()
+    (if (is-dod-vend-session-valid?)
+	(standard-vendor-page (:title "Product Details")
+	    (let* ((company (hunchentoot:session-value :login-vendor-company))
+		   (product (select-product-by-id (parse-integer (hunchentoot:parameter "id")) company)))
+		(product-card-with-details-for-vendor product)))
+	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
 (defun dod-controller-vendor-products ()
+(if (is-dod-vend-session-valid?)
 (let ((vendor-products-func (first (hunchentoot:session-value :login-vendor-products-functions))))
   (standard-vendor-page (:title "Welcome to Dairy Ondemand - vendor")
-    (ui-list-vendor-products (funcall vendor-products-func)))))
+    (ui-list-vendor-products (funcall vendor-products-func))))
+;else
+(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 (defun dod-gen-vendor-products-functions (vendor)
   (let ((vendor-products (select-products-by-vendor vendor (get-login-vendor-company))))
     (list (function (lambda () vendor-products)))))
 
-(defun dod-gen-order-functions (vendor)
-(let ((pending-orders (get-orders-for-vendor vendor ))
-      (completed-orders (get-orders-for-vendor vendor "Y"))
-       (all-order-items (get-order-items-for-vendor  vendor)))
+(defun dod-gen-order-functions (vendor company)
+(let ((pending-orders (get-orders-for-vendor vendor 500 company ))
+      (completed-orders (get-orders-for-vendor vendor 500 company  "Y" ))
+      (top1000-order-items (get-order-items-for-vendor  vendor 1000 company)) ; get only the top 1000 order items for efficiency. 
+      (completed-orders-today (get-orders-for-vendor-by-shipped-date vendor (get-date-string-mysql (get-date)) company "Y"))) 
+
 
   (list (function (lambda () pending-orders ))
 	(function (lambda () completed-orders))
-	(function (lambda () all-order-items)))))
+	(function (lambda () top1000-order-items))
+	(function (lambda () completed-orders-today)))))
+
+
+(defun dod-reset-vendor-products-functions (vendor)
+  (let ((vendor-products-func-list (dod-gen-vendor-products-functions vendor)))
+	(setf (hunchentoot:session-value :login-vendor-products-functions) vendor-products-func-list)))
 
 
 
-(defun dod-reset-order-functions (vendor)
-  (let ((order-func-list (dod-gen-order-functions vendor)))
+(defun dod-reset-order-functions (vendor company)
+  (let ((order-func-list (dod-gen-order-functions vendor company)))
     (setf (hunchentoot:session-value :order-func-list) order-func-list)))
 
 
@@ -327,8 +486,13 @@
   (let ((pending-orders-func (first (hunchentoot:session-value :order-func-list))))
     (funcall pending-orders-func)))
 
+
 (defun dod-get-cached-completed-orders ()
   (let ((completed-orders-func (second (hunchentoot:session-value :order-func-list))))
+    (funcall completed-orders-func)))
+
+(defun dod-get-cached-completed-orders-today ()
+  (let ((completed-orders-func (fourth (hunchentoot:session-value :order-func-list))))
     (funcall completed-orders-func)))
 
 (defun dod-get-cached-order-items-by-order-id (order)
@@ -344,19 +508,24 @@
 
 
 (defun dod-controller-vend-index () 
-    (if (is-dod-vend-session-valid?)
+   (hunchentoot:log-message* :info (if (is-dod-vend-session-valid?) (format nil  "vendor session is valid Inside vend index  " ) (format nil "vendor session is invalid")))  
+  (if (is-dod-vend-session-valid?)
+	
 	(let (( dodorders (dod-get-cached-pending-orders ))
-		 (btnordprd (hunchentoot:parameter "btnordprd"))
-		 (reqdate (hunchentoot:parameter "reqdate"))
-		 (btnexpexl (hunchentoot:parameter "btnexpexl"))
-		 (context (hunchentoot:parameter "context"))
-		 (btnordcus (hunchentoot:parameter "btnordcus")))
+	      (reqdate (hunchentoot:parameter "reqdate"))
+	      (btnexpexl (hunchentoot:parameter "btnexpexl"))
+	      (context (hunchentoot:parameter "context"))
+	      (btnordcus (hunchentoot:parameter "btnordcus"))
+	      (log (hunchentoot:log-message* :info (format nil "Inside vend index"))))
+
 	(standard-vendor-page (:title "Welcome to Dairy Ondemand - vendor")
 	    (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
+	    (:hr)
+	    
 	    (:form :class "form-venorders" :method "POST" :action "dodvendindex"
 		(:div :class "row" :style "display: none"
 		(:div :class "btn-group" :role "group" :aria-label "..."
-		(:button  :name "btnpendord" :type "submit" :class "btn btn-default active" "Pending Orders" )
+		(:button  :name "btnpendord" :type "submit" :class "btn btn-default active" "Orders" )
 		(:button  :name "btnordcomp" :type "submit" :class "btn btn-default" "Completed Orders")))
 	   ; (:hr)
 	    (:div :class "row" :style "display: none"
@@ -369,15 +538,26 @@
 			(:button :class "btn btn-primary"  :type "submit" :name "btnprint" :onclick "javascript:window.print();" "Print") 
 		   )))
 	   ; (:hr)
-	    (cond ((and dodorders btnordprd) (ui-list-vendor-orders dodorders))
+	    (cond ((equal context "ctxordprd") (ui-list-vendor-orders-by-products dodorders))
 		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/hhub/dodvenexpexl?reqdate=~A" reqdate)))
 		((and dodorders btnordcus) (ui-list-vendor-orders-by-customers dodorders (get-login-vendor)))
+		((equal context "home")
+		 (htm (:div :class "list-group col-xs-6 col-sm-6 col-md-6 col-lg-6" 
+			    (:a :class "list-group-item" :href "dodvendindex?context=pendingorders" " Orders " (:span :class "badge" (str (format nil " ~d " (length dodorders)))))
+			    (:a :class "list-group-item" :href "dodvendindex?context=ctxordprd" "List orders by Product Quantity")
+			    (:a :class "list-group-item" :href "#" "List orders by Customers")
+			    (:a :class "list-group-item" :href (str (format nil "dodvendrevenue"))  "Today's Revenue")
+			    )))  
+   
 		((equal context "pendingorders") 
-		 (progn (htm (:span :class "badge" (str (format nil " ~A " (length dodorders))))
-		   (str (format nil " Pending Orders.")))
-		   (ui-list-vendor-orders-tiles dodorders)))
+		 (progn (htm (str "Pending Orders") (:span :class "badge" (str (format nil " ~d " (length dodorders))))
+			     (:a :class "btn btn-primary btn-xs" :role "button" :href "dodrefreshpendingorders" (:span :class "glyphicon glyphicon-refresh"))
+			     (:hr))
+			(ui-list-vendor-orders-tiles dodorders)))
 		((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
-						     (progn (str (format nil "Completed Orders : ~d" (length orders)))
+						     (progn (htm (str (format nil "Completed orders"))
+								 (:span :class "badge" (str (format nil " ~d " (length orders)))) 
+								 (:hr))
 							(ui-list-vendor-orders-tiles orders))))
 		(T ()) )))
 					; Else
@@ -400,7 +580,7 @@
 			 (display-wallet-for-customer wallet "Not enough balance for the transaction.")))
 
 		 (set-order-fulfilled "Y"  order-instance company-instance)
-		 (hunchentoot:redirect "/hhub/dodvendindex?context=completedorders")))
+		 (hunchentoot:redirect "/hhub/dodvendindex?context=pendingorders")))
 	     
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
@@ -425,9 +605,7 @@
 (defun get-login-vendor ()
     :documentation "Get the login session for vendor"
     (hunchentoot:session-value :login-vendor ))
-(defun get-login-vendor-name ()
-    :documentation "Get the login vendor name"
-    (hunchentoot:session-value :login-vendor-name))
+
 
 (defun get-login-vend-company ()
     :documentation "Get the login vendor company."

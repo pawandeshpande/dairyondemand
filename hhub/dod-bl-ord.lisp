@@ -21,11 +21,12 @@
 			(progn     (setf (slot-value voitem 'status) "CMP")
 			    (setf (slot-value voitem 'fulfilled) value)
 			    (update-order-detail voitem)))   vendor-order-items)
-	    (sleep 1) 
+	    ;(sleep 1) 
 	    ; complete the vendor_order  
 	    (mapcar (lambda (vo)
 			(progn  (setf (slot-value vo 'status) "CMP")
 			    (setf (slot-value vo 'fulfilled) value)
+			    (setf (slot-value vo 'shipped-date) (get-date))
 			(update-vendor-order vo)))    vendor-order)
 					; Complete the main order only if all other vendor-order-items have been completed. 
 	    
@@ -36,7 +37,7 @@
 	    (setf (slot-value order-instance 'status ) "CMP")
 	    (update-order order-instance)))
 	    
-	    (dod-reset-order-functions (get-login-vendor))
+	    (dod-reset-order-functions (get-login-vendor) (get-login-vendor-company))
 	    ; Deduct the money from the wallet. 
 	    (if (equal payment-mode "PRE") (deduct-wallet-balance total wallet))
 	    
@@ -90,26 +91,40 @@
 			  :caching nil :flatp t)))
 
 
-(defun get-orders-for-vendor (vendor-instance &optional (fulfilled "N"))
-  (let* ((tenant-id (slot-value vendor-instance 'tenant-id))
-	 (company (car (vendor-company vendor-instance)))
-	 (vendor-id (slot-value vendor-instance 'row-id))
-	 (ordidlist     (clsql:select [order-id] :from  'dod-vendor-orders :where
+
+(defun get-orders-for-vendor (vendor-instance   rowcount company &optional  (fulfilled "N"))
+  (let* ((tenant-id (slot-value company 'row-id))
+	 (vendor-id (slot-value vendor-instance 'row-id)))
+
+	 (clsql:select  'dod-vendor-orders :where
 	    [and [= [:tenant-id] tenant-id]
 		  [= [:vendor-id] vendor-id]
-		   [= [:fulfilled] fulfilled]] 
+		   [= [:fulfilled] fulfilled]] :limit rowcount 
 			  :caching nil :flatp t)))
-    (remove nil (mapcar (lambda (ord-id) 
-			  (get-order-by-id ord-id company)) ordidlist))))
+    
 
 
-(defun get-all-orders-for-vendor (vendor-instance)
+
+(defun get-orders-for-vendor-by-shipped-date (vendor-instance shipped-date company &optional (fulfilled "N"))
+  (let* ((tenant-id (slot-value company 'row-id))
+	 (vendor-id (slot-value vendor-instance 'row-id)))
+
+	   (clsql:select 'dod-vendor-orders :where
+	    [and [= [:tenant-id] tenant-id]
+		  [= [:vendor-id] vendor-id]
+		  [= [:shipped-date] shipped-date]
+		  [= [:fulfilled] fulfilled]] 
+			  :caching nil :flatp t)))
+
+
+
+(defun get-all-orders-for-vendor (vendor-instance &optional (rowcount "NULL"))
   (let* ((tenant-id (slot-value vendor-instance 'tenant-id))
 	 (company (car (vendor-company vendor-instance)))
 	 (vendor-id (slot-value vendor-instance 'row-id))
-	 (ordidlist     (clsql:select [order-id] :from  'dod-vendor-orders :where
+	 (ordidlist     (clsql:select  [order-id] :from  'dod-vendor-orders :where
 	    [and [= [:tenant-id] tenant-id]
-		  [= [:vendor-id] vendor-id]]
+		  [= [:vendor-id] vendor-id]] :limit rowcount
 		  
 			  :caching nil :flatp t)))
     (remove nil (mapcar (lambda (ord-id) 
@@ -135,6 +150,19 @@
 		     [= [:tenant-id] tenant-id]
 		     [=[:row-id] id]]    :caching *dod-debug-mode* :flatp t ))))
   
+
+
+
+
+(defun get-order-by-shipped-date (id shipped-date company-instance)
+  (let ((tenant-id (slot-value company-instance 'row-id)))
+	 (car (clsql:select 'dod-order  :where
+		     [and [= [:deleted-state] "N"]
+		     [= [:shipped-date] shipped-date]
+		     [= [:tenant-id] tenant-id]
+		     [=[:row-id] id]]    :caching *dod-debug-mode* :flatp t ))))
+  
+
 
 (defun get-order-by-id (id company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
@@ -171,7 +199,7 @@
 		[=[:cust-id] cust-id ]] :order-by '(([row-id] :desc))
 		:caching nil :flatp t )))
 
-(defun get-orders-by-date (req-date company-instance)
+(defun get-orders-by-req-date (req-date company-instance)
 (let ((tenant-id (slot-value company-instance 'row-id)))
 (clsql:select 'dod-order  :where
     [and [= [:deleted-state] "N"]
@@ -206,11 +234,10 @@
 
 
 (defun delete-order( order-instance )
-  (let ((tenant-id (slot-value order-instance 'tenant-id))
-	(id (slot-value order-instance 'row-id)))
-  (let ((dodorder (car (clsql:select 'dod-order :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
-    (setf (slot-value dodorder 'deleted-state) "Y")
-    (clsql:update-record-from-slot dodorder 'deleted-state))))
+  (progn 
+    (setf (slot-value order-instance 'deleted-state) "Y")
+    (clsql:update-record-from-slot order-instance 'deleted-state)))
+
 
 
 
@@ -280,24 +307,44 @@
 (defun create-order-from-shopcart (order-items products  order-date request-date ship-date ship-address order-amt payment-mode  customer-instance company-instance)
   (let ((uuid (uuid:make-v1-uuid )))
     
-    (progn 	(create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt payment-mode  company-instance)
-		(let 
-		    ((order (get-order-by-context-id (print-object uuid nil) company-instance))
-		  
-		     (vendors (get-shopcart-vendorlist order-items company-instance))
-		     (tenant-id (slot-value company-instance 'row-id)))
+    (progn (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt payment-mode  company-instance)
+	   (let 
+	           ((order (get-order-by-context-id (print-object uuid nil) company-instance))
+		      (cust-id (get-login-customer-id))
+		         (vendors (get-shopcart-vendorlist order-items company-instance))
+		         (tenant-id (slot-value company-instance 'row-id)))
 
-					;Create the order-items 
-		  (mapcar (lambda (odt)
-			    (let* ((prd (search-prd-in-list (slot-value odt 'prd-id) products))
-				   (unit-price (slot-value odt 'unit-price))
-				   (prd-qty (slot-value odt 'prd-qty)))
-			      (create-order-items order prd   prd-qty unit-price company-instance))) order-items)
-		  ; Create one row per vendor in the vendor_orders table. 
-		(mapcar (lambda (vendor) 
-			    (persist-vendor-orders (slot-value order 'row-id) (slot-value vendor 'row-id) tenant-id))  vendors)
+	     ;Create the order-items 
+	       (mapcar (lambda (odt)
+			     (let* ((prd (search-prd-in-list (slot-value odt 'prd-id) products))
+				       (unit-price (slot-value odt 'unit-price))
+				       (prd-qty (slot-value odt 'prd-qty)))
+			             (create-order-items order prd   prd-qty unit-price company-instance))) order-items)
+	         ; Create one row per vendor in the vendor_orders table. 
+	       (mapcar (lambda (vendor) 
+			 (let* ((vitems (filter-order-items-by-vendor vendor order-items))
+			       (total (get-order-items-total-for-vendor vendor vitems))) 
+			       
+			     (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address payment-mode total )))  vendors)
 
-		))))
+	       ))))
+
+
+
+(defun persist-vendor-orders(order-id cust-id vendor-id tenant-id ord-date req-date ship-date ship-address payment-mode order-amt )
+ (clsql:update-records-from-instance (make-instance 'dod-vendor-orders
+					 :order-id order-id
+					 :cust-id cust-id
+					 :vendor-id vendor-id
+					 :status "PEN"
+					 :fulfilled "N"
+					 :ord-date ord-date 
+					 :req-date req-date
+					 :shipped-date ship-date
+					 :ship-address ship-address
+					 :payment-mode payment-mode 
+					 :order-amt order-amt
+					 :tenant-id tenant-id )))
 
 
 

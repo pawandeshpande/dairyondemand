@@ -13,6 +13,10 @@
     :TYPE (string 70)
     :INITARG :prd-name)
 
+   (description
+    :type (string 1024)
+    :initarg :description)
+
       (vendor-id
     :type integer 
     :initarg :vendor-id)
@@ -96,17 +100,15 @@
     :TYPE (string 70)
     :INITARG :catg-name)
 
-      (description
-    :accessor description
-    :DB-CONSTRAINTS :NOT-NULL
-    :TYPE (string 100)
-    :INITARG :description)
-
-
-   (picture-path
-    :accessor picture-path
-    :type (string 256)
-    :initarg :picture-path)
+   (lft 
+    :accessor get-left
+    :type integer 
+    :initarg :lft) 
+   
+   (rgt 
+    :accessor get-right
+    :type integer 
+    :initarg :rgt) 
    
 
    (active-flag

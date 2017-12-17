@@ -42,6 +42,16 @@ $(document).ready(function () {
 });
 
 
+function countChar(val){
+var length = val.value.length; 
+    if (length >= 1000){
+	val.value = val.value.substring(0, 1000); 
+    }else {
+	$('#charcount').text (1000 - length)
+	}
+}; 
+
+
 
 $formcustsignin.submit ( function() {
     $formcustsignin.hide();
@@ -64,10 +74,10 @@ $formcustsignin.submit ( function() {
 })
 
 $(document).ready(
-    $("#required-on").select( 
+    
     function() {
-            $( "#required-on" ).datepicker(  {dateFormat: "dd/mm/yy", minDate: 1} ); 
-         })
+        $( "#required-on" ).datepicker({dateFormat: "dd/mm/yy", minDate: 1} ).attr("readonly", "true");
+        }
 );
 
 
