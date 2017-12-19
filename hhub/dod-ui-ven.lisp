@@ -648,7 +648,7 @@
 (defun dod-controller-vendor-orderdetails ()
     (if (is-dod-vend-session-valid?)
 	(standard-vendor-page (:title "List Vendor Order Details")   
-	    (let* (( dodvenorder (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor-company)))
+	    (let* (( dodvenorder (car (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor) (get-login-vendor-company))))
 		   (venorderfulfilled (slot-value dodvenorder 'fulfilled))
 		   (order (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
 		   (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
@@ -656,7 +656,7 @@
       		  
 		   (total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst))))
-		(display-order-header order) 
+		(display-order-header-for-vendor  order) 
 		(if odtlst (ui-list-vend-orderdetails header odtlst) "No order details")
 					    (htm(:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
@@ -674,16 +674,19 @@
 
 (defun ui-list-vend-orderdetails (header data)
     (cl-who:with-html-output (*standard-output* nil)
-
-	(:h3 "Order Details") 
-	(:table :class "table table-striped"  (:thead (:tr
-							  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
-														       (mapcar (lambda (odt)
-																   (let ((odt-product  (get-odt-product odt))
-																	    (unit-price (slot-value odt 'unit-price))
-																	    (prd-qty (slot-value odt 'prd-qty)))
-																	    (htm (:tr (:td  :height "12px" (str (slot-value odt-product 'prd-name)))
-																		(:td  :height "12px" (str (format nil  "~d" prd-qty)))
-																		(:td  :height "12px" (str (format nil  "Rs. ~$" unit-price)))
-																		(:td  :height "12px" (str (format nil "Rs. ~$" (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty)))))
-																		)))) (if (not (typep data 'list)) (list data) data))))))
+      (:div :class  "panel panel-default"
+	    (:div :class "panel-heading" "Order Items")
+	    (:div :class "panel-body"
+		  (:table :class "table table-hover"  
+			  (:thead (:tr
+				   (mapcar (lambda (item) (htm (:th (str item)))) header))) 
+			  (:tbody
+			   (mapcar (lambda (odt)
+				     (let ((odt-product  (get-odt-product odt))
+					   (unit-price (slot-value odt 'unit-price))
+					   (prd-qty (slot-value odt 'prd-qty)))
+				       (htm (:tr (:td  :height "12px" (str (slot-value odt-product 'prd-name)))
+						 (:td  :height "12px" (str (format nil  "~d" prd-qty)))
+						 (:td  :height "12px" (str (format nil  "Rs. ~$" unit-price)))
+						 (:td  :height "12px" (str (format nil "Rs. ~$" (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty)))))
+						 )))) (if (not (typep data 'list)) (list data) data))))))))

@@ -46,9 +46,9 @@
 
 (defun ui-list-cust-orderdetails (header data)
     (cl-who:with-html-output (*standard-output* nil)
-
-	(:h3 "Order Details") 
-	(:div :class "jumbotron row"
+	(:div :class  "panel panel-default"
+	(:div :class "panel-heading" "Order Items")
+	(:div :class "panel-body"
 	(:table :class "table table-hover"  (:thead (:tr
 					  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
 					      (mapcar (lambda (odt)
@@ -69,13 +69,11 @@
 			
 							     
 							     
-)))) (if (not (typep data 'list)) (list data) data)))))))
+)))) (if (not (typep data 'list)) (list data) data))))))))
 
 
 (defun display-order-header-for-customer (order-instance)
-    (let ((customer (get-ord-customer order-instance))
-	  (payment-mode (slot-value order-instance 'payment-mode))
-	  (amt (slot-value order-instance 'order-amt))
+  (let ((payment-mode (slot-value order-instance 'payment-mode))
 	  (shipped-date (slot-value order-instance 'shipped-date)))
     (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "jumbotron"
@@ -89,15 +87,11 @@
 		      (:h5 "Status: " ) (:h4 (str (slot-value order-instance 'status)))
 		      (:h5 "Order Date:") (:h4 (str (get-date-string (slot-value order-instance 'ord-date))))
 		    (:h5 "Requested On:")(:h4 (str (get-date-string (slot-value order-instance 'req-date))))
-		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date)))))
-		(:div :class "col-md-4"
-		       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" amt))))
-		      ))))))
+		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date))))))))))
 
 (defun display-order-header-for-vendor (order-instance)
     (let ((customer (get-ord-customer order-instance))
 	  (payment-mode (slot-value order-instance 'payment-mode))
-	  (amt (slot-value order-instance 'order-amt))
 	  (shipped-date (slot-value order-instance 'shipped-date)))
     (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "jumbotron"
@@ -114,6 +108,4 @@
 				   (:h5 "Order Date:") (:h4 (str (get-date-string (slot-value order-instance 'ord-date))))
 		    (:h5 "Requested On:")(:h4 (str (get-date-string (slot-value order-instance 'req-date))))
 		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date)))))
-		(:div :class "col-md-4"
-		       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" amt))))
-		      ))))))
+		)))))

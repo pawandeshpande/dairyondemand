@@ -99,6 +99,7 @@
 	 (clsql:select  'dod-vendor-orders :where
 	    [and [= [:tenant-id] tenant-id]
 		  [= [:vendor-id] vendor-id]
+		  [= [:deleted-state] "N"]
 		   [= [:fulfilled] fulfilled]] :limit rowcount 
 			  :caching nil :flatp t)))
     
@@ -171,14 +172,22 @@
 		     [= [:tenant-id] tenant-id]
 		     [=[:row-id] id]]    :caching *dod-debug-mode* :flatp t ))))
 
-(defun get-vendor-orders-by-orderid (id company-instance)
+(defun get-vendor-orders-by-orderid (id vendor company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id))
-	(vendor-id (slot-value (get-login-vendor) 'row-id)))
-   (car (clsql:select 'dod-vendor-orders  :where
+	(vendor-id (slot-value vendor 'row-id)))
+    (clsql:select 'dod-vendor-orders  :where
 	   [and [= [:tenant-id] tenant-id]
 	   [= [:vendor-id] vendor-id]
-	   [=[:order-id] id]]    :caching nil :flatp t ))))
+	   [=[:order-id] id]]    :caching nil :flatp t )))
 
+(defun get-vendors-by-orderid (order-id company-instance)
+  (let* ((tenant-id (slot-value company-instance 'row-id))
+	(vendorids (clsql:select [:vendor-id] :from 'dod-vendor-orders :where
+		      [and 
+		      [=[:order-id] order-id]
+		      [= [:tenant-id] tenant-id]] :caching nil :flatp t)))
+
+	(mapcar (lambda (vendor-id) (select-vendor-by-id vendor-id company-instance)) vendorids))) 
 
 
 (defun get-order-by-context-id (context-id company-instance)
@@ -239,13 +248,17 @@
     (clsql:update-record-from-slot order-instance 'deleted-state)))
 
 
+(defun delete-vendor-orders (list)
+  (mapcar (lambda (vo)  (let* ((order-id (slot-value vo 'order-id)))
+			  (setf (slot-value vo  'deleted-state) "Y")
+			  (clsql:update-record-from-slot vo 'deleted-state))) list ))
 
 
-(defun delete-orders ( list company-instance)
+(defun delete-orders ( orderid-list company-instance)
     (let ((tenant-id (slot-value company-instance 'row-id)))
   (mapcar (lambda (id)  (let ((dodorder (car (clsql:select 'dod-order :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
 			  (setf (slot-value dodorder 'deleted-state) "Y")
-			  (clsql:update-record-from-slot dodorder  'deleted-state))) list )))
+			  (clsql:update-record-from-slot dodorder  'deleted-state))) orderid-list )))
 
 
 (defun restore-deleted-orders ( list tenant-id )
@@ -344,6 +357,7 @@
 					 :ship-address ship-address
 					 :payment-mode payment-mode 
 					 :order-amt order-amt
+					 :deleted-state "N"
 					 :tenant-id tenant-id )))
 
 

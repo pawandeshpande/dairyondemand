@@ -183,6 +183,12 @@
     :initarg :status)
 
 
+   (deleted-state
+    :type (string 1)
+    :void-value "N"
+    :initarg :deleted-state)
+
+
     (tenant-id
     :type integer
     :initarg :tenant-id)

@@ -201,7 +201,7 @@
       
 	     (setf (slot-value order 'order-amt) total)
 	     (update-order order)
-	     (sleep 1) 
+	     ;(sleep 1) 
 	     (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer (get-login-customer)))) 
 	(hunchentoot:redirect redirect-url))
       ;else
@@ -213,17 +213,22 @@
 (defun dod-controller-my-orderdetails ()
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "List DOD Customer orders")   
-	    (let* ((order-id (hunchentoot:parameter "id"))
+	    (let* ((order-id (parse-integer (hunchentoot:parameter "id")))
 		   ( dodorder (get-order-by-id order-id (get-login-cust-company)))
+		   (company (get-login-cust-company))
 		      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total" "Status" "Action"))
 		      (odtlst (get-order-items dodorder))
 		   (total (reduce #'+ (mapcar (lambda (odt) (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))) odtlst)))) 
     
 		(display-order-header-for-customer  dodorder) 
 		(if odtlst (ui-list-cust-orderdetails header odtlst) "No order details")
-					    
+		 (htm (:div :class "row" 
+				(:div :class "col-md-12" :align "right" 
+				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))			    
 		(if (equal total 0) (progn 
 				      (delete-order dodorder )
+				      ; For each vendor delete the vendor orders. 
+				      (delete-vendor-orders (get-vendor-orders-by-orderid order-id vendor  company))
 				      (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer (get-login-customer)))))
 		))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
@@ -794,11 +799,10 @@
 		  (vendor (product-vendor product))
 		  (vendor-id (slot-value vendor 'row-id))
 		  (wallet (get-cust-wallet-by-vendor (get-login-customer) vendor (get-login-customer-company)))
-		  (category-id (slot-value product 'catg-id))
 		  (odt (create-odtinst-shopcart nil product  1 (slot-value product 'unit-price) (hunchentoot:session-value :login-customer-company))))
 	  (if wallet 
 	      (progn (setf (hunchentoot:session-value :login-shopping-cart) (append (list odt)  myshopcart  ))
-		     (if (length (hunchentoot:session-value :login-shopping-cart)) (hunchentoot:redirect (format nil "/hhub/dodproducts?id=~a" category-id)))
+		     (if (length (hunchentoot:session-value :login-shopping-cart)) (hunchentoot:redirect (format nil "/hhub/dodcustindex")))
 		   )
 	      ;else 
 	      (hunchentoot:redirect (format nil "/hhub/createcustwallet?vendor-id=~A" vendor-id))))
