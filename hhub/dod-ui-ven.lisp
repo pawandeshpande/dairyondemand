@@ -648,7 +648,7 @@
 (defun dod-controller-vendor-orderdetails ()
     (if (is-dod-vend-session-valid?)
 	(standard-vendor-page (:title "List Vendor Order Details")   
-	    (let* (( dodvenorder (car (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor) (get-login-vendor-company))))
+	    (let* (( dodvenorder (car (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor-company))))
 		   (venorderfulfilled (slot-value dodvenorder 'fulfilled))
 		   (order (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
 		   (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))

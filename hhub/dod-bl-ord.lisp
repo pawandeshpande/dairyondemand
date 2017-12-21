@@ -172,12 +172,12 @@
 		     [= [:tenant-id] tenant-id]
 		     [=[:row-id] id]]    :caching *dod-debug-mode* :flatp t ))))
 
-(defun get-vendor-orders-by-orderid (id vendor company-instance)
-  (let ((tenant-id (slot-value company-instance 'row-id))
-	(vendor-id (slot-value vendor 'row-id)))
+(defun get-vendor-orders-by-orderid (id company-instance)
+  (let ((tenant-id (slot-value company-instance 'row-id)))
+	
     (clsql:select 'dod-vendor-orders  :where
 	   [and [= [:tenant-id] tenant-id]
-	   [= [:vendor-id] vendor-id]
+	   [=[:deleted-state] "N"]
 	   [=[:order-id] id]]    :caching nil :flatp t )))
 
 (defun get-vendors-by-orderid (order-id company-instance)
@@ -248,10 +248,10 @@
     (clsql:update-record-from-slot order-instance 'deleted-state)))
 
 
-(defun delete-vendor-orders (list)
-  (mapcar (lambda (vo)  (let* ((order-id (slot-value vo 'order-id)))
-			  (setf (slot-value vo  'deleted-state) "Y")
-			  (clsql:update-record-from-slot vo 'deleted-state))) list ))
+(defun delete-vendor-orders ( list) 
+    (mapcar (lambda (vo)  (progn
+			    (setf (slot-value vo 'deleted-state) "Y")
+			    (clsql:update-record-from-slot vo  'deleted-state))) list ))
 
 
 (defun delete-orders ( orderid-list company-instance)

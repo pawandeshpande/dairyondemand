@@ -215,6 +215,7 @@
 	(standard-customer-page (:title "List DOD Customer orders")   
 	    (let* ((order-id (parse-integer (hunchentoot:parameter "id")))
 		   ( dodorder (get-order-by-id order-id (get-login-cust-company)))
+		   
 		   (company (get-login-cust-company))
 		      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total" "Status" "Action"))
 		      (odtlst (get-order-items dodorder))
@@ -225,10 +226,12 @@
 		 (htm (:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
 				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))			    
-		(if (equal total 0) (progn 
+		(if (equal total 0) (let ((vendororders (get-vendor-orders-by-orderid order-id company))) 
+				        (hunchentoot:log-message* :info (format nil  "There are ~d vendor orders " (length vendororders)))
 				      (delete-order dodorder )
 				      ; For each vendor delete the vendor orders. 
-				      (delete-vendor-orders (get-vendor-orders-by-orderid order-id vendor  company))
+				      (delete-vendor-orders  vendororders)
+				      
 				      (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer (get-login-customer)))))
 		))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
