@@ -63,7 +63,7 @@
 							     (:td  :height "12px" (str (format nil  "Rs. ~$" unit-price)))
 							     (:td  :height "12px" (str (format nil "Rs. ~$" (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty)))))
 							     (cond ((and (equal status "PEN") (equal fulfilled "N")) (htm (:td  :height "12px" (str (format nil "Pending")))
-															  (:td  :height "12px" (:a :onclick "return DeleteConfirm();" :href  (format nil "/hhub/doddelcustorditem?id=~A&ord=~A" (slot-value odt 'row-id) ordid) :onclick "return false" "Cancel"))))
+															  (:td  :height "12px" (:a :onclick "return CancelConfirm();" :href  (format nil "/hhub/doddelcustorditem?id=~A&ord=~A" (slot-value odt 'row-id) ordid) :onclick "return false" "Cancel"))))
 								   ((and (equal status "CMP") (equal fulfilled "Y"))  (htm (:td  :height "12px" (str (format nil "Fulfilled"))))))
 							     
 			

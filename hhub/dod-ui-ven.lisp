@@ -170,6 +170,8 @@
 					     (hunchentoot:log-message* :info (format nil  "inside add product page ")
 								       (ui-list-prod-catg-dropdown "prodcatg" catglist))
 					     (:br) 
+					     (:div :class "form-group" (:label :for "yesno" "Product/Service Subscription")
+						   (ui-list-yes-no-dropdown))
 					     (:div :class "form-group" (:label :for "prodimage" "Select Product Image:")
 						   (:input :class "form-control" :name "prodimage" :placeholder "Product Image" :type "file" ))
 					      (:div :class "form-group"
@@ -184,15 +186,17 @@
 	(prodprice (parse-integer (hunchentoot:parameter "prdprice")))
 	(qtyperunit (hunchentoot:parameter "qtyperunit"))
 	(catg-id (hunchentoot:parameter "prodcatg"))
+	 (subscriptionflag (hunchentoot:parameter "yesno"))
 	(prodimageparams (hunchentoot:post-parameter "prodimage"))
 	;(destructuring-bind (path file-name content-type) prodimageparams))
 	 (tempfilewithpath (first prodimageparams))
-	(file-name (second prodimageparams))
-	(content-type (third prodimageparams)))
+	 (file-name (format nil "~A-~A" (second prodimageparams) (get-universal-time)))
+	 )
+	;(content-type (third prodimageparams)))
     (progn 
       (if (probe-file tempfilewithpath )
 	  (rename-file tempfilewithpath (make-pathname :directory "/home/hunchentoot/dairyondemand/hhub/resources/" :name file-name)))
-      (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice (format nil "resources/~A" file-name)  "N" (get-login-vendor-company))
+      (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice (format nil "resources/~A" file-name)  subscriptionflag  (get-login-vendor-company))
       (dod-reset-vendor-products-functions (get-login-vendor))
       (hunchentoot:redirect "/hhub/dodvenproducts")))
 
@@ -436,6 +440,13 @@
    
    
    
+(defun dod-controller-vendor-delete-product () 
+ (if (is-dod-vend-session-valid?)
+  (let ((id (hunchentoot:parameter "id"))) 
+    (delete-product id (get-login-vendor-company))
+    (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor)))   
+    (hunchentoot:redirect "/hhub/dodvenproducts")))
+ 	(hunchentoot:redirect "/hhub/vendor-login.html")) 
 
 (defun dod-controller-prd-details-for-vendor ()
     (if (is-dod-vend-session-valid?)
@@ -515,8 +526,8 @@
 	      (reqdate (hunchentoot:parameter "reqdate"))
 	      (btnexpexl (hunchentoot:parameter "btnexpexl"))
 	      (context (hunchentoot:parameter "context"))
-	      (btnordcus (hunchentoot:parameter "btnordcus"))
-	      (log (hunchentoot:log-message* :info (format nil "Inside vend index"))))
+	      (btnordcus (hunchentoot:parameter "btnordcus")))
+	     
 
 	(standard-vendor-page (:title "Welcome to Dairy Ondemand - vendor")
 	    (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
@@ -578,10 +589,9 @@
 	  (progn (if (equal payment-mode "PRE")
 		     (if (not (check-wallet-balance (get-order-items-total-for-vendor vendor  vendor-order-items) wallet))
 			 (display-wallet-for-customer wallet "Not enough balance for the transaction.")))
-
 		 (set-order-fulfilled "Y"  order-instance company-instance)
 		 (hunchentoot:redirect "/hhub/dodvendindex?context=pendingorders")))
-	     
+	;else     
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
@@ -594,7 +604,7 @@
 	(let ((header (list "Product " "Quantity" "Qty per unit" "Unit Price" ""))
 		 (reqdate (hunchentoot:parameter "reqdate"))
 		 (vendor-instance (get-login-vendor))
-		 ( dodorders (get-orders-by-date (hunchentoot:parameter "reqdate") (get-login-vendor-company))))
+		 ( dodorders (get-orders-by-req-date (hunchentoot:parameter "reqdate") (get-login-vendor-company))))
 	    (setf (hunchentoot:content-type*) "application/vnd.ms-excel")
 	    (setf (header-out "Content-Disposition" ) (format nil "inline; filename=Orders_~A.csv" reqdate))
 	(ui-list-orders-for-excel header dodorders vendor-instance))
@@ -619,7 +629,7 @@
     :documentation "Checks whether the current login session is valid or not."
     (if  (null (get-login-vend-name)) NIL T))
 
-(defun get-login-vend-name ()
+(defun get-login-vendor-name ()
     :documentation "Gets the name of the currently logged in vendor"
     (hunchentoot:session-value :login-vendor-name))
 
@@ -648,15 +658,15 @@
 (defun dod-controller-vendor-orderdetails ()
     (if (is-dod-vend-session-valid?)
 	(standard-vendor-page (:title "List Vendor Order Details")   
-	    (let* (( dodvenorder (car (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor-company))))
-		   (venorderfulfilled (slot-value dodvenorder 'fulfilled))
+	    (let* (( dodvenorder  (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor) (get-login-vendor-company)))
+		   (venorderfulfilled (if dodvenorder (slot-value dodvenorder 'fulfilled)))
 		   (order (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
 		   (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
-		      (odtlst (dod-get-cached-order-items-by-order-id order) )
+		      (odtlst (if order (dod-get-cached-order-items-by-order-id order)) )
       		  
 		   (total   (reduce #'+  (mapcar (lambda (odt)
 			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst))))
-		(display-order-header-for-vendor  order) 
+		(if order (display-order-header-for-vendor  order)) 
 		(if odtlst (ui-list-vend-orderdetails header odtlst) "No order details")
 					    (htm(:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
@@ -664,10 +674,10 @@
 				    (if (equal venorderfulfilled "Y") 
 					(htm (:span :class "label label-info" "FULFILLED"))
 					;ELSE
-					(htm  (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Set Order Completed"))))
+					(htm (:a :href (format nil "dodvenordcancel?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Cancel")) "&nbsp;&nbsp;"  (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Complete")))))
 					;ELSE
 					
-						    )))))
+						    ))))
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 

@@ -37,7 +37,12 @@
       (loop for catg in catglist
 	 do   (htm  (:option :value  (slot-value catg 'row-id) (str (slot-value catg 'catg-name)))))))))
 
-
+(defun ui-list-yes-no-dropdown () 
+(cl-who:with-html-output (*standard-output* nil) 
+  (:select :class "form-control" :name "yesno"
+	   (:option :value "N" "NO")
+	   (:option :value "Y" "YES"))))
+	   
 (defun ui-list-prod-catg (catglist)
   (cl-who:with-html-output (*standard-output* nil :prologue t :indent t)
 	(:div :class "row-fluid"	  (mapcar (lambda (prdcatg)
@@ -111,9 +116,10 @@
 
 (defun product-card-for-vendor (product-instance)
     (let ((prd-name (slot-value product-instance 'prd-name))
-	     (unit-price (slot-value product-instance 'unit-price))
-	     (prd-image-path (slot-value product-instance 'prd-image-path))
-	      (prd-id (slot-value product-instance 'row-id))
+	  (unit-price (slot-value product-instance 'unit-price))
+	  (description (slot-value product-instance 'description))
+	  (prd-image-path (slot-value product-instance 'prd-image-path))
+	  (prd-id (slot-value product-instance 'row-id))
 	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
 	    
 	(cl-who:with-html-output (*standard-output* nil)
@@ -121,21 +127,26 @@
 		(:div :class "row"
 		    
 		(:div :class "col-sm-6" (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
-		(:div :class "col-sm-3"	(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))))
-		    (:div :class "row"
-		    (:div :class "col-sm-6"
-		(:h5 :class "product-name"  (str prd-name) )
-					))
-
-		    (:div :class "row"
-			
-			  (if (equal subscribe-flag "Y") (htm (:div :class "col-sm-6"  (:h5 (:span :class "label label-default" "Can be Subscribed"))))) ))))
+		(:div :class "col-sm-3"	(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))))))
+		(:div :class "col-sm-3" :align "right"
+		  (:a :onclick "return DeleteConfirm();"  :href (format nil "dodvenddelprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-remove"))))
+				
+		(:div :class "row"
+		      (:div :class "col-sm-6"
+			    (:h5 :class "product-name"  (str prd-name))))
+		(:div :class "row"
+		      (if (equal subscribe-flag "Y") (htm (:div :class "col-sm-6"  (:h5 (:span :class "label label-default" "Can be Subscribed"))))))
+		(:div :class "row" 
+		      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12" 
+			    (:h6 (str (if (> (length description) 150)  (subseq description  0 150) description)))))
+		
+		)))
 
 (defun product-card (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))
 	  (unit-price (slot-value product-instance 'unit-price))
 	  (prd-image-path (slot-value product-instance 'prd-image-path))
-	 
+	  (description (slot-value product-instance 'description))
 	  (prd-id (slot-value product-instance 'row-id))
 	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
 
@@ -162,7 +173,13 @@
 			 
 		     (htm    (:form :class "form-product" :method "POST" :action "dodcustaddtocart" 
 		      (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
-			  (:div  :class "col-xs-6"   (:button :data-toggle "tooltip" :title "Add to cart"  :class "btn btn-sm btn-primary" :type "submit" :name "btnaddtocart" (:span :class "glyphicon glyphicon-plus") " Add"))))) ))))
+			  (:div  :class "col-xs-6"   (:button :data-toggle "tooltip" :title "Add to cart"  :class "btn btn-sm btn-primary" :type "submit" :name "btnaddtocart" (:span :class "glyphicon glyphicon-plus") " Add"))))) )
+
+		(:div :class "row" 
+		      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12" 
+			    (:h6 (str (if (> (length description) 150)  (subseq description  0 150) description)))))
+		
+)))
 
 (defun product-card-with-details-for-customer (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))

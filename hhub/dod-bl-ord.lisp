@@ -172,13 +172,25 @@
 		     [= [:tenant-id] tenant-id]
 		     [=[:row-id] id]]    :caching *dod-debug-mode* :flatp t ))))
 
-(defun get-vendor-orders-by-orderid (id company-instance)
+(defun get-all-vendor-orders-by-orderid (id company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
 	
     (clsql:select 'dod-vendor-orders  :where
 	   [and [= [:tenant-id] tenant-id]
 	   [=[:deleted-state] "N"]
 	   [=[:order-id] id]]    :caching nil :flatp t )))
+
+
+(defun get-vendor-orders-by-orderid (id vendor company-instance)
+  (let ((tenant-id (slot-value company-instance 'row-id))
+	(vendor-id (slot-value vendor 'row-id)))
+	
+    (car (clsql:select 'dod-vendor-orders  :where
+	   [and [= [:tenant-id] tenant-id]
+	   [=[:deleted-state] "N"]
+	   [= [:vendor-id] vendor-id]
+	   [=[:order-id] id]]    :caching nil :flatp t ))))
+
 
 (defun get-vendors-by-orderid (order-id company-instance)
   (let* ((tenant-id (slot-value company-instance 'row-id))
@@ -238,14 +250,23 @@
 (defun update-order (order-instance); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance order-instance))
 
-(defun update-vendor-order (voitem); This function has side effect of modifying the database record.
-    (clsql:update-records-from-instance voitem))  
 
 
 (defun delete-order( order-instance )
   (progn 
     (setf (slot-value order-instance 'deleted-state) "Y")
     (clsql:update-record-from-slot order-instance 'deleted-state)))
+
+
+(defun cancel-order-by-customer( order-instance )
+  (progn 
+    (setf (slot-value order-instance 'status) "CCN")
+    (clsql:update-record-from-slot order-instance 'status)))
+
+(defun cancel-order-by-vendor( order-instance )
+  (progn 
+    (setf (slot-value order-instance 'status) "VCN")
+    (clsql:update-record-from-slot order-instance 'status)))
 
 
 (defun delete-vendor-orders ( list) 

@@ -193,17 +193,31 @@
 	     (order (get-order-by-id order-id company)))
 
 
-	; Delete the order item. 
+	
+					; Delete the order item. 
 	(delete-order-items (list item-id) company)
+	
 	; Get the new order items list and find out the total. Update the order with this new amount.
 	(let* ((odtlst (get-order-items order))
-	    (total (reduce #'+ (mapcar (lambda (odt) (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))) odtlst )))) 
-      
-	     (setf (slot-value order 'order-amt) total)
-	     (update-order order)
-	     ;(sleep 1) 
-	     (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer (get-login-customer)))) 
-	(hunchentoot:redirect redirect-url))
+	       (vendors (get-vendors-by-orderid order-id company))
+	       (custordertotal (reduce #'+ (mapcar (lambda (odt) (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))) odtlst )))) 
+	  
+	  ; For each vendor, delete vendor-order if the order items total for that vendor is 0. 
+	  (mapcar (lambda (vendor) 
+		    (let ((vendororder (get-vendor-orders-by-orderid order-id vendor company))
+			  (vendorordertotal (get-order-items-total-for-vendor vendor odtlst)))
+		      (if (equal vendorordertotal 0)
+			  (delete-order vendororder)))) vendors)
+	  
+	  (setf (slot-value order 'order-amt) custordertotal)
+	  (update-order order)
+
+	  (if (equal custordertotal 0) 
+	      (delete-order order))
+					;(sleep 1) 
+	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer (get-login-customer)))) 
+	     
+      (hunchentoot:redirect redirect-url))
       ;else
       (hunchentoot:redirect "/hhub/customer-login.html")))
 	    
@@ -215,10 +229,8 @@
 	(standard-customer-page (:title "List DOD Customer orders")   
 	    (let* ((order-id (parse-integer (hunchentoot:parameter "id")))
 		   ( dodorder (get-order-by-id order-id (get-login-cust-company)))
-		   
-		   (company (get-login-cust-company))
-		      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total" "Status" "Action"))
-		      (odtlst (get-order-items dodorder))
+		   (header (list "Product" "Product Qty" "Unit Price"  "Sub-total" "Status" "Action"))
+		   (odtlst (get-order-items dodorder))
 		   (total (reduce #'+ (mapcar (lambda (odt) (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))) odtlst)))) 
     
 		(display-order-header-for-customer  dodorder) 
@@ -226,13 +238,7 @@
 		 (htm (:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
 				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))			    
-		(if (equal total 0) (let ((vendororders (get-vendor-orders-by-orderid order-id company))) 
-				        (hunchentoot:log-message* :info (format nil  "There are ~d vendor orders " (length vendororders)))
-				      (delete-order dodorder )
-				      ; For each vendor delete the vendor orders. 
-				      (delete-vendor-orders  vendororders)
-				      
-				      (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer (get-login-customer)))))
+		
 		))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 

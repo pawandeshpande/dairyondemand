@@ -178,10 +178,12 @@ function goBack (){
 
 
 
-function DeleteConfirm (){
-    
+function CancelConfirm (){
     return confirm("Do you really want to Cancel?");
-   
+}
+
+function DeleteConfirm (){
+    return confirm("Do you really want to Delete?");
 }
 
 

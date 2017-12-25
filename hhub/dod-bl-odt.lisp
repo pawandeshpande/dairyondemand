@@ -16,7 +16,7 @@
 
 (defun delete-all-order-items (order-instance company)
   (let ((order-items (get-order-items order-instance)))
-    (if order-items (delete-order-details order-items company))))
+    (if order-items (delete-order-items  order-items company))))
 
 
 (defun count-order-items-completed (order-instance company) 
@@ -67,11 +67,6 @@
 		        :caching nil :flatp t )))
 
 	     
-
-
-
-
-
 (defun get-order-items-by-product-id (prd-id order-id tenant-id)
  (car (clsql:select 'dod-order-items  :where
 		[and [= [:deleted-state] "N"]
@@ -80,11 +75,14 @@
 		[=[:order-id] order-id]]    :caching nil :flatp t )))
     
 
-
-
 (defun update-order-detail (odt-instance); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance odt-instance))
 
+(defun cancel-order-items (list company-instance)
+  (let ((tenant-id (slot-value company-instance 'row-id)))
+    (mapcar (lambda (id)  (let ((dodorder (car (clsql:select 'dod-order-items :where [and [= [:row-id] id] [= [:tenant-id] tenant-id]] :flatp t :caching nil))))
+			  (setf (slot-value dodorder 'status) "CCN") ; CCN = CANCELLED BY CUSTOMER
+			  (clsql:update-record-from-slot dodorder  'status))) list )))
 
 (defun delete-order-items (list company-instance)
     (let ((tenant-id (slot-value company-instance 'row-id)))
