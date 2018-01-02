@@ -602,7 +602,7 @@
 			(:form :class "form-order" :role "form" :method "POST" :action "dodmyorderaddaction"
 			    (:div  :class "form-group" (:label :for "orddate" "Order Date" )
 				(:input :class "form-control" :name "orddate" :value (str (get-date-string (get-date))) :type "text"  :readonly "true"  ))
-			    (:div :class "form-group"  (:label :for "reqdate" "Required On" )
+			    (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
 				(:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (date+ (get-date) (make-duration :day 1))))) :type "text" :value (get-date-string (date+ (get-date) (make-duration :day 1)))))
 
 			    ;(:div :class "form-group" (:label :for "shipaddress" "Ship Address" )

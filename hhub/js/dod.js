@@ -41,6 +41,24 @@ $(document).ready(function () {
     });
 });
 
+document.onreadystatechange = function(e)
+{
+    if (document.readyState === 'complete')
+    {
+	    $busyindicator.appendChild(spinner.el);
+
+	//dom is ready, window.onload fires later
+    }
+};
+
+
+window.onload = function(e)
+{
+      $busyindicator.removeChild(spinner.el);
+    //document.readyState will be complete, it's one of the requirements for the window.onload event to be fired
+    //do stuff for when everything is loaded
+};
+
 
 function countChar(val){
 var length = val.value.length; 

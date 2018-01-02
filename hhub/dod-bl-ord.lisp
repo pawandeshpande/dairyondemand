@@ -4,7 +4,7 @@
 
 (defun set-order-fulfilled ( value order-instance company-instance)
     :documentation "value should be Y or N, followed by order instance and company instance"
-    (let* ((vendor-order (get-vendor-order-instance (slot-value order-instance 'row-id)))
+    (let* ((vendor-order (get-vendor-order-instance (slot-value order-instance 'row-id) (get-login-vendor)))
 	   (customer (get-ord-customer order-instance)) 
 	   (payment-mode (slot-value order-instance 'payment-mode))
 	   (vendor (get-login-vendor))
@@ -23,11 +23,10 @@
 			    (update-order-detail voitem)))   vendor-order-items)
 	    ;(sleep 1) 
 	    ; complete the vendor_order  
-	    (mapcar (lambda (vo)
-			(progn  (setf (slot-value vo 'status) "CMP")
-			    (setf (slot-value vo 'fulfilled) value)
-			    (setf (slot-value vo 'shipped-date) (get-date))
-			(update-vendor-order vo)))    vendor-order)
+	    (progn  (setf (slot-value vendor-order 'status) "CMP")
+		    (setf (slot-value vendor-order 'fulfilled) value)
+		    (setf (slot-value vendor-order 'shipped-date) (get-date))
+		    (update-order vendor-order))
 					; Complete the main order only if all other vendor-order-items have been completed. 
 	    
 	    
@@ -81,14 +80,14 @@
 		[= [:vendor-id] vendor-id]
 		[=[:order-id] order-id]]    :caching nil :flatp t ))))
 
-(defun get-vendor-order-instance (order-id)
-  (let ((vendor-id (slot-value (get-login-vendor) 'row-id))
-	(tenant-id (slot-value (get-login-vendor) 'tenant-id)))
-    (clsql:select 'dod-vendor-orders :where
+(defun get-vendor-order-instance (order-id vendor)
+  (let ((vendor-id (slot-value vendor  'row-id))
+	(tenant-id (slot-value vendor  'tenant-id)))
+    (car (clsql:select 'dod-vendor-orders :where
 	    [and [= [:tenant-id] tenant-id]
 		  [= [:vendor-id] vendor-id]
 		   [= [:order-id] order-id]] 
-			  :caching nil :flatp t)))
+			  :caching nil :flatp t))))
 
 
 
@@ -262,6 +261,7 @@
   (progn 
     (setf (slot-value order-instance 'status) "CCN")
     (clsql:update-record-from-slot order-instance 'status)))
+
 
 (defun cancel-order-by-vendor( order-instance )
   (progn 

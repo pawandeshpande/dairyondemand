@@ -3,6 +3,16 @@
 
 (defvar *current-vendor-session* nil)
 
+(defun dod-controller-vendor-order-cancel ()
+(if (is-dod-vend-session-valid?)
+  (let* ((id (hunchentoot:parameter "id"))
+	(order (get-order-by-id id (get-login-vendor-company)))
+	(order-id (slot-value order 'row-id)))
+    (cancel-order-by-vendor order)
+    (cancel-order-by-vendor (get-vendor-order-instance order-id (get-login-vendor))))
+  ;else
+    (hunchentoot:redirect "/hhub/vendor-login.html")))
+ 
 
 
 (defun dod-controller-vendor-revenue ()
@@ -442,11 +452,13 @@
    
 (defun dod-controller-vendor-delete-product () 
  (if (is-dod-vend-session-valid?)
-  (let ((id (hunchentoot:parameter "id"))) 
-    (delete-product id (get-login-vendor-company))
-    (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor)))   
-    (hunchentoot:redirect "/hhub/dodvenproducts")))
- 	(hunchentoot:redirect "/hhub/vendor-login.html")) 
+  (let ((id (hunchentoot:parameter "id")))
+    (if (= (length (get-pending-order-items-for-vendor-by-product (select-product-by-id id (get-login-vendor-company)) (get-login-vendor))) 0)
+	(progn 
+	  (delete-product id (get-login-vendor-company))
+	  (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor)))))   
+    (hunchentoot:redirect "/hhub/dodvenproducts"))
+     	(hunchentoot:redirect "/hhub/vendor-login.html"))) 
 
 (defun dod-controller-prd-details-for-vendor ()
     (if (is-dod-vend-session-valid?)
@@ -555,7 +567,7 @@
 		((equal context "home")
 		 (htm (:div :class "list-group col-xs-6 col-sm-6 col-md-6 col-lg-6" 
 			    (:a :class "list-group-item" :href "dodvendindex?context=pendingorders" " Orders " (:span :class "badge" (str (format nil " ~d " (length dodorders)))))
-			    (:a :class "list-group-item" :href "dodvendindex?context=ctxordprd" "List orders by Product Quantity")
+			    (:a :class "list-group-item" :href "dodvendindex?context=ctxordprd" "Product Demand")
 			    (:a :class "list-group-item" :href "#" "List orders by Customers")
 			    (:a :class "list-group-item" :href (str (format nil "dodvendrevenue"))  "Today's Revenue")
 			    )))  
@@ -627,7 +639,7 @@
 
 (defun is-dod-vend-session-valid? ()
     :documentation "Checks whether the current login session is valid or not."
-    (if  (null (get-login-vend-name)) NIL T))
+    (if  (null (get-login-vendor-name)) NIL T))
 
 (defun get-login-vendor-name ()
     :documentation "Gets the name of the currently logged in vendor"
@@ -674,7 +686,7 @@
 				    (if (equal venorderfulfilled "Y") 
 					(htm (:span :class "label label-info" "FULFILLED"))
 					;ELSE
-					(htm (:a :href (format nil "dodvenordcancel?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Cancel")) "&nbsp;&nbsp;"  (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Complete")))))
+					(htm (:a :onclick "return CancelConfirm();" :href (format nil "dodvenordcancel?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Cancel")) "&nbsp;&nbsp;"  (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Complete")))))
 					;ELSE
 					
 						    ))))

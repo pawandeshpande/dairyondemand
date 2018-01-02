@@ -126,18 +126,18 @@
 	  
 		(:div :class "row"
 		    
-		(:div :class "col-sm-6" (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
-		(:div :class "col-sm-3"	(:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))))))
-		(:div :class "col-sm-3" :align "right"
+		(:div :class "col-xs-6" (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
+		(:div :class "col-xs-3" (:h3 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))
+		(:div :class "col-xs-3" :align "right"
 		  (:a :onclick "return DeleteConfirm();"  :href (format nil "dodvenddelprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-remove"))))
 				
 		(:div :class "row"
-		      (:div :class "col-sm-6"
+		      (:div :class "col-xs-6"
 			    (:h5 :class "product-name"  (str prd-name))))
 		(:div :class "row"
-		      (if (equal subscribe-flag "Y") (htm (:div :class "col-sm-6"  (:h5 (:span :class "label label-default" "Can be Subscribed"))))))
+		      (if (equal subscribe-flag "Y") (htm (:div :class "col-xs-6"  (:h5 (:span :class "label label-default" "Can be Subscribed"))))))
 		(:div :class "row" 
-		      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12" 
+		      (:div :class "col-xs-12" 
 			    (:h6 (str (if (> (length description) 150)  (subseq description  0 150) description)))))
 		
 		)))

@@ -43,6 +43,21 @@
 		[=[:order-id] order-id]]    :caching nil :flatp t ))))
 
 
+
+(defun get-pending-order-items-for-vendor-by-product (product-instance vendor-instance )
+(let* ((tenant-id (slot-value vendor-instance 'tenant-id))
+       (product-id (slot-value product-instance 'row-id))
+       (vendor-id (slot-value vendor-instance 'row-id)))
+  	
+ (clsql:select 'dod-order-items  :where
+		[and [= [:deleted-state] "N"]
+		     [= [:tenant-id] tenant-id]
+		     [= [:vendor-id] vendor-id]
+		     [= [:status] "PEN"]
+		     [= [:fulfilled] "N"]
+		     [=[:prd-id] product-id]]    :caching nil :flatp t )))
+
+  
 (defun get-order-items-for-vendor-by-order-id (order-instance vendor-instance)
     (let* ((tenant-id (slot-value order-instance 'tenant-id))
 	     (vendor-id (slot-value vendor-instance 'row-id))
