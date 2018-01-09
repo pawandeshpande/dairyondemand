@@ -3,6 +3,8 @@
 
 (defvar *current-vendor-session* nil)
 
+  
+
 (defun dod-controller-vendor-order-cancel ()
 (if (is-dod-vend-session-valid?)
   (let* ((id (hunchentoot:parameter "id"))
@@ -97,11 +99,7 @@
 							      (:div :class "col-sm-4 col-lg-3 col-md-4"
 								    (:div :class "form-group"
 									  (:input :class "form-control" :name "cname" :type "hidden" :value (str (format nil "~A" (slot-value cmp 'name)))))
-								    (:div :class "form-group"  (:label :for "default" "Always login with this Group" )
-									  (:select :class "form-control"  :name "default"  
-									    (:option :value  "Y" "Make Default")
-									    (:option :value "N" "No")))
-
+								    
 								    (:div :class "form-group"
 									  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" (str (format nil "~A" (slot-value cmp 'name)))))))))  company-list)))
 	;else
@@ -320,7 +318,7 @@
 
 
 
-(defmacro standard-vendor-page ((&key title) &body body)
+(defmacro standard-vendor-page ((&key title)  &body body)
     `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
 	 (:html :xmlns "http://www.w3.org/1999/xhtml"
 	     :xml\:lang "en" 
@@ -337,7 +335,9 @@
 		 (:link :href "css/bootstrap.min.css" :rel "stylesheet")
 		 (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
  		 (:link :href "css/theme.css" :rel "stylesheet")
+		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
+		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
 		 (:script :src "js/spin.min.js")
 		 ) ;; Header completes here.
 	     (:body
@@ -349,9 +349,13 @@
 		 (:div :class "container theme-showcase" :role "main" 
 		     (:div :id "header"	; DOD System header
 			 ,@body))	;container div close
-		 (:script :src "js/dod.js")
+		 
 		 ;; bootstrap core javascript
-		 (:script :src "js/bootstrap.min.js"))))))
+		 (:script :src "js/bootstrap.min.js")
+		 (:script :src "js/dod.js"))))))
+
+
+
 
 
 (defmacro vendor-navigation-bar ()

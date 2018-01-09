@@ -57,7 +57,7 @@
 	(:hr)
 	(:div :class "row-fluid"	  (mapcar (lambda (product)
 						      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
-							       (:div :class "product-box"   (product-card-for-vendor  product )))))
+							       (:div :class ""   (product-card-for-vendor  product )))))
 					      data))))
   
 
@@ -124,13 +124,25 @@
 	    
 	(cl-who:with-html-output (*standard-output* nil)
 	  
-		(:div :class "row"
-		    
-		(:div :class "col-xs-6" (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
-		(:div :class "col-xs-3" (:h3 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))
+	  (:div :class "panel panel-default"
+		(:div :class "panel-heading" 
+		      (:div :class "row"
+		(:div :class "col-xs-2"
+		      (:a :onclick "return InactiveConfirm();"  :href (format nil "dodvenddeactivateprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-off")))
+
+		(:div :class "col-xs-2" 
+		      (:a  :href (format nil "dodvendcopyprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-copy")))
+		(:div :class "col-xs-5")
 		(:div :class "col-xs-3" :align "right"
-		  (:a :onclick "return DeleteConfirm();"  :href (format nil "dodvenddelprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-remove"))))
-				
+		      (:a :onclick "return DeleteConfirm();"  :href (format nil "dodvenddelprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-remove")))))
+	 
+	  	(:div :class "panel-body" 
+	  (:div :class "row"
+		      
+		(:div :class "col-xs-5" 
+		      (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
+		(:div :class "col-xs-3" (:h3 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))))))
+		
 		(:div :class "row"
 		      (:div :class "col-xs-6"
 			    (:h5 :class "product-name"  (str prd-name))))
@@ -140,7 +152,7 @@
 		      (:div :class "col-xs-12" 
 			    (:h6 (str (if (> (length description) 150)  (subseq description  0 150) description)))))
 		
-		)))
+		)))))
 
 (defun product-card (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))

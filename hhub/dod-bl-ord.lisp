@@ -4,43 +4,48 @@
 
 (defun set-order-fulfilled ( value order-instance company-instance)
     :documentation "value should be Y or N, followed by order instance and company instance"
-    (let* ((vendor-order (get-vendor-order-instance (slot-value order-instance 'row-id) (get-login-vendor)))
+    (let* ((vendor (get-login-vendor))
+	   (vendor-order (get-vendor-order-instance (slot-value order-instance 'row-id) vendor))
 	   (customer (get-ord-customer order-instance)) 
 	   (payment-mode (slot-value order-instance 'payment-mode))
-	   (vendor (get-login-vendor))
 	   (wallet (get-cust-wallet-by-vendor customer vendor company-instance))
-	   (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance (get-login-vendor) ))
-	  (total   (reduce #'+  (mapcar (lambda (voitem)
-			(* (slot-value voitem 'unit-price) (slot-value voitem 'prd-qty))) vendor-order-items))))
+	   (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance vendor ))
+	   (total   (reduce #'+  (mapcar (lambda (voitem)
+					   (* (slot-value voitem 'unit-price) (slot-value voitem 'prd-qty))) vendor-order-items))))
       
-      (if  (eq (order-company order-instance) company-instance)
-	 
-	  (progn
-	; complete the order items for that particular vendor.  	
-	    (mapcar (lambda (voitem)
+      (hunchentoot:log-message* :info "Inside set-order-fulfilled function - before if condition:  login vendor company is ~A" (slot-value company-instance 'name))
+      (hunchentoot:log-message* :info "Inside set-order-fulfilled function - before if condition:  order company is ~A" (slot-value (order-company order-instance) 'name))
+      (if  (equal (slot-value (order-company order-instance) 'name) (slot-value  company-instance 'name))
+	   (progn
+	     (hunchentoot:log-message* :info "Inside set-order-fulfilled function - now completing order item status to CMP. ")
+					; complete the order items for that particular vendor.  	
+	     (mapcar (lambda (voitem)
 			(progn     (setf (slot-value voitem 'status) "CMP")
 			    (setf (slot-value voitem 'fulfilled) value)
 			    (update-order-detail voitem)))   vendor-order-items)
-	    ;(sleep 1) 
-	    ; complete the vendor_order  
-	    (progn  (setf (slot-value vendor-order 'status) "CMP")
-		    (setf (slot-value vendor-order 'fulfilled) value)
-		    (setf (slot-value vendor-order 'shipped-date) (get-date))
-		    (update-order vendor-order))
+	     (sleep 1)
+
+					; complete the vendor_order  
+	     (if vendor-order 
+		 (progn  
+		   (hunchentoot:log-message* :info "Inside set-order-fulfilled function - now completing vendor order with status CMP..order id= ~A " (slot-value vendor-order 'order-id))
+		   (setf (slot-value vendor-order 'status) "CMP")
+		   (setf (slot-value vendor-order 'fulfilled) value)
+		   (setf (slot-value vendor-order 'shipped-date) (get-date))
+		   (update-order vendor-order)))
 					; Complete the main order only if all other vendor-order-items have been completed. 
 	    
 	    
-	    (if (equal (count-order-items-pending order-instance company-instance) 0 ) 
-	    (progn (setf (slot-value order-instance 'order-fulfilled) value)
-	    (setf (slot-value order-instance 'shipped-date) (get-date))
-	    (setf (slot-value order-instance 'status ) "CMP")
-	    (update-order order-instance)))
-	    
-	    (dod-reset-order-functions (get-login-vendor) (get-login-vendor-company))
-	    ; Deduct the money from the wallet. 
-	    (if (equal payment-mode "PRE") (deduct-wallet-balance total wallet))
-	    
-	    ))))
+	     (hunchentoot:log-message* :info "Inside set-order-fulfilled function - now completing the customer order ")
+	     (if (equal (count-order-items-pending order-instance company-instance) 0 ) 
+		 (progn (setf (slot-value order-instance 'order-fulfilled) value)
+			(setf (slot-value order-instance 'shipped-date) (get-date))
+			(setf (slot-value order-instance 'status ) "CMP")
+			(update-order order-instance)))
+	     (hunchentoot:log-message* :info "Inside set-order-fulfilled function - now resetting order functions. ")
+	     (dod-reset-order-functions (get-login-vendor) (get-login-vendor-company))
+					; Deduct the money from the wallet. 
+	     (if (equal payment-mode "PRE") (deduct-wallet-balance total wallet))))))
 
 
 
@@ -81,20 +86,17 @@
 		[=[:order-id] order-id]]    :caching nil :flatp t ))))
 
 (defun get-vendor-order-instance (order-id vendor)
-  (let ((vendor-id (slot-value vendor  'row-id))
-	(tenant-id (slot-value vendor  'tenant-id)))
+  (let ((vendor-id (slot-value vendor  'row-id)))
     (car (clsql:select 'dod-vendor-orders :where
-	    [and [= [:tenant-id] tenant-id]
-		  [= [:vendor-id] vendor-id]
-		   [= [:order-id] order-id]] 
-			  :caching nil :flatp t))))
+		       [and [= [:vendor-id] vendor-id]
+		       [= [:order-id] order-id]] 
+		       :caching nil :flatp t))))
 
 
 
 (defun get-orders-for-vendor (vendor-instance   rowcount company &optional  (fulfilled "N"))
   (let* ((tenant-id (slot-value company 'row-id))
 	 (vendor-id (slot-value vendor-instance 'row-id)))
-
 	 (clsql:select  'dod-vendor-orders :where
 	    [and [= [:tenant-id] tenant-id]
 		  [= [:vendor-id] vendor-id]
@@ -198,7 +200,7 @@
 		      [=[:order-id] order-id]
 		      [= [:tenant-id] tenant-id]] :caching nil :flatp t)))
 
-	(mapcar (lambda (vendor-id) (select-vendor-by-id vendor-id company-instance)) vendorids))) 
+	(mapcar (lambda (vendor-id) (select-vendor-by-id vendor-id)) vendorids))) 
 
 
 (defun get-order-by-context-id (context-id company-instance)

@@ -178,7 +178,7 @@
 (defun dod-controller-vendor-details ()
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "Vendor Details")
-	    (let ((vendor (select-vendor-by-id  (hunchentoot:parameter "id") (hunchentoot:session-value :login-customer-company))))
+	    (let ((vendor (select-vendor-by-id  (hunchentoot:parameter "id") )))
 		(vendor-details-card vendor)))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
@@ -332,8 +332,8 @@
 		     (:div :id "header"	; DOD System header
 			 ,@body))	;container div close
 		 ;; Rangeslider
-		
-		
+		 
+		 
 		 ;; bootstrap core javascript
 		 (:script :src "js/bootstrap.min.js")
 		 (:script :src "js/dod.js"))))))
@@ -774,7 +774,7 @@
 
 (defun get-shopcart-vendorlist (shopcart-items company)
 ( remove-duplicates  (mapcar (lambda (odt) 
-	   (select-vendor-by-id (slot-value odt 'vendor-id) company))  shopcart-items)
+	   (select-vendor-by-id (slot-value odt 'vendor-id)))  shopcart-items)
 :test #'equal
 :key (lambda (vendor) (slot-value vendor 'row-id)))) 
 
@@ -795,8 +795,9 @@
 		 
 (defun dod-controller-create-cust-wallet ()
   :documentation "If the customer wallet is not defined, then define it now"
-  (let ((vendor (select-vendor-by-id (hunchentoot:parameter "vendor-id") (get-login-customer-company))))
-    (create-wallet (get-login-customer) vendor (get-login-customer-company))))
+  (let ((vendor (select-vendor-by-id (hunchentoot:parameter "vendor-id"))))
+    (if vendor (create-wallet (get-login-customer) vendor (get-login-customer-company)))
+    (if vendor (hunchentoot:log-message* :info "Created wallet for vendor ~A" (slot-value vendor 'name)))))
 
 (defun dod-controller-cust-add-to-cart ()
     :documentation "This function is responsible for adding the product and product quantity to the shopping cart."
@@ -831,7 +832,7 @@
   (if (is-dod-cust-session-valid?)
       (let ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
 	    (lstproducts (hunchentoot:session-value :login-prd-cache)))
-
+;	(sleep 5)
 	(standard-customer-page (:title "Welcome to Dairy Ondemand - customer")
 	 
 	  (:form :id "theForm" :name "theForm" :method "POST" :action "dodsearchproducts" :onSubmit "return false"

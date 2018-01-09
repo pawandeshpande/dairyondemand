@@ -7,12 +7,10 @@
 (clsql:select 'dod-vend-profile  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching nil :flatp t )))
 
 
-(defun select-vendor-by-id (id company)
-  (let ((tenant-id (slot-value company 'row-id)))
- (car (clsql:select 'dod-vend-profile  :where
+(defun select-vendor-by-id (id)
+  (car (clsql:select 'dod-vend-profile  :where
 		[and [= [:deleted-state] "N"]
-		[= [:tenant-id] tenant-id]
-		[=[:row-id] id]]    :caching nil :flatp t ))))
+		[=[:row-id] id]]    :caching nil :flatp t )))
 
 
 (defun select-vendor-by-name (name-like-clause company)
