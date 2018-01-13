@@ -9,41 +9,37 @@
      (hunchentoot:redirect "/login")))
 
 
-
-																		   
-(defun ui-list-companies (complist)
-    (cl-who:with-html-output (*standard-output* nil)
-	(:div :class "row-fluid"	  (mapcar (lambda (company)
-						      (htm (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12" 
-							       (:div :class "company-box"   (company-card company )))))
-					     complist))))
-
-
-
 (defun company-card (instance)
     (let ((comp-name (slot-value instance 'name))
-	     (address  (slot-value instance 'address))
-	     (city (slot-value instance 'city))
+	  (address  (slot-value instance 'address))
+	  (city (slot-value instance 'city))
 	  (state (slot-value instance 'state)) 
 	  (country (slot-value instance 'country))
 	  (zipcode (slot-value instance 'zipcode))
 	  (row-id (slot-value instance 'row-id)))
+	  
 
 	   
 	(cl-who:with-html-output (*standard-output* nil)
-	  
-		(:div :class "row"
-		    
-		(:div :class "col-sm-2" (str comp-name))
-		(:div :class "col-sm-2" (str address))
-		(:div :class "col-sm-2" (str city))
-		(:div :class "col-sm-2" (str state))
-		(:div :class "col-sm-2" (str country))
-		(:div :class "col-sm-1" (str zipcode))
-		(:div :class "col-sm-1"  (:a :href  (format nil  "/delcomp?id=~A" row-id )  "Delete"))
-		))))
-
-
+	  (:div :class "row" 
+		(:div :class "col-xs-12" :align "right"
+		      (:a :href (format nil "/hhub/editcompany?id=~A" row-id) (:span :class "glyphicon glyphicon-pencil")))) 
+	  (:div :class "row"
+		(:div :class "col-xs-12"  (:h3 (str comp-name))))
+	  (:div :class "row"
+		(:div :class "col-xs-12"  (str address)))
+	  (:div :class "row"
+		(:div :class "col-xs-12" (str city)))
+	  (:div :class "row"
+		(:div :class "col-xs-6" (str state))
+		(:div :class "col-xs-6" (str country)))
+	  (:div :class "row"
+		(:div :class "col-xs-6" (str zipcode)))
+	  (:div :class "row" 
+		(:div :class "col-xs-6" (:b (:h5 (str (format nil "No of Customers: ~A " (count-company-customers instance)))))))
+	  (:div :class "row" 
+		(:div :class "col-xs-6" (:b (:h5 (str (format nil  "No of Vendors: ~A " (count-company-vendors instance )))))))
+	  )))
 
 
 (defun dod-controller-list-companies ()
@@ -52,6 +48,26 @@
     (standard-page (:title "List companies")
       (ui-list-companies companies)))
 (hunchentoot:redirect "opr-login.html")))
+
+
+(defun ui-list-companies (company-list)
+  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+    (if company-list 
+	(htm 
+	 (:div :class "row-fluid"	  (mapcar (lambda (cmp)
+						      (htm 
+						       (:form :method "POST" :action "custsignup1action" :id "custsignup1form" 
+							      (:div :class "col-sm-4 col-lg-3 col-md-4"
+								    (:div :class "form-group"
+									  (:input :class "form-control" :name "cname" :type "hidden" :value (str (format nil "~A" (slot-value cmp 'name)))))
+								    (:div :class "form-group"
+									  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" (str (format nil "~A" (slot-value cmp 'name)))))))))  company-list)))
+	;else
+	(htm (:div :class "col-sm-12 col-md-12 col-lg-12"
+	      (:h3 "No records found"))))))
+
+
+
 
 
 

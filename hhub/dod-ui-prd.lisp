@@ -53,21 +53,22 @@
 
 (defun ui-list-vendor-products (data)
   (cl-who:with-html-output (*standard-output* nil)
-    	(:a :class "btn btn-primary" :role "button" :href "dodvenaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Product  ")
-	(:hr)
-	(:div :class "row-fluid"	  (mapcar (lambda (product)
-						      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
-							       (:div :class ""   (product-card-for-vendor  product )))))
-					      data))))
+    (:a :class "btn btn-primary" :role "button" :href "dodvenaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Product  ")
+    (:hr)
+    (:div :class "row-fluid"  (mapcar (lambda (product)
+					(htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
+						   (:div :class "product-box"   (product-card-for-vendor  product )))))
+					      
+				            data))))
   
 
 (defun ui-list-customer-products (data lstshopcart)
-  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)	
-    (:div :id "finalResult"  
-    (:div :class "row-fluid"	  (mapcar (lambda (product)
-						      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
-							       (:div :class "product-box"   (product-card product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))))
-					      data)))))
+  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+    (:div :id "searchresult"  
+	  (:div :class "row-fluid"  (mapcar (lambda (product)
+					            (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
+							              (:div :class "product-box"   (product-card product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))))
+					          data)))))
 
 
 (defun product-card-shopcart (product-instance odt-instance)
@@ -120,23 +121,28 @@
 	  (description (slot-value product-instance 'description))
 	  (prd-image-path (slot-value product-instance 'prd-image-path))
 	  (prd-id (slot-value product-instance 'row-id))
+	  (active-flag (slot-value product-instance 'active-flag))
 	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
 	    
 	(cl-who:with-html-output (*standard-output* nil)
-	  
-	  (:div :class "panel panel-default"
-		(:div :class "panel-heading" 
-		      (:div :class "row"
-		(:div :class "col-xs-2"
-		      (:a :onclick "return InactiveConfirm();"  :href (format nil "dodvenddeactivateprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-off")))
 
+	  (:div :style "background-color:#E2DBCD; border-bottom: solid 1px; margin-bottom: 3px;" :class "row"
+		
+		(if (equal active-flag "Y")
+		    (htm (:div :class "col-xs-2" :data-toggle "tooltip" :title "Turn Off" 
+		      (:a   :href (format nil "dodvenddeactivateprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-off"))))
+		    ;else
+		    (htm (:div :class "col-xs-2" :data-toggle "tooltip" :title "Turn On" 
+		      (:a :href (format nil "dodvendactivateprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-off")))))
+		
+		
 		(:div :class "col-xs-2" 
 		      (:a  :href (format nil "dodvendcopyprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-copy")))
 		(:div :class "col-xs-5")
 		(:div :class "col-xs-3" :align "right"
-		      (:a :onclick "return DeleteConfirm();"  :href (format nil "dodvenddelprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-remove")))))
+		      (:a :onclick "return DeleteConfirm();"  :href (format nil "dodvenddelprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-remove"))))
 	 
-	  	(:div :class "panel-body" 
+	  	
 	  (:div :class "row"
 		      
 		(:div :class "col-xs-5" 
@@ -152,7 +158,9 @@
 		      (:div :class "col-xs-12" 
 			    (:h6 (str (if (> (length description) 150)  (subseq description  0 150) description)))))
 		
-		)))))
+		(if (equal active-flag "N") 
+		    (htm (:div :class "stampbox rotated" "INACTIVE" )))
+		)))
 
 (defun product-card (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))

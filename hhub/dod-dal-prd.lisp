@@ -59,6 +59,13 @@
     :type (number)
     :initarg :units-in-stock)
 
+
+   (active-flag
+    :type (string 1)
+    :void-value "N"
+       :initarg :active-flag)
+
+
    (deleted-state
     :type (string 1)
     :void-value "N"

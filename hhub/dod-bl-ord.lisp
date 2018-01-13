@@ -347,7 +347,7 @@
 	   (let 
 	           ((order (get-order-by-context-id (print-object uuid nil) company-instance))
 		      (cust-id (get-login-customer-id))
-		         (vendors (get-shopcart-vendorlist order-items company-instance))
+		         (vendors (get-shopcart-vendorlist order-items))
 		         (tenant-id (slot-value company-instance 'row-id)))
 
 	     ;Create the order-items 

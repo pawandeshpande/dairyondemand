@@ -484,26 +484,6 @@
 	(company-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr))))
     (ui-list-companies company-list)))
 
-
-
-(defun ui-list-companies (company-list)
-  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
-  ; (standard-customer-page (:title "Welcome to DAS Platform")
-    (if company-list 
-	(htm (:div :class "row-fluid"	  (mapcar (lambda (cmp)
-						      (htm 
-						       (:form :method "POST" :action "custsignup1action" :id "custsignup1form" 
-							      (:div :class "col-sm-4 col-lg-3 col-md-4"
-								    (:div :class "form-group"
-									  (:input :class "form-control" :name "cname" :type "hidden" :value (str (format nil "~A" (slot-value cmp 'name)))))
-								    (:div :class "form-group"
-									  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" (str (format nil "~A" (slot-value cmp 'name)))))))))  company-list)))
-	;else
-	(htm (:div :class "col-sm-12 col-md-12 col-lg-12"
-	      (:h3 "No records found"))))))
-
-
-
 (defun dod-controller-company-search-page ()
   (handler-case
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
@@ -515,8 +495,10 @@
 				  (:form :id "theForm" :action "companysearchaction" :OnSubmit "return false;" 
 					 (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Search for an Apartment/Group"))
 				  (:span :class "input-group-btn" (:<button :class "btn btn-danger" :type "button" 
-									    (:span :class " glyphicon glyphicon-search")))))
-		      (:div :id "finalResult" ""))))
+									    (:span :class " glyphicon glyphicon-search"))))))
+
+		(:div :id "searchresult")))
+		      
     (clsql:sql-database-data-error (condition)
       (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
 							       (stop-das) 
@@ -732,7 +714,7 @@
 	       (cust (hunchentoot:session-value :login-customer))
 	       (shopcart-total (get-shop-cart-total))
 	       (custcomp (hunchentoot:session-value :login-customer-company))
-	       (vendor-list (get-shopcart-vendorlist odts custcomp))
+	       (vendor-list (get-shopcart-vendorlist odts))
 	       (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
 	       (shipaddr (hunchentoot:parameter "shipaddress")))
 	  
@@ -772,7 +754,7 @@
     total ))
 	
 
-(defun get-shopcart-vendorlist (shopcart-items company)
+(defun get-shopcart-vendorlist (shopcart-items)
 ( remove-duplicates  (mapcar (lambda (odt) 
 	   (select-vendor-by-id (slot-value odt 'vendor-id)))  shopcart-items)
 :test #'equal
@@ -830,25 +812,22 @@
 
 (defun dod-controller-cust-index () 
   (if (is-dod-cust-session-valid?)
-      (let ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
-	    (lstproducts (hunchentoot:session-value :login-prd-cache)))
-;	(sleep 5)
-	(standard-customer-page (:title "Welcome to Dairy Ondemand - customer")
-	 
-	  (:form :id "theForm" :name "theForm" :method "POST" :action "dodsearchproducts" :onSubmit "return false"
-		  (:div :class "container" 
-			       (:div :class "col-lg-6 col-md-6 col-sm-12" 
-				          (:div :class "input-group"
-						   (:input :type "text" :name "livesearch" :id "livesearch"  :class "form-control" :placeholder "Search products...")
-						      (:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Go!" ))))
-			         ; Display the My Cart button. 
-			         (:div :class "col-lg-6 col-md-6 col-sm-6" :align "right"
-				       (:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))))))))
-	  (:hr)       
-
-	(str(ui-list-customer-products lstproducts lstshopcart))))
-	
-(hunchentoot:redirect "/hhub/customer-login.html")))
+   (let ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
+	 (lstproducts (hunchentoot:session-value :login-prd-cache)))
+					;(sleep 5)
+     (standard-customer-page (:title "Welcome to Dairy Ondemand - customer")
+       (:form :id "theForm" :name "theForm" :method "POST" :action "dodsearchproducts" :onSubmit "return false"
+	      (:div :class "container" 
+		    (:div :class "col-lg-6 col-md-6 col-sm-12" 
+			  (:div :class "input-group"
+				(:input :type "text" :name "livesearch" :id "livesearch"  :class "form-control" :placeholder "Search products...")
+				(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Go!" ))))
+					; Display the My Cart button. 
+		    (:div :class "col-lg-6 col-md-6 col-sm-6" :align "right"
+			  (:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))))))))
+       (:hr)       
+       (str(ui-list-customer-products lstproducts lstshopcart))))
+   (hunchentoot:redirect "/hhub/customer-login.html")))
 
 
 (defun dod-controller-customer-products ()

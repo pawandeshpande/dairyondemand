@@ -1,6 +1,7 @@
-
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
+
+
 (clsql:def-view-class dod-roles ()
   ((row-id
     :db-kind :key
@@ -18,9 +19,9 @@
     :TYPE INTEGER
     :INITARG :created-by)
    (user-created-by
-    :ACCESSOR company-created-by
+    :ACCESSOR role-created-by
     :DB-KIND :JOIN
-    :DB-INFO (:JOIN-CLASS crm-users
+    :DB-INFO (:JOIN-CLASS dod-users
                           :HOME-KEY created-by
                           :FOREIGN-KEY row-id
                           :SET NIL))
@@ -28,9 +29,9 @@
     :TYPE INTEGER
     :INITARG :updated-by)
    (user-updated-by
-    :ACCESSOR company-updated-by
+    :ACCESSOR role-updated-by
     :DB-KIND :JOIN
-    :DB-INFO (:JOIN-CLASS crm-users
+    :DB-INFO (:JOIN-CLASS dod-users
                           :HOME-KEY updated-by
                           :FOREIGN-KEY row-id
                           :SET NIL))
@@ -41,7 +42,7 @@
    (COMPANY
     :ACCESSOR roles-company
     :DB-KIND :JOIN
-    :DB-INFO (:JOIN-CLASS crm-company
+    :DB-INFO (:JOIN-CLASS dod-company
 	                  :HOME-KEY tenant-id
                           :FOREIGN-KEY row-id
                           :SET NIL)))

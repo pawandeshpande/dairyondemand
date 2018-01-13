@@ -17,6 +17,28 @@
 
 
 
+(defun get-count-company-customers (company) 
+  (let ((old-func (symbol-function 'count-company-customers))
+	(previous (make-hash-table)))
+    (defun count-company-customers (company)
+      (or (gethash company previous)
+	  (setf (gethash company previous) (funcall old-func company))))))
+
+(defun count-company-customers (company) 
+ (let ((tenant-id (slot-value company 'row-id))) 
+    (first (clsql:select [count [*]] :from 'dod-cust-profile  :where 
+		[and [= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]]   :caching nil :flatp t ))))
+
+
+(defun count-company-vendors (company) 
+ (let ((tenant-id (slot-value company 'row-id))) 
+    (first (clsql:select [count [*]] :from 'dod-vend-profile  :where 
+		[and [= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]]   :caching nil :flatp t ))))
+
+
+
 (defun equal-companiesp (cmp1 cmp2)
   (equal (slot-value cmp1 'row-id) (slot-value cmp2 'row-id)))
 
@@ -67,3 +89,5 @@
 
 
 
+(defun update-company (instance); This function has side effect of modifying the database record.
+  (clsql:update-records-from-instance instance))

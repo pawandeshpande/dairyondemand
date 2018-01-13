@@ -73,7 +73,7 @@
 				 (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Search for an Apartment/Group"))
 			  (:span :class "input-group-btn" (:<button :class "btn btn-danger" :type "button" 
 								(:span :class " glyphicon glyphicon-search")))))
-	      (:div :id "finalResult" "")))
+	      (:div :id "searchresult" "")))
       (hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
@@ -167,7 +167,7 @@
 					    
 					     (:div :class "form-group"
 						  (:label :for "description")
-						  (:textarea :class "form-control" :name "description" :placeholder "Enter Product Description ( max 1000 characters) "  :rows "5" :onkeyup "countChar(this)"  ))
+						  (:textarea :class "form-control" :name "description" :placeholder "Enter Product Description ( max 1000 characters) "  :rows "5" :onkeyup "countChar(this, 1000)"  ))
 					      (:div :class "form-group" :id "charcount")
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "prdprice" :placeholder "Price"  :type "number" :min "0.00" :max "10000.00" :step "1" ))
@@ -471,6 +471,29 @@
 		   (product (select-product-by-id (parse-integer (hunchentoot:parameter "id")) company)))
 		(product-card-with-details-for-vendor product)))
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
+
+
+(defun dod-controller-vendor-deactivate-product ()
+  (if (is-dod-vend-session-valid?)
+  (let ((id (parse-integer (hunchentoot:parameter "id"))))
+    (deactivate-product id (get-login-vendor-company))
+    (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor)))   
+    (hunchentoot:redirect "/hhub/dodvenproducts"))
+  ;else
+  (hunchentoot:redirect "/hhub/vendor-login.html")))
+
+(defun dod-controller-vendor-activate-product ()
+  (if (is-dod-vend-session-valid?)
+  (let ((id (hunchentoot:parameter "id")))
+    (activate-product id (get-login-vendor-company))
+    (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor)))   
+    (hunchentoot:redirect "/hhub/dodvenproducts"))
+  ;else
+  (hunchentoot:redirect "/hhub/vendor-login.html")))
+
+
+(defun dod-controller-vendor-copy-product ()
+) 
 
 
 (defun dod-controller-vendor-products ()

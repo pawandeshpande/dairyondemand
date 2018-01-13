@@ -7,6 +7,17 @@
 
 
 
+(defun display-as-tiles (data displayfunc) 
+:documentation "This is a generic function which will display items in list as tiles. You need to pass the list data, and a display function which will display 
+individual tiles. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizingrefer to style.css. " 
+  (cl-who:with-html-output-to-string (*standard-output* nil)
+    ; searchresult div will be used to store the search result. 
+    (:div :id "searchresult" 
+    (:div :class "row-fluid"  (mapcar (lambda (item)
+					(htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
+						   (:div :class "product-box"   (funcall displayfunc item)))))  data)))))
+
+
 (defun copy-hash-table (hash-table)
   (let ((ht (make-hash-table 
              :test (hash-table-test hash-table)
@@ -19,19 +30,29 @@
        finally (return ht))))
 
 
+
+
 (defmacro navigation-bar ()
-  `(cl-who:with-html-output (*standard-output* nil)
-     (:div :class "navbar navbar-default navbar-inverse navbar-fixed-top"  
-	   (:ul :class "nav navbar-nav"
-		      (:li :class "active" (:a :href "/hhub/dodindex" "Home"))
-		      (:li  (:a :href "/hhub/list-customers" "Customers"))
-		      (:li  (:a :href "/hhub/list-vendors" "Vendors"))
-		      (:li  (:a :href "/hhub/list-orders" "Orders"))
-		      (:li  (:a :href "/hhub/list-orderprefs" "Order Preferences"))
-     		      (:li  (:a :href "/hhub/list-products" "Products"))
-		      (:li  (:a :href "/hhub/dodlogout" "Logout"))))))
-
-
+    :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
+    `(cl-who:with-html-output (*standard-output* nil)
+	 (:div :class "navbar navbar-default navbar-inverse navbar-static-top"
+	     (:div :class "container-fluid"
+		 (:div :class "navbar-header"
+		     (:button :type "button" :class "navbar-toggle" :data-toggle "collapse" :data-target "#navHeaderCollapse"
+			 (:span :class "icon-bar")
+			 (:span :class "icon-bar")
+			 (:span :class "icon-bar"))
+		     (:a :class "navbar-brand" :href "#" :title "DAS" (:img :style "width: 30px; height: 30px;" :src "resources/demand&supply.png" )  ))
+		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
+		     (:ul :class "nav navbar-nav navbar-left"
+			 (:li :class "active" :align "center" (:a :href "/hhub/dodindex"  (:span :class "glyphicon glyphicon-home")  " Home"))
+			 (:li  (:a :href "/hhub/abacsecurity" "ABAC Security"))
+			 (:li  (:a :href "/hhub/adminsettings" "Admin Settings"))
+			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
+		     
+		     (:ul :class "nav navbar-nav navbar-right"
+			 (:li :align "center" (:a :href "dodvendprofile"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
+			 (:li :align "center" (:a :href "dodlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
 
 
 
@@ -42,44 +63,40 @@
 
 
 (defmacro standard-page ((&key title) &body body)
-  `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
-     (:html :xmlns "http://www.w3.org/1999/xhtml"
-	    :xml\:lang "en" 
-	    :lang "en"
-	    (:head 
-	     (:meta :http-equiv "Content-Type" 
-		    :content    "text/html;charset=utf-8")
-	     (:meta :name "viewport" :content "width=device-width, initial-scale=1")
-	     (:meta :name "description" :content "")
-	     (:meta :name "author" :content "")
-	     (:link :rel "icon" :href "favicon.ico")
-	     (:title ,title )
-	  
-	     (:link :href "css/style.css" :rel "stylesheet")
-	     (:link :href "css/bootstrap.min.css" :rel "stylesheet")
-	     (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
-	     
-	     );; Header completes here.
-	    (:body 
-	     (if (is-dod-session-valid?) (navigation-bar))
-		   (:div :class "container theme-showcase" :role "main" 
-
-			 (:div :id "header"	 ; DOD System header
-			      
-	 
-			       (:table :class "table" 
-				       (:tr (:th "Tenant") (:th "Company") (:th "User"))
-				       (:tr (:td  :height "12px" (str (get-login-tenant-id)))
-					    (:td  :height "12px" (str (get-current-login-company)))
-					    (:td  :height "12px" (str (get-current-login-username)))))
-		   
-
-			    					 
-			       ,@body))	;container div close
-		   ;; bootstrap core javascript
-		   (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js")
-	
-		   (:script :src "js/bootstrap.min.js")))))
+   `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+	 (:html :xmlns "http://www.w3.org/1999/xhtml"
+	     :xml\:lang "en" 
+	     :lang "en"
+	     (:head 
+		 (:meta :http-equiv "Content-Type" 
+		     :content    "text/html;charset=utf-8")
+		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
+		 (:meta :name "description" :content "")
+		 (:meta :name "author" :content "")
+		 (:link :rel "icon" :href "favicon.ico")
+		 (:title ,title )
+		 (:link :href "css/style.css" :rel "stylesheet")
+		 (:link :href "css/bootstrap.min.css" :rel "stylesheet")
+		 (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
+ 		 (:link :href "css/theme.css" :rel "stylesheet")
+		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
+		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
+		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
+		 (:script :src "js/spin.min.js")
+		 ) ;; Header completes here.
+	     (:body
+	      (:div :id "dod-main-container"
+		    (:a :href "#" :class "scrollup" :style "display: none;") 
+		    (:div :id "dod-error" (:h2 "Error..."))
+		 (:div :id "busy-indicator")
+		 (if (is-dod-session-valid?) (navigation-bar))
+		 (:div :class "container theme-showcase" :role "main" 
+		     (:div :id "header"	; DOD System header
+			 ,@body))	;container div close
+		 
+		 ;; bootstrap core javascript
+		 (:script :src "js/bootstrap.min.js")
+		 (:script :src "js/dod.js"))))))
 
 
 
@@ -147,17 +164,19 @@
 
 (defun dod-controller-index () 
   (if (is-dod-session-valid?)
+   (let (( companies (list-dod-companies)))
       (standard-page (:title "Welcome to Dairy Ondemand")
-
-	(when (verify-superadmin)(htm (:p "Want to create a new company?" (:a :href "/hhub/new-company" "here"))
-				      	(:p "List companies?" (:a :href "/hhub/list-companies" "here"))))
-
-	(unless (verify-superadmin)
-	  (htm 
-	(:p "Want to create a new customer?" (:a :href "/hhub/new-customer" "here"))
-	(:p "List Customers" (:a :href "/hhub/list-customers" "here"))
-	)))
-	(hunchentoot:redirect "/hhub/opr-login.html")))
+	(:div :id "row"
+	      (:div :id "col-xs-6" 
+	(:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+	(:div :id "row"
+	      (:div :id "col-xs-6"
+		    (:a :class "btn btn-primary" :role "button" :href "new-company" (:span :class "glyphicon glyphicon-shopping-plus") " Add New Group  "))
+	      (:div :id "col-xs-6" :align "right" 
+		    (:span :class "badge" (str (format nil "~A" (length companies))))))
+	(:hr)
+	(str (display-as-tiles companies 'company-card ))))
+(hunchentoot:redirect "/hhub/opr-login.html")))
   
 (setq *logged-in-users* (make-hash-table :test 'equal))
 
@@ -280,86 +299,76 @@
   (remhash username *logged-in-users*))
 
 
-
-(defun dod-controller-new-company ()
+(defun dod-controller-new-company () 
   (if (is-dod-session-valid?)
-      (standard-page (:title "Add a new company")
-	(:h1 "Add a new company")
-	(:form :action "/company-added" :method "post" 
-	       (:p "Name: " 
-		   (:input :type "text"  
-			   :name "name" 
-			   :class "txt"))
-	       (:p "Address: " (:input :type "textarea"  
-				       :name "address" 
-				       :class "txtarea"))
-
-	       (:p "City: " (:input :type "text"  
-				       :name "city" 
-				       ))
-	       (:p "State: " (:input :type "text"  
-				       :name "state" 
-				       ))
-
-	       (:p "Country: " (:input :type "text"  
-				       :name "country" 
-				       ))
-
-	       (:p "Zipcode: " (:input :type "text"  
-				       :name "zipcode" 
-				       ))
+      (let* ((id (hunchentoot:parameter "id"))
+	    (company (if id (select-company-by-id id)))
+	    (cmpname (if company (slot-value company 'name)))
+	     (cmpaddress (if company(slot-value company 'address)))
+	     (cmpcity (if company (slot-value company 'city)))
+	     (cmpstate (if company (slot-value company 'state))) 
+	     (cmpzipcode (if company (slot-value company 'zipcode))))
 
 
-	       
+    (standard-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+      (:div :class "row" 
+	 (:div :class "col-sm-6 col-md-4 col-md-offset-4"
+	       (:form :class "form-addcompany" :role "form" :method "POST" :action "company-added" 
+		      (if company 
+			  (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+			  
+			  
+		      (:div :class "account-wall"
+			    (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+			    (:h1 :class "text-center login-title"  "Add/Edit Group")
+			    (:div :class "form-group"
+				  (:input :class "form-control" :name "cmpname" :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
+			    (:div :class "form-group"
+				  (:label :for "cmpaddress")
+				  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
+			    (:div :class "form-group" :id "charcount")
+			    (:div :class "form-group"
+				   (:input :class "form-control" :type "text":value cmpcity :placeholder "City"  :name "cmpcity" ))
+			    (:div :class "form-group"
+				   (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
+			    (:div :class "form-group"
+				   (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
+			    (:div :class "form-group"
+				  (:input :class "form-control" :type "text" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
+			    
+			    (:div :class "form-group"
+				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+      (hunchentoot:redirect "/hhub/opr-login.html")))					    
 
-	       (:h3 "Create the Admin user")
-	       (:p "Name: "
-		   (:input :type "text"  
-			   :name "name" 
-			   :class "txt")
-		   (:p "Username: " (:input :type "text"  
-					    :name "username" 
-					    :class "txt"))
-		   (:p "Password: " (:input :type "password"  
-					    :name "password" 
-					    :class "password"))
-		   (:p "Email: " (:input :type "text"  
-					 :name "email" 
-					 :class "txt")))
-
-					   
-	       (:p (:input :type "submit" 
-			   :value "Add" 
-			   :class "btn"))))
-      (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
 
 
 (defun dod-controller-company-added ()
   (if (is-dod-session-valid?)
-      (let  ((cname (hunchentoot:parameter "name"))
-	     (caddress (hunchentoot:parameter "address"))
-	     (city (hunchentoot:parameter "city"))
-	     (state (hunchentoot:parameter "state"))
-	     (country (hunchentoot:parameter "country"))
-	     (zipcode (hunchentoot:parameter "zipcode"))
-	     (name (hunchentoot:parameter "name"))
-	     (username (hunchentoot:parameter "username"))
-	     (password (hunchentoot:parameter "password"))
-	     (email (hunchentoot:parameter "email"))
+      (let*  ((id (hunchentoot:parameter "id"))
+	     (company (if id (select-company-by-id id)))
+	     (cmpname (hunchentoot:parameter "cmpname"))
+	     (cmpaddress (hunchentoot:parameter "cmpaddress"))
+	     (cmpcity (hunchentoot:parameter "cmpcity"))
+	     (cmpstate (hunchentoot:parameter "cmpstate"))
+	     (cmpcountry (hunchentoot:parameter "cmpcountry"))
+	     (cmpzipcode (hunchentoot:parameter "cmpzipcode"))
 	     (loginuser (get-login-userid)))
+	  
     
-	(unless(and  ( or (null cname) (zerop (length cname)))
-		     ( or (null caddress) (zerop (length caddress)))
-		     ( or (null name) (zerop (length name)))
- 		      ( or (null username) (zerop (length username)))
-		      ( or (null password) (zerop (length password)))
-		      ( or (null email) (zerop (length email))))
-	  (new-dod-company cname caddress city state country zipcode loginuser loginuser))
-	;; By this time the new company is created.
-	(let ((company (car (clsql:select 'dod-company :where [= [:name] cname] :caching nil :flatp t)))) (create-dod-user  name username password email (slot-value company 'row-id)))
-                      	  
+	(unless(and  ( or (null cmpname) (zerop (length cmpname)))
+		     ( or (null cmpaddress) (zerop (length cmpaddress)))
+		     ( or (null cmpzipcode) (zerop (length cmpzipcode))))
+	  (if company 
+	      (progn (setf (slot-value company 'name) cmpname)
+		     (setf (slot-value company 'address) cmpaddress)
+		     (setf (slot-value company 'city) cmpcity)
+		     (setf (slot-value company 'state) cmpstate)
+		     (setf (slot-value company 'zipcode) cmpzipcode)
+		     (update-company company))
+					;else
+	      (new-dod-company cmpname cmpaddress cmpcity cmpstate cmpcountry cmpzipcode loginuser loginuser)))
 	(hunchentoot:redirect  "/hhub/dodindex"))
       (hunchentoot:redirect "/hhub/opr-login.html")))
 
@@ -370,6 +379,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodindex" 'dod-controller-index)
 	(hunchentoot:create-regex-dispatcher "^/hhub/company-added" 'dod-controller-company-added)
 	(hunchentoot:create-regex-dispatcher "^/hhub/new-company" 'dod-controller-new-company)
+	(hunchentoot:create-regex-dispatcher "^/hhub/editcompany" 'dod-controller-new-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/opr-login.html" 'dod-controller-loginpage)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodlogin" 'dod-controller-login)
 	(hunchentoot:create-regex-dispatcher "^/hhub/new-customer" 'dod-controller-new-customer)
@@ -438,7 +448,9 @@
 
 
 ;************VENDOR RELATED ********************
-
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenddeactivateprod" 'dod-controller-vendor-deactivate-product)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodvendactivateprod" 'dod-controller-vendor-activate-product)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodvendcopyprod" 'dod-controller-vendor-copy-product)
 	(hunchentoot:create-regex-dispatcher "^/hhub/vendor-login.html" 'dod-controller-vendor-loginpage)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvendsearchtenantpage" 'dod-controller-cmpsearch-for-vend-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodrefreshpendingorders" 'dod-controller-refresh-pending-orders)

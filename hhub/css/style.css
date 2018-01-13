@@ -1,4 +1,4 @@
-body
+sbody
 {
     background-image: "url(resources/background.jpg)";
 
@@ -145,8 +145,6 @@ body
 
 
 
-
-
 .product-box{
 
 position: relative;
@@ -158,11 +156,12 @@ border: 1px solid;
 border-color: #0080fd;
 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 width: 350px; 
-height:250px;
+height:299px;
  transition: all 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 }; 
 
-.proudct-box::after {
+
+.product-box::after {
   content: '';
   position: relative;
   z-index: -1;
@@ -175,16 +174,16 @@ height:250px;
   box-shadow: 15px 15px rgba(0,0,0,0.3);
  transition: all 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 
-}
+};
 
 .product-box:hover {
   -webkit-transform: scale(1.02, 1.02);
   transform: scale(1.02,  1.02);
-}
+};
 
 .product-box:hover::after {
     opacity: 1;
-}
+};
 
 
 .product-name { 
@@ -287,18 +286,60 @@ border-color: #0080fd;
   transition: all 0.3s ease-in-out;
 }; 
 
-
 .company-box{
 
 position: relative;
 display: inline-block;
 border-radius: 5px;
 padding: 20px;
-background-color: #f9ffff;
+background-color: #f9ff00;
 border: 1px solid;
 border-color: #0080fd;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
- transition: all 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+width: 350px; 
+height: 299px;
+box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+transition: all 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 
 }; 
+
+
+.stampbox
+{
+  width:200px;
+  height:200px;
+  border:solid 1px #333;
+  display:inline-block;
+  vertical-align:top;
+  box-sizing:border-box;
+  padding:10px;
+  color:#999;
+  position:relative;
+}
+
+.stampbox.rotated
+{
+    content:"";
+    position:absolute;
+    top:100px;
+    left:100px;
+    z-index:100;
+    font-family:Arial,sans-serif;
+    -webkit-transform: rotate(-25deg); /* Safari */
+    -moz-transform: rotate(-25deg); /* Firefox */
+    -ms-transform: rotate(-25deg); /* IE */
+    -o-transform: rotate(-25deg); /* Opera */
+    transform: rotate(-25deg);
+    font-size:40px;
+    color:#c00;
+    background:#fff;
+    border:solid 4px #c00;
+    padding:5px;
+    border-radius:5px;
+    zoom:1;
+    filter:alpha(opacity=20);
+    opacity:0.2;
+    -webkit-text-shadow: 0 0 2px #c00;
+    text-shadow: 0 0 2px #c00;
+    box-shadow: 0 0 2px #c00;
+}
 

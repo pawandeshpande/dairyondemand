@@ -73,5 +73,5 @@
      (hunchentoot:session-value :login-userid))
 
 
-(defun get-current-login-username ()
+(defun get-login-user-name ()
   (hunchentoot:session-value :login-username))

@@ -108,4 +108,7 @@
 				   (:h5 "Order Date:") (:h4 (str (get-date-string (slot-value order-instance 'ord-date))))
 		    (:h5 "Requested On:")(:h4 (str (get-date-string (slot-value order-instance 'req-date))))
 		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date)))))
+		(:div :class "col-md-4" 
+		      (if (equal (slot-value order-instance 'order-fulfilled) "Y")
+			  (htm (:div :class "stampbox rotated" "FULFILLED"))))
 		)))))

@@ -52,12 +52,12 @@ window.onload = function (e){
 
 
 
-function countChar(val){
+function countChar(val, maxchars){
 var length = val.value.length; 
-    if (length >= 1000){
-	val.value = val.value.substring(0, 1000); 
+    if (length >= maxchars){
+	val.value = val.value.substring(0, maxchars); 
     }else {
-	$('#charcount').text (1000 - length)
+	$('#charcount').text (maxchars - length)
 	}
 }; 
 
@@ -216,7 +216,7 @@ $(document).ready(function(){
 		  
 		   //document.getElementById("livesearch").innerHTML=this.responseText;
 		//document.getElementById("livesearch").style.border="1px solid #A5ACB2";
-			$("#finalResult").html(response); 
+			$("#searchresult").html(response); 
 		//	$("#finalResult").style.border = "1px solid #a5acb2";
 		}, 
 		error: function(){      

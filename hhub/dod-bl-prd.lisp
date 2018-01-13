@@ -1,15 +1,32 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
+(defun deactivate-product (id company)
+  (let ((product (select-product-by-id id company)))
+    (setf (slot-value product 'active-flag) "N")
+    (update-prd-details product)))
+
+
+(defun activate-product (id company)
+  (let ((product (select-product-by-id id company)))
+    (setf (slot-value product 'active-flag) "Y")
+    (update-prd-details product)))
+
 
 
 (defun get-products (tenant-id)
-  (clsql:select 'dod-prd-master  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
+  (clsql:select 'dod-prd-master  :where 
+		[and 
+		[= [:deleted-state] "N"] 
+		[= [:active-flag] "Y"] 
+		[= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
 
 (defun select-products-by-company (company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
  (clsql:select 'dod-prd-master  :where
-		[and [= [:deleted-state] "N"]
+		[and 
+		[= [:active-flag] "Y"] 
+		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]]
      :caching *dod-database-caching* :flatp t )))
 
@@ -17,10 +34,11 @@
     (let ((tenant-id (slot-value company-instance 'row-id))
 	     (vendor-id (slot-value vendor 'row-id)))
  (clsql:select 'dod-prd-master  :where
-		[and [= [:deleted-state] "N"]
-     [= [:tenant-id] tenant-id]
-     [=[:vendor-id] vendor-id]]
-     :caching *dod-database-caching* :flatp t )))
+		[and 
+		[= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[=[:vendor-id] vendor-id]]
+		:caching *dod-database-caching* :flatp t )))
 
 
 
@@ -36,7 +54,8 @@
 (defun select-product-by-id (id company-instance ) 
   (let ((tenant-id (slot-value company-instance 'row-id)))
  (car (clsql:select 'dod-prd-master  :where
-		[and [= [:deleted-state] "N"]
+		[and 
+		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
 		[=[:row-id] id]]    :caching *dod-database-caching* :flatp t ))))
 
@@ -47,6 +66,7 @@
       (let ((tenant-id (slot-value company-instance 'row-id)))
    (clsql:select 'dod-prd-master :where [and
 		[= [:deleted-state] "N"]
+		[= [:active-flag] "Y"] 
 		[= [:tenant-id] tenant-id]
 		[like  [:catg-id] catg-id]]
 		:caching *dod-database-caching* :flatp t)))
@@ -56,6 +76,7 @@
       (let ((tenant-id (slot-value company-instance 'row-id)))
   (car (clsql:select 'dod-prd-master :where [and
 		[= [:deleted-state] "N"]
+		[= [:active-flag] "Y"] 
 		[= [:tenant-id] tenant-id]
 		[like  [:prd-name] name-like-clause]]
 		:caching *dod-database-caching* :flatp t))))
@@ -65,6 +86,7 @@
   (let ((tenant-id (slot-value company-instance 'row-id)))
 	(clsql:select 'dod-prd-master :where [and
 		      [= [:deleted-state] "N"]
+		      [= [:active-flag] "Y"] 
 		      [= [:tenant-id] tenant-id] 
 		      [like [:prd-name] (format NIL "%~a%" search-string)]]
 		      :caching *dod-database-caching* :flatp t)))
@@ -109,6 +131,7 @@
 					 :prd-image-path img-file-path
 					 :subscribe-flag subscribe-flag
 				    :tenant-id tenant-id
+				    :active-flag "N"
 				    :deleted-state "N")))
  
 
@@ -134,12 +157,18 @@
 
 
 (defun get-prod-cat (tenant-id)
-  (clsql:select 'dod-prd-catg  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching nil :flatp t ))
+  (clsql:select 'dod-prd-catg  :where 
+		[and 
+		[= [:deleted-state] "N"] 
+		[= [:active-flag] "Y"] 
+		[= [:tenant-id] tenant-id]]    :caching nil :flatp t ))
 
 (defun select-prdcatg-by-company (company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
  (clsql:select 'dod-prd-catg  :where
-		[and [= [:deleted-state] "N"]
+		[and 
+		[= [:deleted-state] "N"]
+		[= [:active-flag] "Y"] 
 		[= [:tenant-id] tenant-id]]
      :caching nil :flatp t )))
 
@@ -156,6 +185,7 @@
   (let ((tenant-id (slot-value company-instance 'row-id)))
  (car (clsql:select 'dod-prd-catg  :where
 		[and [= [:deleted-state] "N"]
+		[= [:active-flag] "Y"] 
 		[= [:tenant-id] tenant-id]
 		[=[:row-id] id]]    :caching *dod-database-caching* :flatp t ))))
 
@@ -165,6 +195,7 @@
       (let ((tenant-id (slot-value company-instance 'row-id)))
   (car (clsql:select 'dod-prd-catg :where [and
 		[= [:deleted-state] "N"]
+		[= [:active-flag] "Y"] 
 		[= [:tenant-id] tenant-id]
 		[like  [:catg-name] name-like-clause]]
 		:caching *dod-database-caching* :flatp t))))
