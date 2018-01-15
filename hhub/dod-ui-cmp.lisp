@@ -23,7 +23,10 @@
 	(cl-who:with-html-output (*standard-output* nil)
 	  (:div :class "row" 
 		(:div :class "col-xs-12" :align "right"
-		      (:a :href (format nil "/hhub/editcompany?id=~A" row-id) (:span :class "glyphicon glyphicon-pencil")))) 
+		      (:a  :data-toggle "modal" :data-target (format nil "#editcompany-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
+		       ;(:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group")
+		     (modal-dialog (format nil "editcompany-modal~a" row-id) "Add/Edit Group" (new-company-html row-id))
+		      )) 
 	  (:div :class "row"
 		(:div :class "col-xs-12"  (:h3 (str comp-name))))
 	  (:div :class "row"

@@ -64,6 +64,9 @@
   :type (string 100)
     :initarg :name)
  
+ (trans-func
+  :type (string 100)
+    :initarg :trans-func)
 
  (auth-policy-id
   :type integer

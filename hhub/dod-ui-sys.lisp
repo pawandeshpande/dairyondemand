@@ -7,6 +7,8 @@
 
 
 
+
+
 (defun display-as-tiles (data displayfunc) 
 :documentation "This is a generic function which will display items in list as tiles. You need to pass the list data, and a display function which will display 
 individual tiles. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizingrefer to style.css. " 
@@ -29,6 +31,19 @@ individual tiles. It also supports search functionality by including the searchr
        do (setf (gethash key ht) value)
        finally (return ht))))
 
+
+(defmacro modal-dialog (id title &rest body )
+:documentation "This macro returns the html text for generating a modal dialog using bootstrap."
+`(cl-who:with-html-output (*standard-output* nil)
+ (:div :class "modal fade" :id ,id :role "dialog"
+       (:div :class "modal-dialog" 
+	     (:div :class "modal-content" 
+		   (:div :class "modal-header" 
+			 (:button :type "button" :class "close" :data-dismiss "modal") 
+			 (:h4 :class "modal-title" ,title))
+		   (:div :class "modal-body" ,@body)
+		   (:div :class "modal-footer" 
+			 (:button :type "button" :class "btn btn-default" :data-dismiss "modal" "Close")))))))
 
 
 
@@ -160,22 +175,90 @@ individual tiles. It also supports search functionality by including the searchr
 	      (start-das) 
 	      (standard-page (:title "Restart Highrisehub.com")
 		(:h3 "DB Reset successful"))))))
+
+
+
+(defun company-search-html ()
+(cl-who:with-html-output (*standard-output* nil)
+	(:div :class "row"
+	      (:div :id "custom-search-input"
+		    (:div :class "input-group col-xs-12 col-sm-6 col-md-6 col-lg-6"
+			  (:form :id "theForm" :action "dodsyssearchtenantaction" :OnSubmit "return false;" 
+				 (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Search for an Apartment/Group"))
+			  (:span :class "input-group-btn" (:<button :class "btn btn-danger" :type "button" 
+								(:span :class " glyphicon glyphicon-search"))))))))
+	     
+
+
+
 	
+(defun new-company-html (&optional id)
+  (let* ((company (if id (select-company-by-id id)))
+	 (cmpname (if company (slot-value company 'name)))
+	 (cmpaddress (if company(slot-value company 'address)))
+	 (cmpcity (if company (slot-value company 'city)))
+	 (cmpstate (if company (slot-value company 'state))) 
+	 (transaction (select-bus-trans-by-trans-func "new-company-html"))
+	 (cmpzipcode (if company (slot-value company 'zipcode))))
+
+    (if (has-permission transaction)
+
+(cl-who:with-html-output (*standard-output* nil)
+   (:div :class "row" 
+	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+	       (:form :class "form-addcompany" :role "form" :method "POST" :action "company-added" 
+		      (if company (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+		      (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+			    (:h1 :class "text-center login-title"  "Add/Edit Group")
+			    (:div :class "form-group"
+				  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
+			    (:div :class "form-group"
+				  (:label :for "cmpaddress")
+				  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
+			    (:div :class "form-group" :id "charcount")
+			    (:div :class "form-group"
+				   (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
+			    (:div :class "form-group"
+				   (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
+			    (:div :class "form-group"
+				   (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
+			    (:div :class "form-group"
+				  (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
+			    
+			    (:div :class "form-group"
+				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
+(cl-who:with-html-output (*standard-output* nil)
+  (:div :class "row" 
+	(:h3 "Permission Denied"))))))
+
+      
+(defun dod-controller-company-search-for-sys-action ()
+  (let*  ((qrystr (hunchentoot:parameter "livesearch"))
+	(company-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr))))
+     (display-as-tiles company-list 'company-card )))
+
+
 
 (defun dod-controller-index () 
   (if (is-dod-session-valid?)
    (let (( companies (list-dod-companies)))
       (standard-page (:title "Welcome to Dairy Ondemand")
+	(:div :class "container"
 	(:div :id "row"
 	      (:div :id "col-xs-6" 
 	(:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+	  (company-search-html)
 	(:div :id "row"
 	      (:div :id "col-xs-6"
-		    (:a :class "btn btn-primary" :role "button" :href "new-company" (:span :class "glyphicon glyphicon-shopping-plus") " Add New Group  "))
+		  ;  (:a :class "btn btn-primary" :role "button" :href "new-company" :data-toggle "modal" :data-target "#editcompany-modal" (:span :class "glyphicon glyphicon-shopping-plus") " Add New Group  ")
+	       (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group"))
 	      (:div :id "col-xs-6" :align "right" 
 		    (:span :class "badge" (str (format nil "~A" (length companies))))))
 	(:hr)
-	(str (display-as-tiles companies 'company-card ))))
+	(modal-dialog "editcompany-modal" "Add/Edit Group" (new-company-html))
+       
+	(str (display-as-tiles companies 'company-card )))))
+      
 (hunchentoot:redirect "/hhub/opr-login.html")))
   
 (setq *logged-in-users* (make-hash-table :test 'equal))
@@ -309,7 +392,6 @@ individual tiles. It also supports search functionality by including the searchr
 	     (cmpstate (if company (slot-value company 'state))) 
 	     (cmpzipcode (if company (slot-value company 'zipcode))))
 
-
     (standard-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
       (:div :class "row" 
 	 (:div :class "col-sm-6 col-md-4 col-md-offset-4"
@@ -405,6 +487,7 @@ individual tiles. It also supports search functionality by including the searchr
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-attributes" 'dod-controller-list-attrs)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbreset.html" 'dod-controller-dbreset-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbresetaction" 'dod-controller-dbreset-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodsyssearchtenantaction" 'dod-controller-company-search-for-sys-action)
 	
 	
 	;************CUSTOMER LOGIN RELATED ********************

@@ -3,6 +3,9 @@
 
 ;;; Add a new attribute. 
 
+(defun DOD-POL-SA-CREATE-COMPANY ()
+  (if (equal (get-login-user-name) "superadmin") T NIL)) 
+
 
 (defun dod-controller-add-ui-policy ()
     (if (is-dod-session-valid?)

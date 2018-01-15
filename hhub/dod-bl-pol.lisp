@@ -76,6 +76,12 @@
 (defun get-auth-policies (tenant-id)
   (clsql:select 'dod-auth-policy  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
 
+(defun select-auth-policy-by-id (id)
+ (car  (clsql:select 'dod-auth-policy :where 
+		[and [= [:deleted-state] "N"]
+		[= [:row-id] id]]
+		     :caching *dod-database-caching* :flatp t )))
+
 (defun select-auth-policy-by-company (company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
  (clsql:select 'dod-auth-policy  :where

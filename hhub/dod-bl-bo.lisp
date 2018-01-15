@@ -37,6 +37,13 @@
 (defun get-bus-transaction (tenant-id)
   (clsql:select 'dod-bus-transaction  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
 
+(defun select-bus-trans-by-trans-func (name)
+  (car (clsql:select 'dod-bus-transaction  :where
+		[and [= [:deleted-state] "N"]
+		[= [:trans-func] name]]
+     :caching *dod-database-caching* :flatp t )))
+
+
 (defun select-bus-trans-by-company (company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
  (clsql:select 'dod-bus-transaction  :where
@@ -98,3 +105,10 @@
 	(bo-id (slot-value bus-object 'row-id)))
     	      (persist-bus-transaction name description uri auth-policy-id bo-id trans-type  tenant-id)))
 
+
+
+(defun has-permission (transaction)
+  (let* ((policy-id (slot-value transaction 'auth-policy-id))
+	(policy (select-auth-policy-by-id policy-id))
+	(policy-func (slot-value policy 'policy-func)))
+     (funcall (intern  (string-upcase policy-func)))))
