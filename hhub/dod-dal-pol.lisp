@@ -27,6 +27,16 @@
     :type (string 50)
     :initarg :attr-type)
 
+     (deleted-state
+    :type (string 1)
+    :void-value "N"
+    :initarg :deleted-state)
+
+        (active-flg
+    :type (string 1)
+    :void-value "Y"
+    :initarg :active-flg)
+
    
 
  (created-by
@@ -52,17 +62,6 @@
                           :FOREIGN-KEY row-id
                           :SET NIL)))
 
-     (deleted-state
-    :type (string 1)
-    :void-value "N"
-    :initarg :deleted-state)
-
-        (active-flg
-    :type (string 1)
-    :void-value "Y"
-    :initarg :active-flg)
-
-
 
    (:base-table dod_auth_attr_lookup))
 
@@ -83,6 +82,19 @@
    (policy-func
     :type (string 255)
     :initarg :policy-func)
+
+
+
+        (deleted-state
+    :type (string 1)
+    :void-value "N"
+    :initarg :deleted-state)
+
+        (active-flg
+    :type (string 1)
+    :void-value "Y"
+    :initarg :active-flg)
+
 
 
  (created-by
@@ -107,16 +119,6 @@
 	                  :HOME-KEY tenant-id
                           :FOREIGN-KEY row-id
                           :SET NIL)))
-
-     (deleted-state
-    :type (string 1)
-    :void-value "N"
-    :initarg :deleted-state)
-
-        (active-flg
-    :type (string 1)
-    :void-value "Y"
-    :initarg :active-flg)
 
 
 

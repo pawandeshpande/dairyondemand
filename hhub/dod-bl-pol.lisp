@@ -13,6 +13,13 @@
 		[= [:tenant-id] tenant-id]]
      :caching *dod-database-caching* :flatp t )))
 
+  (defun select-auth-attr-by-id (id)
+    (car (clsql:select 'dod-auth-attr-lookup :where [and
+		[= [:deleted-state] "N"]
+		[= [:row-id] id]]
+		:caching *dod-database-caching* :flatp t)))
+
+
   (defun select-auth-attr-by-key (name-like-clause company-instance )
       (let ((tenant-id (slot-value company-instance 'row-id)))
   (car (clsql:select 'dod-auth-attr-lookup :where [and
@@ -73,8 +80,8 @@
 ;;;;;;;;;;;;;;;;;;;;; business logic for dod-auth-policy ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defun get-auth-policies (tenant-id)
-  (clsql:select 'dod-auth-policy  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
+(defun get-auth-policy (id)
+  (car (clsql:select 'dod-auth-policy  :where [and [= [:deleted-state] "N"] [= [:row-id] id]]    :caching *dod-database-caching* :flatp t )))
 
 (defun select-auth-policy-by-id (id)
  (car  (clsql:select 'dod-auth-policy :where 

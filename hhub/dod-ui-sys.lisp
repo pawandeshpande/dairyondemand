@@ -61,7 +61,7 @@ individual tiles. It also supports search functionality by including the searchr
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/dodindex"  (:span :class "glyphicon glyphicon-home")  " Home"))
-			 (:li  (:a :href "/hhub/abacsecurity" "ABAC Security"))
+			 (:li  (:a :href "/hhub/dasabacsecurity" "ABAC Security"))
 			 (:li  (:a :href "/hhub/adminsettings" "Admin Settings"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     
@@ -237,12 +237,19 @@ individual tiles. It also supports search functionality by including the searchr
 	(company-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr))))
      (display-as-tiles company-list 'company-card )))
 
-
+(defun dod-controller-abac-security ()
+  (if (is-dod-session-valid?) 
+      (standard-page (:title "Welcome to Highrisehub")
+	(:div :class "row" 
+	      (:div :class "col-xs-6" 
+		    (:a :class "btn btn-primary" :role "button" :href "/hhub/list-attributes"  " Attributes  ")
+		    (:a :class "btn btn-primary" :role "button" :href "/hhub/list-transactions"  " Transactions  "))))
+(hunchentoot:redirect "/hhub/opr-login.html")))
 
 (defun dod-controller-index () 
   (if (is-dod-session-valid?)
    (let (( companies (list-dod-companies)))
-      (standard-page (:title "Welcome to Dairy Ondemand")
+      (standard-page (:title "Welcome to Highrisehub.")
 	(:div :class "container"
 	(:div :id "row"
 	      (:div :id "col-xs-6" 
@@ -267,16 +274,17 @@ individual tiles. It also supports search functionality by including the searchr
 (defun dod-controller-list-attrs ()
 :documentation "This function lists the attributes used in policy making"
     (if (is-dod-session-valid?)
-	(standard-page (:title "attributes ...")
-    (let* ((company (hunchentoot:session-value :login-company))
-      (lstattrcart (hunchentoot:session-value :login-attribute-cart))
-      (lstattributes (select-auth-attrs-by-company company)))
-
-(htm (:div :class "row"
-	   (:div :class "col-md-12" :align "right"
-		 (:a :class "btn btn-primary" :role "button" :href "/hhub/dodattrcart" (:span :class "glyphicon glyphicon-shopping-cart") " Attributes  " (:span :class "badge" (str (format nil " ~A " (length lstattrcart))) ))))
-		    (:hr))		       
-(ui-list-attributes lstattributes lstattrcart)))
+	(let* ((company (hunchentoot:session-value :login-company))
+	      
+	       (lstattributes (select-auth-attrs-by-company company)))
+(standard-page (:title "attributes ...")
+  (:div :class "row"
+	(:div :class "col-md-12" 
+	      (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addattribute-modal" "Add New Attribute")))
+  (:hr)		       
+  (str (display-as-tiles lstattributes 'attribute-card))
+;  (ui-list-attributes lstattributes)
+(modal-dialog "addattribute-modal" "Add/Edit Attribute" (new-attribute-html))))
 (hunchentoot:redirect "/hhub/opr-login.html")))
 
     
@@ -458,7 +466,9 @@ individual tiles. It also supports search functionality by including the searchr
 (setq hunchentoot:*dispatch-table*
     (list
 	;***************** OPERATOR RELATED ********************
+     
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodindex" 'dod-controller-index)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dasabacsecurity" 'dod-controller-abac-security)
 	(hunchentoot:create-regex-dispatcher "^/hhub/company-added" 'dod-controller-company-added)
 	(hunchentoot:create-regex-dispatcher "^/hhub/new-company" 'dod-controller-new-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/editcompany" 'dod-controller-new-company)

@@ -131,7 +131,7 @@
 					 :prd-image-path img-file-path
 					 :subscribe-flag subscribe-flag
 				    :tenant-id tenant-id
-				    :active-flag "N"
+				    :active-flag "Y"
 				    :deleted-state "N")))
  
 

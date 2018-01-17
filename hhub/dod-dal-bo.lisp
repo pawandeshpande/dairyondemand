@@ -9,6 +9,18 @@
   (name
     :type (string 50)
     :initarg :name)
+
+     (deleted-state
+    :type (string 1)
+    :void-value "N"
+    :initarg :deleted-state)
+
+        (active-flg
+    :type (string 1)
+    :void-value "Y"
+    :initarg :active-flg)
+
+
    
  (created-by
     :TYPE INTEGER
@@ -33,16 +45,6 @@
                           :FOREIGN-KEY row-id
                           :SET NIL)))
 
-     (deleted-state
-    :type (string 1)
-    :void-value "N"
-    :initarg :deleted-state)
-
-        (active-flg
-    :type (string 1)
-    :void-value "Y"
-    :initarg :active-flg)
-
 
 
    (:base-table dod_bus_object))
@@ -62,7 +64,7 @@
  
  (uri
   :type (string 100)
-    :initarg :name)
+    :initarg :uri)
  
  (trans-func
   :type (string 100)
@@ -94,6 +96,18 @@
 (trans-type
  :type (string 15)
  :initarg :trans-type)
+
+
+     (deleted-state
+    :type (string 1)
+    :void-value "N"
+    :initarg :deleted-state)
+
+        (active-flg
+    :type (string 1)
+    :void-value "Y"
+    :initarg :active-flg)
+
   
  (created-by
     :TYPE INTEGER
@@ -117,16 +131,6 @@
 	                  :HOME-KEY tenant-id
                           :FOREIGN-KEY row-id
                           :SET NIL)))
-
-     (deleted-state
-    :type (string 1)
-    :void-value "N"
-    :initarg :deleted-state)
-
-        (active-flg
-    :type (string 1)
-    :void-value "Y"
-    :initarg :active-flg)
 
 
 

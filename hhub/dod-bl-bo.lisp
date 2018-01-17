@@ -4,8 +4,8 @@
 ;;;;;;;;;;;;;;;;;;;;; business logic for dod-bus-object ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defun get-bus-object (tenant-id)
-  (clsql:select 'dod-bus-object  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
+(defun get-bus-object (id)
+  (car (clsql:select 'dod-bus-object  :where [and [= [:deleted-state] "N"] [= [:row-id] id]]    :caching *dod-database-caching* :flatp t )))
 
 (defun select-bus-object-by-company (company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
@@ -34,8 +34,8 @@
 
 ;;;;;;;;;;;;;;;;; Functions for dod-bus-transaction ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun get-bus-transaction (tenant-id)
-  (clsql:select 'dod-bus-transaction  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
+(defun get-bus-transaction (id)
+ (car  (clsql:select 'dod-bus-transaction  :where [and [= [:deleted-state] "N"] [= [:row-id] id]]    :caching *dod-database-caching* :flatp t )))
 
 (defun select-bus-trans-by-trans-func (name)
   (car (clsql:select 'dod-bus-transaction  :where
@@ -61,8 +61,6 @@
 
 
 
-(defun update-auth-attr-lookup (instance); This function has side effect of modifying the database record.
-  (clsql:update-records-from-instance instance))
 
 (defun delete-bus-transaction( id company-instance)
     (let ((tenant-id (slot-value company-instance 'row-id)))
@@ -85,7 +83,7 @@
     (setf (slot-value object 'deleted-state) "N")
     (clsql:update-record-from-slot object 'deleted-state))) list )))
 
-(defun persist-bus-transaction(name description uri auth-policy-id bo-id trans-type tenant-id )
+(defun persist-bus-transaction(name description uri auth-policy-id bo-id trans-type trans-func tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-bus-transaction
 						    :name name
 						    :description description
@@ -94,16 +92,17 @@
 						    :bo-id bo-id 
 						    :trans-type trans-type
 						     :active-flg "Y" 
+						     :trans-func trans-func
 						    :tenant-id tenant-id
 						    :deleted-state "N")))
  
 
 
-(defun create-bus-transaction (name description uri auth-policy bus-object trans-type company-instance)
+(defun create-bus-transaction (name description uri auth-policy bus-object trans-type trans-func company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id))
-	(auth-policy-id (slot-value auth-policy 'row-id))
-	(bo-id (slot-value bus-object 'row-id)))
-    	      (persist-bus-transaction name description uri auth-policy-id bo-id trans-type  tenant-id)))
+	(auth-policy-id (if auth-policy (slot-value auth-policy 'row-id)))
+	(bo-id (if bus-object (slot-value bus-object 'row-id))))
+    	      (persist-bus-transaction name description uri auth-policy-id bo-id trans-type trans-func  tenant-id)))
 
 
 
