@@ -150,26 +150,16 @@
 	      (concatenate 'string (slot-value (get-odt-product odt-ins) 'prd-name) ",")) odt)))
 
 
-
-
-
-(defun ui-list-vendor-orders-tiles (data)
-    (cl-who:with-html-output (*standard-output* nil)
-     (:div :class "row-fluid"	 (if data (mapcar (lambda (order)
-						      (htm  (:div :class "col-sm-6 col-xs-6 col-md-4 col-lg-3" 
-							       (:div :class "order-box"   (vendor-order-card order )))))
-					      data)))))
-
-
 (defun vendor-order-card (order-instance)
     (let* ((id (slot-value order-instance 'cust-id))
 	   (customer (select-customer-by-id id (get-login-vendor-company)))
 	  (order-id (slot-value order-instance 'order-id))
-	  (name (slot-value customer 'name))
-	  (address (slot-value customer 'address)))
+	  (name (if customer (slot-value customer 'name)))
+	  (address (if customer (slot-value customer 'address))))
 	(cl-who:with-html-output (*standard-output* nil)
-		(:div :class "row"
+	  (:div :class "order-box" 
+	  (:div :class "row"
 		      (:div :class "col-sm-12" (str name ))
 		      (:div :class "col-sm-12" (str (if (> (length address) 20)  (subseq (slot-value customer 'address) 0 20) address)))
-		(:div :class "col-sm-12"  (:a :href (format nil "dodvendororderdetails?id=~A" order-id) (:span :class "label label-info" (str order-id) )))))))
+		(:div :class "col-sm-12"  (:a :href (format nil "dodvendororderdetails?id=~A" order-id) (:span :class "label label-info" (str order-id) ))))))))
 

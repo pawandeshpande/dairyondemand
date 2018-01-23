@@ -184,9 +184,12 @@
 		(:div :class "row"
 			
 			  (if (equal subscribe-flag "Y") (htm 
-							(:form :class "form-subscribe" :method "POST" :action "dodprodsubscribe"
-							       (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
-							(:div :class "col-xs-6"  (:button :data-toggle "tooltip" :title "Subscribe"  :class "btn btn-sm btn-primary" :name "btnsubscribe" :type "submit" (:span :class "glyphicon glyphicon glyphicon-hand-up") " Subscribe")))))
+							;(:form :class "form-subscribe" :method "POST" :action "dodprodsubscribe"
+							 ;     (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
+							(:div :class "col-xs-6"  
+							      (:button :data-toggle "modal" :data-target (format nil "#productsubscribe-modal~A" prd-id)  :href "#"   :class "btn btn-sm btn-primary" :name "btnsubscribe"  (:span :class "glyphicon glyphicon glyphicon-hand-up") " Subscribe"))
+							(modal-dialog (format nil "productsubscribe-modal~A" prd-id) "Subscribe Product/Service" (product-subscribe-html prd-id))
+							))
 
 			  (if  prdincart-p (htm   (:div :class "col-xs-6"  (:a :class "btn btn-sm btn-success" :role "button"  :onclick "return false;" :href (format nil "javascript:void(0);") (:span :class "glyphicon glyphicon-ok"  ))))
 			 ;else 

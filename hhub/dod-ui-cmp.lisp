@@ -21,6 +21,7 @@
 
 	   
 	(cl-who:with-html-output (*standard-output* nil)
+	 (:div :class "product-box" 
 	  (:div :class "row" 
 		(:div :class "col-xs-12" :align "right"
 		      (:a  :data-toggle "modal" :data-target (format nil "#editcompany-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
@@ -42,7 +43,7 @@
 		(:div :class "col-xs-6" (:b (:h5 (str (format nil "No of Customers: ~A " (count-company-customers instance)))))))
 	  (:div :class "row" 
 		(:div :class "col-xs-6" (:b (:h5 (str (format nil  "No of Vendors: ~A " (count-company-vendors instance )))))))
-	  )))
+	  ))))
 
 
 (defun dod-controller-list-companies ()

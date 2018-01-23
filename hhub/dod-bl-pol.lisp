@@ -59,12 +59,12 @@
     (setf (slot-value dodauthattr 'deleted-state) "N")
     (clsql:update-record-from-slot dodauthattr 'deleted-state))) list )))
 
-(defun persist-auth-attr-lookup(name description attr-func attr-unique-func attr-type tenant-id )
- (clsql:update-records-from-instance (make-instance 'dod-auth-policy-attr
+(defun persist-auth-attr-lookup(name description attr-func attr-type tenant-id )
+ (clsql:update-records-from-instance (make-instance 'dod-auth-attr-lookup
 						    :name name
 						    :description description
 						    :attr-func attr-func
-						    :attr-unique-func attr-unique-func 
+						    ;:attr-unique-func attr-unique-func 
 						    :attr-type attr-type 
 						    :active-flg "Y" 
 						    :tenant-id tenant-id
@@ -72,16 +72,16 @@
  
 
 
-(defun create-auth-attr-lookup (name description attr-func attr-unique-func attr-type company-instance)
+(defun create-auth-attr-lookup (name description attr-func  attr-type company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id))) 
-	      (persist-auth-attr-lookup name description attr-func attr-unique-func attr-type tenant-id)))
+	      (persist-auth-attr-lookup name description attr-func attr-type tenant-id)))
 
 
 ;;;;;;;;;;;;;;;;;;;;; business logic for dod-auth-policy ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defun get-auth-policy (id)
-  (car (clsql:select 'dod-auth-policy  :where [and [= [:deleted-state] "N"] [= [:row-id] id]]    :caching *dod-database-caching* :flatp t )))
+(defun get-auth-policies (tenant-id)
+  (clsql:select 'dod-auth-policy  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
 
 (defun select-auth-policy-by-id (id)
  (car  (clsql:select 'dod-auth-policy :where 

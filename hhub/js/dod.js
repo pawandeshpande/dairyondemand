@@ -30,6 +30,20 @@ var spinner = new Spinner(opts).spin();
 
 $busyindicator.appendChild(spinner.el);
 
+$(document).ready (function(){
+    $('.up').on('click',function(){
+	$('.input-quantity').val(parseInt($('.input-quantity').val())+1);
+    });
+});
+
+$(document).ready (function(){
+    $('.down').on('click',function(){
+	$('.input-quantity').val(parseInt($('.input-quantity').val())-1);
+    }); 
+});
+
+
+
 
 $(document).ready(function () {
     $.ajaxSetup({
@@ -144,23 +158,6 @@ $(".form-shopcart").on('submit', function (e) {
       });
       e.preventDefault();});	
 	
-
-$(".form-oprefadd").on('submit', function (e) {
-var theForm = $(this); 
-if ($('input:text').val().length == 0) {
-      $(this).parents('p').addClass('warning');
-    $error.show();
-    return false; 
-  
-}
-else
-{
-$error.hide();
-return true;}
-
-});
-
-
 
 
 $(document).ready(function () {

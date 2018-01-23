@@ -574,6 +574,47 @@
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
 
+(defun product-subscribe-html (prd-id) 
+  (let* ((productlist (hunchentoot:session-value :login-prd-cache))
+	 (product (search-prd-in-list prd-id  productlist))
+	 (prd-image-path (slot-value product 'prd-image-path))
+	 (prd-name (slot-value product 'prd-name)))
+    
+ (cl-who:with-html-output (*standard-output* nil)
+   (:div :class "row account-wall" 
+	 (:div :class "col-sm-12  col-xs-12 col-md-12 col-lg-12"
+	       (:div :class "row" 
+		     (:div  :align "center" :class "col-xs-12" 
+			     (:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) 
+				 (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " "))))
+			(:form :class "form-oprefadd" :role "form" :method "POST" :action "dodcustaddopfaction"
+			    (:div :class "form-group row"  (:label :for "product-id" (str (format nil  " ~a" (slot-value product 'prd-name))) ))
+			         (:input :type "hidden" :name "product-id" :value (format nil "~a" (slot-value product 'row-id)))
+				 ; (products-dropdown "product-id"  (hunchentoot:session-value :login-prd-cache)))
+				 (:div :class "inputQty row" 
+				 (:div :class "col-xs-2"
+				  (:a :class "down btn btn-info" :href "#" (:span :class "glyphicon glyphicon-minus" ""))) 
+				  (:div :class "form-group col-xs-2" 
+				(:input :class "form-control" :class "input-quantity" :name "prdqty" :placeholder "Enter a number" :readonly "true" :value "1" :min "1" :max "99"  :type "number"))
+				  (:div :class "col-xs-2"
+				  (:a :class "up btn btn-info" :href "#" (:span :class "glyphicon glyphicon-plus" ""))))
+			    (:div :class "form-group row" 
+			    (:label :class "checkbox-inline"  (:input :type "checkbox" :name "subs-sun"  :value "Sunday" :checked "" "Sunday" ))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-mon" :value "Monday" :checked "" "Monday"))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-tue" :value "Tuesday" :checked "" "Tuesday")))
+			    (:div :class "form-group row" 
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-wed" :value "Wednesday" :checked "" "Wednesday"))
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-thu" :value "Thursday" :checked "" "Thursday"))
+				(:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-fri" :value "Friday" :checked "" "Friday")))
+			    (:div :class "form-group row" 
+			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-sat" :value "Saturday" :checked "" "Saturday")))
+			    
+			    (:div :class "form-group" 
+			    (:input :type "submit"  :class "btn btn-primary" :value "Add"))
+			    ))))))
+
+
+
 
 (defun dod-controller-cust-add-order-page ()
     (if (is-dod-cust-session-valid?)
@@ -718,17 +759,15 @@
 	       (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
 	       (shipaddr (hunchentoot:parameter "shipaddress")))
 	  
-	  (progn 
-	    
-	    (if  (equal payment-mode "PRE")
+	  (if  (equal payment-mode "PRE")
 		      ; at least one vendor wallet has low balance 
-		      (if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
+	       (if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
 							(check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalance")))
 		;(if (equal payment-mode "COD")  
-	    (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
-	    (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
-	    (setf (hunchentoot:session-value :login-shopping-cart ) nil)
-	    (hunchentoot:redirect "/hhub/dodcustordsuccess")))
+	  (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
+	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
+	  (setf (hunchentoot:session-value :login-shopping-cart ) nil)
+	  (hunchentoot:redirect "/hhub/dodcustordsuccess"))
 	 (hunchentoot:redirect "/hhub/customer-login.html")))
 
 

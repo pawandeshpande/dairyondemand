@@ -6,9 +6,6 @@
 (defvar *current-user-session* nil)
 
 
-
-
-
 (defun display-as-tiles (data displayfunc) 
 :documentation "This is a generic function which will display items in list as tiles. You need to pass the list data, and a display function which will display 
 individual tiles. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizingrefer to style.css. " 
@@ -17,7 +14,7 @@ individual tiles. It also supports search functionality by including the searchr
     (:div :id "searchresult" 
     (:div :class "row-fluid"  (mapcar (lambda (item)
 					(htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
-						   (:div :class "product-box"   (funcall displayfunc item)))))  data)))))
+						    (funcall displayfunc item))))  data)))))
 
 
 (defun copy-hash-table (hash-table)
@@ -71,14 +68,10 @@ individual tiles. It also supports search functionality by including the searchr
 
 
 
-(defmacro standard-page-handler ( &rest body)
-  (if (is-dod-session-valid?)
-      `(,@body)
-      (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
-(defmacro standard-page ((&key title) &body body)
-   `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+(defmacro standard-page ( (&key title) &body body)
+  `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
 	 (:html :xmlns "http://www.w3.org/1999/xhtml"
 	     :xml\:lang "en" 
 	     :lang "en"
@@ -112,6 +105,11 @@ individual tiles. It also supports search functionality by including the searchr
 		 ;; bootstrap core javascript
 		 (:script :src "js/bootstrap.min.js")
 		 (:script :src "js/dod.js"))))))
+   
+
+
+
+
 
 
 
@@ -239,12 +237,16 @@ individual tiles. It also supports search functionality by including the searchr
 
 (defun dod-controller-abac-security ()
   (if (is-dod-session-valid?) 
+      (let ((policies (get-auth-policies (get-login-tenant-id))))
       (standard-page (:title "Welcome to Highrisehub")
 	(:div :class "row" 
 	      (:div :class "col-xs-6" 
 		    (:a :class "btn btn-primary" :role "button" :href "/hhub/list-attributes"  " Attributes  ")
-		    (:a :class "btn btn-primary" :role "button" :href "/hhub/list-transactions"  " Transactions  "))))
+		    (:a :class "btn btn-primary" :role "button" :href "/hhub/list-transactions"  " Transactions  ")))
+	(:hr)
+	(str (display-as-tiles policies 'policy-card))))
 (hunchentoot:redirect "/hhub/opr-login.html")))
+
 
 (defun dod-controller-index () 
   (if (is-dod-session-valid?)
@@ -291,19 +293,29 @@ individual tiles. It also supports search functionality by including the searchr
 
 
 (defun dod-controller-loginpage ()
-  (standard-page (:title "Welcome to Dairy ondemand")
-    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
-	  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
-		(:div :class "account-wall"
-		      (:h1 :class "text-center login-title"  "Login to Dairy Ondemand")
-		      (:form :class "form-signin" :role "form" :method "POST" :action "dodlogin"
-			     (:div :class "form-group"
-				   (:input :class "form-control" :name "company" :placeholder "Company Name"  :type "text"))
-			     (:div :class "form-group"
-				   (:input :class "form-control" :name "username" :placeholder "User name" :type "text"))
-			     (:div :class "form-group"
-				   (:input :class "form-control" :name "password"  :placeholder "Password" :type "password"))
-			     (:input :type "submit"  :class "btn btn-primary" :value "Login      ")))))))
+  (handler-case 
+      (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
+	      (if (is-dod-session-valid?)
+		  (hunchentoot:redirect "/hhub/dodindex")
+		  ;else
+		  (standard-page (:title "Welcome to Dairy ondemand")
+		    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
+			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
+				(:div :class "account-wall"
+				      (:h1 :class "text-center login-title"  "Login to Dairy Ondemand")
+				      (:form :class "form-signin" :role "form" :method "POST" :action "dodlogin"
+					     (:div :class "form-group"
+						   (:input :class "form-control" :name "company" :placeholder "Company Name"  :type "text"))
+					     (:div :class "form-group"
+						   (:input :class "form-control" :name "username" :placeholder "User name" :type "text"))
+					     (:div :class "form-group"
+						   (:input :class "form-control" :name "password"  :placeholder "Password" :type "password"))
+					     (:input :type "submit"  :class "btn btn-primary" :value "Login      "))))))))
+	      (clsql:sql-database-data-error (condition)
+					     (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
+												      (stop-das) 
+												      (start-das)
+												      (hunchentoot:redirect "/hhub/opr-login.html"))))))
 
 
 
@@ -498,7 +510,8 @@ individual tiles. It also supports search functionality by including the searchr
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbreset.html" 'dod-controller-dbreset-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbresetaction" 'dod-controller-dbreset-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodsyssearchtenantaction" 'dod-controller-company-search-for-sys-action)
-	
+	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddattribute" 'dod-controller-add-attribute)
+		
 	
 	;************CUSTOMER LOGIN RELATED ********************
 	(hunchentoot:create-regex-dispatcher  "^/hhub/customer-login.html" 'dod-controller-customer-loginpage)

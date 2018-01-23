@@ -174,9 +174,8 @@
 					    
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "qtyperunit" :placeholder "Quantity per unit. Ex - KG, Grams, Nos" :type "text" ))
-					     (:div  :class "form-group" (:label :for "prodcatg" "Select Produt Category:" ))
-					     (hunchentoot:log-message* :info (format nil  "inside add product page ")
-								       (ui-list-prod-catg-dropdown "prodcatg" catglist))
+					     (:div  :class "form-group" (:label :for "prodcatg" "Select Produt Category:" )
+					     (ui-list-prod-catg-dropdown "prodcatg" catglist))
 					     (:br) 
 					     (:div :class "form-group" (:label :for "yesno" "Product/Service Subscription")
 						   (ui-list-yes-no-dropdown))
@@ -603,12 +602,13 @@
 		 (progn (htm (str "Pending Orders") (:span :class "badge" (str (format nil " ~d " (length dodorders))))
 			     (:a :class "btn btn-primary btn-xs" :role "button" :href "dodrefreshpendingorders" (:span :class "glyphicon glyphicon-refresh"))
 			     (:hr))
-			(ui-list-vendor-orders-tiles dodorders)))
+			(str (display-as-tiles dodorders 'vendor-order-card))))
 		((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
 						     (progn (htm (str (format nil "Completed orders"))
 								 (:span :class "badge" (str (format nil " ~d " (length orders)))) 
 								 (:hr))
-							(ui-list-vendor-orders-tiles orders))))
+							(str(display-as-tiles orders 'vendor-order-card)))))
+							    
 		(T ()) )))
 					; Else
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
