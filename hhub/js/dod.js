@@ -30,6 +30,8 @@ var spinner = new Spinner(opts).spin();
 
 $busyindicator.appendChild(spinner.el);
 
+
+
 $(document).ready (function(){
     $('.up').on('click',function(){
 	$('.input-quantity').val(parseInt($('.input-quantity').val())+1);
@@ -38,6 +40,7 @@ $(document).ready (function(){
 
 $(document).ready (function(){
     $('.down').on('click',function(){
+	if($('.input-quantity').val() == 0) return false; 
 	$('.input-quantity').val(parseInt($('.input-quantity').val())-1);
     }); 
 });

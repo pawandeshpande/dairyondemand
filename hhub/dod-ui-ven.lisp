@@ -31,7 +31,8 @@
       (:div :class  "col-xs-12 col-sm-4 col-md-4 col-lg-4"  :align "right" 
 	    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))))
       (:hr)
-      (ui-list-vendor-orders-tiles todaysorders)))
+      (str (display-as-tiles todaysorders 'vendor-order-card))))
+
 ;else
     (hunchentoot:redirect "/hhub/vendor-login.html")))
  
@@ -499,7 +500,8 @@
 (if (is-dod-vend-session-valid?)
 (let ((vendor-products-func (first (hunchentoot:session-value :login-vendor-products-functions))))
   (standard-vendor-page (:title "Welcome to Dairy Ondemand - vendor")
-    (ui-list-vendor-products (funcall vendor-products-func))))
+    (str (display-as-tiles (funcall vendor-products-func) 'product-card-for-vendor))))
+    ;(ui-list-vendor-products (funcall vendor-products-func )))
 ;else
 (hunchentoot:redirect "/hhub/vendor-login.html")))
 
@@ -695,28 +697,27 @@
 
 
 (defun dod-controller-vendor-orderdetails ()
-    (if (is-dod-vend-session-valid?)
-	(standard-vendor-page (:title "List Vendor Order Details")   
-	    (let* (( dodvenorder  (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor) (get-login-vendor-company)))
-		   (venorderfulfilled (if dodvenorder (slot-value dodvenorder 'fulfilled)))
-		   (order (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
-		   (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
-		      (odtlst (if order (dod-get-cached-order-items-by-order-id order)) )
-      		  
-		   (total   (reduce #'+  (mapcar (lambda (odt)
-			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst))))
-		(if order (display-order-header-for-vendor  order)) 
-		(if odtlst (ui-list-vend-orderdetails header odtlst) "No order details")
-					    (htm(:div :class "row" 
-				(:div :class "col-md-12" :align "right" 
-				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))
-				    (if (equal venorderfulfilled "Y") 
-					(htm (:span :class "label label-info" "FULFILLED"))
+ (if (is-dod-vend-session-valid?)
+     (standard-vendor-page (:title "List Vendor Order Details")   
+       (let* (( dodvenorder  (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor) (get-login-vendor-company)))
+	      (venorderfulfilled (if dodvenorder (slot-value dodvenorder 'fulfilled)))
+	      (order (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
+	      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
+	      (odtlst (if order (dod-get-cached-order-items-by-order-id order)) )
+	      (total   (reduce #'+  (mapcar (lambda (odt)
+					      (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst))))
+	 (if order (display-order-header-for-vendor  order)) 
+	 (if odtlst (ui-list-vend-orderdetails header odtlst) "No order details")
+	 (htm(:div :class "row" 
+		   (:div :class "col-md-12" :align "right" 
+			 (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))
+			 (if (equal venorderfulfilled "Y") 
+			     (htm (:span :class "label label-info" "FULFILLED"))
 					;ELSE
-					(htm (:a :onclick "return CancelConfirm();" :href (format nil "dodvenordcancel?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Cancel")) "&nbsp;&nbsp;"  (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Complete")))))
-					;ELSE
-					
-						    ))))
+			     (htm 
+			     ; (:a :onclick "return CancelConfirm();" :href (format nil "dodvenordcancel?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Cancel")) "&nbsp;&nbsp;"  
+			      (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Complete")))))))))
+					;ELSE		   						   
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 

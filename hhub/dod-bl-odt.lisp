@@ -13,6 +13,14 @@
 		[=[:order-id] order-id]]    :caching nil :flatp t )))
 
 
+(defun get-order-item-by-id  (item-id )
+:documentation "Returns the order item by id "
+(first (clsql:select 'dod-order-items  :where
+		[and [= [:deleted-state] "N"]
+		[=[:row-id] item-id]]    :caching nil :flatp t )))
+
+
+
 
 (defun delete-all-order-items (order-instance company)
   (let ((order-items (get-order-items order-instance)))
@@ -90,7 +98,7 @@
 		[=[:order-id] order-id]]    :caching nil :flatp t )))
     
 
-(defun update-order-detail (odt-instance); This function has side effect of modifying the database record.
+(defun update-order-item (odt-instance); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance odt-instance))
 
 (defun cancel-order-items (list company-instance)

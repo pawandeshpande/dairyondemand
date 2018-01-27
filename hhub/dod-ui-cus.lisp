@@ -191,16 +191,13 @@
 	     (item-id (parse-integer (hunchentoot:parameter "id")))
 	     (company (hunchentoot:session-value :login-customer-company))
 	     (order (get-order-by-id order-id company)))
-
-
-	
 					; Delete the order item. 
 	(delete-order-items (list item-id) company)
 	
 	; Get the new order items list and find out the total. Update the order with this new amount.
 	(let* ((odtlst (get-order-items order))
 	       (vendors (get-vendors-by-orderid order-id company))
-	       (custordertotal (reduce #'+ (mapcar (lambda (odt) (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))) odtlst )))) 
+	       (custordertotal (if odtlst (reduce #'+ (mapcar (lambda (odt) (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))) odtlst )) 0))) 
 	  
 	  ; For each vendor, delete vendor-order if the order items total for that vendor is 0. 
 	  (mapcar (lambda (vendor) 
@@ -229,7 +226,7 @@
 	(standard-customer-page (:title "List DOD Customer orders")   
 	    (let* ((order-id (parse-integer (hunchentoot:parameter "id")))
 		   ( dodorder (get-order-by-id order-id (get-login-cust-company)))
-		   (header (list "Product" "Product Qty" "Unit Price"  "Sub-total" "Status" "Action"))
+		   (header (list "Status" "Action" "Name" "Qty"   "Sub-total" ))
 		   (odtlst (get-order-items dodorder))
 		   (total (reduce #'+ (mapcar (lambda (odt) (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))) odtlst)))) 
     
@@ -284,7 +281,7 @@
 			 (:li :align "center" (:a :href "dodmyorders" "My Orders"))
 			 (:li :align "center" (:a :href "dodcustwallet" (:span :class "glyphicon glyphicon-piggy-bank") " My Wallets" ))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout)))
-			  (:li :align "center" (:a :href "#" (str (format nil "Tenant: ~A" (get-login-customer-company-name))))))
+			  (:li :align "center" (:a :href "#" (str (format nil "Group: ~A" (get-login-customer-company-name))))))
 		     
 		     (:ul :class "nav navbar-nav navbar-right"
 			 
@@ -581,36 +578,41 @@
 	 (prd-name (slot-value product 'prd-name)))
     
  (cl-who:with-html-output (*standard-output* nil)
-   (:div :class "row account-wall" 
+   (:div :align "center" :class "row account-wall" 
 	 (:div :class "col-sm-12  col-xs-12 col-md-12 col-lg-12"
-	       (:div :class "row" 
-		     (:div  :align "center" :class "col-xs-12" 
+	       (:div  :class "row" 
+		     (:div  :class "col-xs-12" 
 			     (:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) 
 				 (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " "))))
 			(:form :class "form-oprefadd" :role "form" :method "POST" :action "dodcustaddopfaction"
 			    (:div :class "form-group row"  (:label :for "product-id" (str (format nil  " ~a" (slot-value product 'prd-name))) ))
 			         (:input :type "hidden" :name "product-id" :value (format nil "~a" (slot-value product 'row-id)))
 				 ; (products-dropdown "product-id"  (hunchentoot:session-value :login-prd-cache)))
-				 (:div :class "inputQty row" 
-				 (:div :class "col-xs-2"
-				  (:a :class "down btn btn-info" :href "#" (:span :class "glyphicon glyphicon-minus" ""))) 
-				  (:div :class "form-group col-xs-2" 
-				(:input :class "form-control" :class "input-quantity" :name "prdqty" :placeholder "Enter a number" :readonly "true" :value "1" :min "1" :max "99"  :type "number"))
-				  (:div :class "col-xs-2"
-				  (:a :class "up btn btn-info" :href "#" (:span :class "glyphicon glyphicon-plus" ""))))
+				 
+				 ;(:div :class "inputQty"
+				  ;     (:span :class "up" "up" )
+				   ;    (:input :type "text" :maxlength "6" :name "oa_quantity" :class "input-quantity"  :value "1")
+				    ;   (:span :class "down" "down"))
+
+				 (:div  :class "inputQty row" 
+				 (:div :class "col-xs-4"
+				  (:a :class "down btn btn-primary" :href "#" (:span :class "glyphicon glyphicon-minus" ""))) 
+				  (:div :class "form-group col-xs-4" 
+				(:input :class "form-control input-quantity" :readonly "true" :name "prdqty" :placeholder "Enter a number"  :value "1" :min "1" :max "99"  :type "number"))
+				  (:div :class "col-xs-4"
+				  (:a :class "up btn btn-primary" :href "#" (:span :class "glyphicon glyphicon-plus" ""))))
 			    (:div :class "form-group row" 
-			    (:label :class "checkbox-inline"  (:input :type "checkbox" :name "subs-sun"  :value "Sunday" :checked "" "Sunday" ))
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-mon" :value "Monday" :checked "" "Monday"))
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-tue" :value "Tuesday" :checked "" "Tuesday")))
+				  (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-mon" :value "Monday" :checked "" "Monday"))
+				  (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-tue" :value "Tuesday" :checked "" "Tuesday"))
+				  (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-wed" :value "Wednesday" :checked "" "Wednesday")))
 			    (:div :class "form-group row" 
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-wed" :value "Wednesday" :checked "" "Wednesday"))
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-thu" :value "Thursday" :checked "" "Thursday"))
-				(:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-fri" :value "Friday" :checked "" "Friday")))
-			    (:div :class "form-group row" 
-			    (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-sat" :value "Saturday" :checked "" "Saturday")))
+				  (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-thu" :value "Thursday" :checked "" "Thursday"))
+				  (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-fri" :value "Friday" :checked "" "Friday"))
+				  (:label :class "checkbox-inline" (:input :type "checkbox" :name "subs-sat" :value "Saturday" :checked "" "Saturday"))
+				  (:label :class "checkbox-inline"  (:input :type "checkbox" :name "subs-sun"  :value "Sunday" :checked "" "Sunday" )))
 			    
 			    (:div :class "form-group" 
-			    (:input :type "submit"  :class "btn btn-primary" :value "Add"))
+			    (:input :type "submit"  :class "btn btn-primary" :value "Subscribe"))
 			    ))))))
 
 

@@ -51,15 +51,6 @@
 					     catglist))))
 
 
-(defun ui-list-vendor-products (data)
-  (cl-who:with-html-output (*standard-output* nil)
-    (:a :class "btn btn-primary" :role "button" :href "dodvenaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Product  ")
-    (:hr)
-    (:div :class "row-fluid"  (mapcar (lambda (product)
-					(htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
-						   (:div :class "product-box"   (product-card-for-vendor  product )))))
-					      
-				            data))))
   
 
 (defun ui-list-customer-products (data lstshopcart)
@@ -125,7 +116,7 @@
 	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
 	    
 	(cl-who:with-html-output (*standard-output* nil)
-
+	  (:div :class "product-box" 
 	  (:div :style "background-color:#E2DBCD; border-bottom: solid 1px; margin-bottom: 3px;" :class "row"
 		
 		(if (equal active-flag "Y")
@@ -160,7 +151,7 @@
 		
 		(if (equal active-flag "N") 
 		    (htm (:div :class "stampbox rotated" "INACTIVE" )))
-		)))
+		))))
 
 (defun product-card (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))
