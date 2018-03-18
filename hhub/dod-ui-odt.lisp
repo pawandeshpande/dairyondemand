@@ -3,11 +3,14 @@
 
 (defun dod-controller-order-item-edit ()
   (let* ((item-id (hunchentoot:parameter "item-id"))
-	(prdqty (parse-integer (hunchentoot:parameter "prdqty")))
-	(order-id (hunchentoot:parameter "order-id"))
-	(order-item (get-order-item-by-id item-id)))
-    (setf (slot-value order-item 'prd-qty) prdqty)
-    (update-order-item order-item)
+	 (company (hunchentoot:session-value :login-customer-company))
+	 (prdqty (parse-integer (hunchentoot:parameter "prdqty")))
+	 (order-id (hunchentoot:parameter "order-id"))
+	 (order-item (get-order-item-by-id item-id)))
+    (cond ((> prdqty 0) (progn 
+			  (setf (slot-value order-item 'prd-qty) prdqty)
+			  (update-order-item order-item)))
+	  ((equal prdqty 0) (delete-order-items (list item-id) company)))
     (hunchentoot:redirect (format nil "/hhub/dodmyorderdetails?id=~A" order-id))))
 
 
@@ -73,16 +76,18 @@
     (time (cl-who:with-html-output (*standard-output* nil)
 					; Header section.
 	      (:div :class "row"
-		  (:div :class "col-sm-6" 
+		  (:div :class "col-xs-6" 
 		      (:h4 (str (format nil "Shopping Cart (~A Items)" (length data)))))
 		  (:div :class "col-sm-6" :align "right"
 		      (htm  (:a :class "btn btn-primary" :role "button" :href "/hhub/dodcustindex" "Back To Shopping"  ))))
 	      (:hr)
 					; Data section.
-	      (:div :class "row"
-		  (mapcar (lambda (product odt)
-			      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
-				       (:div :class "product-box" (product-card-shopcart product odt)))))      data shopcart )) )))
+	      
+	      (:div :class "container"
+		    (:div :class "row"
+			  (mapcar (lambda (product odt)
+				    (htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-3" 
+					       (:div :class "product-box" (product-card-shopcart product odt)))))      data shopcart ))))))
 
 
 (defun ui-list-cust-orderdetails (header data)
@@ -95,7 +100,7 @@
 					      (mapcar (lambda (odt)
 						 (let ((odt-product  (get-odt-product odt))
 						       (item-id (slot-value odt 'row-id))
-						       (unit-price (slot-value odt 'unit-price))
+						       ;(unit-price (slot-value odt 'unit-price))
 						       (ordid (slot-value odt 'order-id))
 						       (fulfilled (slot-value odt 'fulfilled))
 						       (status (slot-value odt 'status))
@@ -135,7 +140,7 @@
 		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date))))))))))
 
 (defun display-order-header-for-vendor (order-instance)
-    (let ((customer (get-ord-customer order-instance))
+    (let ((customer (get-customer order-instance))
 	  (payment-mode (slot-value order-instance 'payment-mode))
 	  (shipped-date (slot-value order-instance 'shipped-date)))
     (cl-who:with-html-output (*standard-output* nil)

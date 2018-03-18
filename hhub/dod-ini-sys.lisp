@@ -18,6 +18,18 @@
 (defvar *dod-db-instance*)
 (defvar *sitepass* (encrypt "P@ssword1" "highrisehub.com"))
 (defvar *current-customer-session* nil) 
+(defvar *customer-page-title* nil) 
+(defvar *vendor-page-title* nil) 
+(defvar *admin-page-title* nil) 
+ 
+(defun set-customer-page-title (name)
+  (setf *customer-page-title* (format nil "Welcome to HighriseHub - ~A." name))) 
+ 
+(defun set-vendor-page-title (name)
+  (setf *vendor-page-title* (format nil "Welcome to HighriseHub - ~A." name))) 
+
+(defun set-admin-page-title (name)
+  (setf *admin-page-title* (format nil "Welcome to HighriseHub - ~A." name))) 
 
 
 ;; Connect to the database (see the CLSQL documentation for vendor

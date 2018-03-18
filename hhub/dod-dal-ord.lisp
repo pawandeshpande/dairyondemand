@@ -61,7 +61,7 @@
     :type integer
     :initarg :cust-id)
    (customer
-    :ACCESSOR get-ord-customer
+    :ACCESSOR get-customer
     :DB-KIND :JOIN
     :DB-INFO (:JOIN-CLASS dod-cust-profile
 	                  :HOME-KEY cust-id

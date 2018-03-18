@@ -21,35 +21,41 @@
 									      (htm (:tr (:td  :height "12px" (str (slot-value order 'row-id)))
 											(:td  :height "12px" (str (slot-value order 'ord-date)))
 											(:td  :height "12px" (str (slot-value ord-customer 'name)))
-										       (:td  :height "12px" (str (slot-value order 'req-date)))
-										       (:td  :height "12px" (str (slot-value order 'shipped-date)))
-										       (:td  :height "12px" (str (slot-value order 'ship-address)))
-										       (:td :height "12px" (:a :class "btn btn-primary" :role "button" :href  (format nil  "delorder?id=~A" (slot-value order 'row-id)) "Cancel Order")
-											    (:a  :class "btn btn-primary" :role "button" :href  (format nil  "orderdetails?id=~A" (slot-value order 'row-id)) "Details"))
-											    )))) (if (not (typep data 'list)) (list data) data))))))
+											(:td  :height "12px" (str (slot-value order 'req-date)))
+											(:td  :height "12px" (str (slot-value order 'shipped-date)))
+											(:td  :height "12px" (str (slot-value order 'ship-address)))
+											(:td :height "12px" (:a :class "btn btn-primary" :role "button" :href  (format nil  "delorder?id=~A" (slot-value order 'row-id)) "Cancel Order")
+											     (:a  :class "btn btn-primary" :role "button" :href  (format nil  "orderdetails?id=~A" (slot-value order 'row-id)) "Details"))
+											)))) (if (not (typep data 'list)) (list data) data))))))
 
 
 
-(defun ui-list-orders-for-excel (header ordlist vendor-instance)
+(defun ui-list-orders-for-excel (header ordlist)
   (cl-who:with-html-output-to-string (*standard-output* nil)
       (mapcar (lambda (item) (str (format nil "~A," item ))) header)
       (str (format nil " ~C~C" #\return #\linefeed))
-           (mapcar (lambda (ord )
-		       (let* ((odtlst (get-order-items-for-vendor  vendor-instance 1000 (get-login-vendor-company)))
-				(total   (reduce #'+  (mapcar (lambda (odt)
-			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
-		  (customer (get-ord-customer ord)))
-	     (if (>  (length odtlst) 0) 
-	    (progn  (str (format nil "Order: ~A Customer: ~A. ~A." (slot-value ord 'row-id)  (slot-value customer 'name) (slot-value customer 'address) )) 
-		(if (equal (slot-value ord 'order-fulfilled) "Y") (str (format nil "Order status - Fulfilled ~C~C" #\return #\linefeed )) (str (format nil "Order status - Pending ~C~C" #\return #\linefeed))  )
-		(mapcar (lambda (odt)
-			     (let ((prd (get-odt-product odt)))
-				 (str (format nil "~a,~a,~a,Rs ~$ Each,~C~C"  (slot-value prd 'prd-name)  (slot-value odt 'prd-qty) (slot-value prd 'qty-per-unit)  (slot-value odt 'unit-price) #\return #\linefeed  ) ))) odtlst)
-		
-		 (str (format nil "Total = Rs ~$~C~C" total #\return #\linefeed)))
-		 ))) ordlist)
+      (mapcar (lambda (ord )
+		(let* ((odtlst (dod-get-cached-order-items-by-order-id (slot-value ord 'order-id)))
+		       (total   (reduce #'+  (mapcar (lambda (odt)
+						       (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
+		       (customer (get-customer ord)))
+		  (if (>  (length odtlst) 0) 
+		      (progn  
+			
+			(str (format nil "Order: ~A Customer: ~A. ~A." (slot-value ord 'order-id)  (slot-value customer 'name) (slot-value customer 'address) )) 
+			(if (equal (slot-value ord 'fulfilled) "Y") 
+			    (str (format nil "Order status - Fulfilled ~C~C" #\return #\linefeed )) 
+			    ;else
+			    (str (format nil "Order status - Pending ~C~C" #\return #\linefeed)))
+			(mapcar (lambda (odt)
+			     (let ((prd (get-odt-product odt))
+				   (subtotal (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))))
 
-      ))
+
+				 (str (format nil "~a,~a,~a,Rs ~$ ,Each,~$,~C~C"  (slot-value prd 'prd-name)  (slot-value odt 'prd-qty) (slot-value prd 'qty-per-unit)  (slot-value odt 'unit-price) subtotal  #\return #\linefeed  )))) odtlst)
+		
+			(str (format nil ",,,,,Total = Rs ~$~C~C" total #\return #\linefeed)))
+		 ))) ordlist)))
 
 
 
@@ -88,41 +94,41 @@
 			(:h4 (:span :class "label label-default" (str (format nil "Rs. ~$" subtotal))  )))))) )) products odtlst))))
 
 
-(defun ui-list-vendor-orders-by-customers (ordlist vendor-instance)
- 	 (cl-who:with-html-output (*standard-output* nil)	       
-     (mapcar (lambda (ord )
-		 (let*  ((odtlst (get-order-items-for-vendor  vendor-instance 1000 (get-login-vendor-company)))
-			      (total   (reduce #'+  (mapcar (lambda (odt)
-			(* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
-		  (customer (get-ord-customer ord)))
-	     (if (>  (length odtlst) 0) 
-	    (progn (htm (:div :class "row"
-		      (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
-			  (:h3 (:span :class "label label-primary" (str (format nil "Order: ~A ~A. ~A. " (slot-value ord 'row-id) (slot-value customer 'name) (slot-value customer 'address)))       )))))
-		 (mapcar (lambda (odt)
-			     (let ((prd (get-odt-product odt)))
+(defun ui-list-vendor-orders-by-customers (ordlist)
+ (cl-who:with-html-output (*standard-output* nil)	       
+   (:a :class "btn btn-primary btn-xs" :role "button" :onclick "window.print();" :href "#" "Print&nbsp;&nbsp;"(:span :class "glyphicon glyphicon-print"))
+					; For every vendor order
+   (mapcar (lambda (ord )
+	     (let*  ((odtlst (dod-get-cached-order-items-by-order-id (slot-value ord 'order-id) ))
+		     (total   (reduce #'+  (mapcar (lambda (odt)
+						     (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
+		     (customer (get-customer ord)))
+	       ;(if (>  (length odtlst) 0) 
+		   (progn 
+		     (htm (:div :class "row"
+				     (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
+					   (:h3 (:span :class "label label-primary" (str (format nil "Order: ~A ~A. ~A. " (slot-value ord 'order-id) (slot-value customer 'name) (slot-value customer 'address)))       )))))
+		     (mapcar (lambda (odt)
+			       (let ((prd (get-odt-product odt)))
 				 (htm (:div :class "row"
-			     	(:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
-			    (str (slot-value prd 'prd-name)))
-			(:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
-    			    (str (slot-value odt 'prd-qty)))
-    			(:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
-    			    (str (slot-value prd 'qty-per-unit)))
-		       (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
-			   (:h5 (str (format nil "Rs ~$ Each" (slot-value odt 'unit-price))) )))))) odtlst)
+					    (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
+						  (str (slot-value prd 'prd-name)))
+					    (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
+						  (str (slot-value odt 'prd-qty)))
+					    (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
+						  (str (slot-value prd 'qty-per-unit)))
+					    (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
+						  (:h5 (str (format nil "Rs ~$ Each" (slot-value odt 'unit-price))) )))))) odtlst)
 					; Display the total for an order
-		
-		(htm (:hr) (:div :class "row"
-			 (:div :class "col-sm-12" 
-			     (:h4 (:span :class "label label-default" (str (format nil "Total ~$" total))))))
-		    (if (equal (slot-value ord 'order-fulfilled) "N") (htm  (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value ord 'row-id) ) (:span :class "btn btn-primary"  "Set Order Completed")))
-					;ELSE
-		    (htm (:span :class "label label-info" "FULFILLED")))
-			
-		    (:hr))
-		
-		)))) ordlist)))
-	
+			  
+		     (htm (:hr) (:div :class "row"
+				      (:div :class "col-sm-12" 
+					    (:h4 (:span :class "label label-default" (str (format nil "Total ~$" total))))))
+			  			  
+			       (:hr))
+		     
+		     ))) ordlist)))
+
 
     
 

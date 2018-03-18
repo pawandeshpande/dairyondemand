@@ -86,7 +86,7 @@
  (clsql:select 'dod-order-items  :where
 		[and [= [:deleted-state] "N"]
 		     [= [:tenant-id] tenant-id]
-		     [= [:vendor-id] vendor-id]] :order-by :order-id :limit rowcount
+		     [= [:vendor-id] vendor-id]] :order-by :order-id  :limit rowcount
 		        :caching nil :flatp t )))
 
 	     

@@ -6,7 +6,7 @@
     :documentation "value should be Y or N, followed by order instance and company instance"
     (let* ((vendor (get-login-vendor))
 	   (vendor-order (get-vendor-order-instance (slot-value order-instance 'row-id) vendor))
-	   (customer (get-ord-customer order-instance)) 
+	   (customer (get-customer order-instance)) 
 	   (payment-mode (slot-value order-instance 'payment-mode))
 	   (wallet (get-cust-wallet-by-vendor customer vendor company-instance))
 	   (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance vendor ))
@@ -211,7 +211,6 @@
 		[=[:context-id] context-id]]    :caching nil :flatp t ))))
 
 
-
 (defun get-orders-for-customer (customer)
 (let ((tenant-id (slot-value customer 'tenant-id))
 	(cust-id (slot-value customer 'row-id)))
@@ -317,16 +316,26 @@
 
 
 (defun create-order-from-pref (order-pref-list order-date request-date ship-date ship-address order-amt  customer-instance company-instance)
-  (let ((uuid (uuid:make-v1-uuid )))
-      (progn 	  (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt "PRE" company-instance)
-		(let ((order (get-order-by-context-id (print-object uuid nil) company-instance)))
-		      (mapcar (lambda (preference)
-				  (let* ((prd (get-opf-product preference))
-						       (unit-price (slot-value prd 'unit-price))
-					  (prd-qty (slot-value preference 'prd-qty))
-					  
-					  )
-				  (if (prefpresent-p preference (date-dow request-date)) (create-order-items order prd  prd-qty unit-price company-instance)))) order-pref-list)))))
+  (let ((uuid (uuid:make-v1-uuid ))
+	(tenant-id (slot-value company-instance 'row-id)))
+      (progn  (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt "PRE" company-instance)
+	      (let ((order (get-order-by-context-id (print-object uuid nil) company-instance))
+		    (vendors (get-opref-vendorlist order-pref-list))
+		    (cust-id (slot-value customer-instance 'row-id)))
+		(mapcar (lambda (preference)
+			  (let* ((prd (get-opf-product preference))
+				 (unit-price (slot-value prd 'unit-price))
+				 (prd-qty (slot-value preference 'prd-qty)))
+			    (if (prefpresent-p preference (date-dow request-date)) (create-order-items order prd  prd-qty unit-price company-instance)))) order-pref-list)
+		
+					; Create one row per vendor in the vendor_orders table. 
+		(mapcar (lambda (vendor) 
+			  (let* ((vitems (filter-opref-items-by-vendor vendor order-pref-list))
+				 (total (get-opref-items-total-for-vendor vendor vitems))) 
+			    
+			    (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address "PREPAID"  total )))  vendors)
+      
+		))))
 
 
 (defun prefpresent-p (preference day)
@@ -356,13 +365,15 @@
 				       (unit-price (slot-value odt 'unit-price))
 				       (prd-qty (slot-value odt 'prd-qty)))
 			             (create-order-items order prd   prd-qty unit-price company-instance))) order-items)
-	         ; Create one row per vendor in the vendor_orders table. 
-	       (mapcar (lambda (vendor) 
-			 (let* ((vitems (filter-order-items-by-vendor vendor order-items))
-			       (total (get-order-items-total-for-vendor vendor vitems))) 
-			       
-			     (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address payment-mode total )))  vendors)
 
+	         ; Create one row per vendor in the vendor_orders table. 
+		(mapcar (lambda (vendor) 
+			  (let* ((vitems (filter-order-items-by-vendor vendor order-items))
+				 (total (get-order-items-total-for-vendor vendor vitems))) 
+			    
+			    (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address payment-mode total )))  vendors)
+
+	 
 	       ))))
 
 

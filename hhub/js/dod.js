@@ -1,7 +1,7 @@
 
 
 var $error = $("#dod-error");
-var $dodbusyindicator = $(".dod-busy-indicator"), $formcustsignin = $(".form-custsignin"),  $formvendsignin = $(".form-vendorsignin");
+var  $formcustsignin = $(".form-custsignin"),  $formvendsignin = $(".form-vendorsignin");
 
 var opts = {
   lines: 13 // The number of lines to draw
@@ -30,7 +30,9 @@ var spinner = new Spinner(opts).spin();
 
 $busyindicator.appendChild(spinner.el);
 
-
+$(document).ready(function() {
+        $('[data-toggle="tooltip"]').tooltip({'placement': 'top'});
+});
 
 $(document).ready (function(){
     $('.up').on('click',function(){

@@ -17,9 +17,6 @@
 	  (country (slot-value instance 'country))
 	  (zipcode (slot-value instance 'zipcode))
 	  (row-id (slot-value instance 'row-id)))
-	  
-
-	   
 	(cl-who:with-html-output (*standard-output* nil)
 	 (:div :class "product-box" 
 	  (:div :class "row" 

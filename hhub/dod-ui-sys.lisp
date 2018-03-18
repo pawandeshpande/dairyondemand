@@ -552,6 +552,7 @@ individual tiles. It also supports search functionality by including the searchr
 	(hunchentoot:create-regex-dispatcher "^/hhub/createcustwallet" 'dod-controller-create-cust-wallet)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustprofile" 'dod-controller-customer-profile)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustorditemedit" 'dod-controller-order-item-edit )
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodshowcalendar" 'dod-page-with-calendar)
 	
 
 ;************VENDOR RELATED ********************
