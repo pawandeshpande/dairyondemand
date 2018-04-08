@@ -153,7 +153,8 @@ individual tiles. It also supports search functionality by including the searchr
 	
 		   (:script :src "js/bootstrap.min.js")))))
 
-(defun dod-controller-dbreset-page ()
+(defun dod-controller-dbreset-page () 
+  :documentation "No longer used now" 
 (standard-page (:title "Restart Higirisehub.com")
   (:div :class "row"
 	(:div :class "col-sm-12 col-md-12 col-lg-12"
@@ -167,6 +168,7 @@ individual tiles. It also supports search functionality by including the searchr
 
 
 (defun dod-controller-dbreset-action ()
+  :documentation "No longer used now" 
   (let ((pass (hunchentoot:parameter "password")))
     (if (equal (encrypt  pass "highrisehub.com") *sitepass*)
        (progn  (stop-das) 
@@ -198,16 +200,14 @@ individual tiles. It also supports search functionality by including the searchr
 	 (cmpstate (if company (slot-value company 'state))) 
 	 (transaction (select-bus-trans-by-trans-func "new-company-html"))
 	 (cmpzipcode (if company (slot-value company 'zipcode))))
-
     (if (has-permission transaction)
-
-(cl-who:with-html-output (*standard-output* nil)
-   (:div :class "row" 
-	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-	       (:form :class "form-addcompany" :role "form" :method "POST" :action "company-added" 
-		      (if company (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
-		      (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
-			    (:h1 :class "text-center login-title"  "Add/Edit Group")
+	(cl-who:with-html-output (*standard-output* nil)
+	  (:div :class "row" 
+		(:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		      (:form :class "form-addcompany" :role "form" :method "POST" :action "company-added" 
+			     (if company (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+			     (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+			     (:h1 :class "text-center login-title"  "Add/Edit Group")
 			    (:div :class "form-group"
 				  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
 			    (:div :class "form-group"
@@ -215,37 +215,38 @@ individual tiles. It also supports search functionality by including the searchr
 				  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
 			    (:div :class "form-group" :id "charcount")
 			    (:div :class "form-group"
-				   (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
+				  (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
 			    (:div :class "form-group"
-				   (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
+				  (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
 			    (:div :class "form-group"
-				   (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
+				  (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
 			    (:div :class "form-group"
 				  (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
 			    
 			    (:div :class "form-group"
 				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
-(cl-who:with-html-output (*standard-output* nil)
-  (:div :class "row" 
-	(:h3 "Permission Denied"))))))
+	(cl-who:with-html-output (*standard-output* nil)
+	  (:div :class "row" 
+		(:h3 "Permission Denied"))))))
 
-      
+
 (defun dod-controller-company-search-for-sys-action ()
   (let*  ((qrystr (hunchentoot:parameter "livesearch"))
-	(company-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr))))
-     (display-as-tiles company-list 'company-card )))
+	  (company-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr))))
+    (display-as-tiles company-list 'company-card )))
 
 (defun dod-controller-abac-security ()
   (if (is-dod-session-valid?) 
       (let ((policies (get-auth-policies (get-login-tenant-id))))
-      (standard-page (:title "Welcome to Highrisehub")
-	(:div :class "row" 
-	      (:div :class "col-xs-6" 
-		    (:a :class "btn btn-primary" :role "button" :href "/hhub/list-attributes"  " Attributes  ")
-		    (:a :class "btn btn-primary" :role "button" :href "/hhub/list-transactions"  " Transactions  ")))
-	(:hr)
-	(str (display-as-tiles policies 'policy-card))))
-(hunchentoot:redirect "/hhub/opr-login.html")))
+	(standard-page (:title "Welcome to Highrisehub")
+	  (:div :class "row" 
+		(:div :class "col-xs-6" 
+		      (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Attributes  ")
+		      (:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objects  ")
+		      (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Transactions  ")))
+	  (:hr)
+	  (str (display-as-tiles policies 'policy-card))))
+      (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
 (defun dod-controller-index () 
@@ -272,13 +273,24 @@ individual tiles. It also supports search functionality by including the searchr
   
 (setq *logged-in-users* (make-hash-table :test 'equal))
 
+(defun dod-controller-list-busobjs () 
+:documentation "List all the business objects"
+(if (is-dod-session-valid?)
+(let ((busobjs (select-bus-object-by-company (get-login-company))))
+(standard-page (:title "Business Objects ...")
+    (str (display-as-tiles busobjs 'busobj-card))
+    (:h4 "Note: To add new business objects to the system, follow these steps.")
+    (:h4 "In the Lisp REPL call the function, (create-business-object company-instance)")
+
+
+))
+(hunchentoot:redirect "/hhub/opr-login.html")))
+
 
 (defun dod-controller-list-attrs ()
 :documentation "This function lists the attributes used in policy making"
     (if (is-dod-session-valid?)
-	(let* ((company (hunchentoot:session-value :login-company))
-	      
-	       (lstattributes (select-auth-attrs-by-company company)))
+	(let ((lstattributes (select-auth-attrs-by-company (get-login-company))))
 (standard-page (:title "attributes ...")
   (:div :class "row"
 	(:div :class "col-md-12" 
@@ -506,11 +518,12 @@ individual tiles. It also supports search functionality by including the searchr
         (hunchentoot:create-regex-dispatcher "^/hhub/new-journal-entry" 'dod-controller-new-journal-entry)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-users" 'dod-controller-list-users)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-accounts" 'dod-controller-list-accounts)
-	(hunchentoot:create-regex-dispatcher "^/hhub/list-attributes" 'dod-controller-list-attrs)
+	(hunchentoot:create-regex-dispatcher "^/hhub/listattributes" 'dod-controller-list-attrs)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbreset.html" 'dod-controller-dbreset-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbresetaction" 'dod-controller-dbreset-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodsyssearchtenantaction" 'dod-controller-company-search-for-sys-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddattribute" 'dod-controller-add-attribute)
+	(hunchentoot:create-regex-dispatcher "^/hhub/listbusobj" 'dod-controller-list-busobjs)
 		
 	
 	;************CUSTOMER LOGIN RELATED ********************

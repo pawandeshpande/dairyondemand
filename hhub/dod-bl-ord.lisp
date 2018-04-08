@@ -197,6 +197,7 @@
   (let* ((tenant-id (slot-value company-instance 'row-id))
 	(vendorids (clsql:select [:vendor-id] :from 'dod-vendor-orders :where
 		      [and 
+		      [=[:deleted-state] "N"]
 		      [=[:order-id] order-id]
 		      [= [:tenant-id] tenant-id]] :caching nil :flatp t)))
 
@@ -410,9 +411,9 @@
 
 
 
-(defun run-daily-orders-batch ()
+(defun run-daily-orders-batch (numdays)
   :documentation "datestr is of the format \"dd/mm/yyyy\" "
   (let ((cmplist (list-dod-companies)))
-    (mapcar (lambda (cmp) 
+    (loop for i from 1 to numdays do (mapcar (lambda (cmp) 
 	      (let ((id (slot-value cmp 'row-id)))
-		(create-daily-orders-for-company :company-id id :odtstr (get-date-string (get-date)) :reqstr (get-date-string (date+ (get-date) (make-duration :day 1)))))) cmplist))) 
+		(create-daily-orders-for-company :company-id id :odtstr (get-date-string (get-date)) :reqstr (get-date-string (date+ (get-date) (make-duration :day i)))))) cmplist)))) 

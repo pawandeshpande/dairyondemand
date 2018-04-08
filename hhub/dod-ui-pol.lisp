@@ -56,7 +56,14 @@
 
 
 
-
+(defun busobj-card (busobj-instance)
+  (let ((name (slot-value busobj-instance 'name)))
+	(cl-who:with-html-output (*standard-output* nil)
+	  
+	  (:div :class "product-box row"
+		(:div :class "col-xs-12"
+		      (:h3 :class "busobj-name"  (str name)))))))
+		    
 
 (defun attribute-card (attribute-instance)
     (let (;(attr-id (slot-value attribute-instance 'row-id))

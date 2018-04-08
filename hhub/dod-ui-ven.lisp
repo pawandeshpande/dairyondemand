@@ -615,7 +615,7 @@
 		 (progn (htm (str "Pending Orders") (:span :class "badge" (str (format nil " ~d " (length dodorders))))
 			     (:a :class "btn btn-primary btn-xs" :role "button" :href "dodrefreshpendingorders" (:span :class "glyphicon glyphicon-refresh"))
 			     (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvendindex?context=ctxordcus" "Printer Friendly View")
-			     (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl" "Export To Excel")
+			     (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=pendingorders" "Export To Excel")
 			     (:hr))
 			(str (display-as-tiles dodorders 'vendor-order-card))))
 		((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
@@ -655,13 +655,14 @@
 
 (defun dod-controller-ven-expexl ()
     (if (is-dod-vend-session-valid?)
-	(let ((header (list "Product " "Quantity" "Qty per unit" "Unit Price" ""))
-	      (today (get-date-string (get-date)))
-	      ( dodorders (dod-get-cached-pending-orders)))
+	(let ((type (hunchentoot:parameter "type"))
+	      (header (list "Product " "Quantity" "Qty per unit" "Unit Price" ""))
+	      (today (get-date-string (get-date))))
 	      (setf (hunchentoot:content-type*) "application/vnd.ms-excel")
 	      (setf (header-out "Content-Disposition" ) (format nil "inline; filename=Orders_~A.csv" today))
-	(ui-list-orders-for-excel header dodorders ))
-    (hunchentoot:redirect "/hhub/vendor-login.html")))
+	      (cond ((equal type "pendingorders") (ui-list-orders-for-excel header (dod-get-cached-pending-orders)))
+		    ((equal type "completedorders") (ui-list-orders-for-excel header (dod-get-cached-completed-orders)))))
+	(hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
 

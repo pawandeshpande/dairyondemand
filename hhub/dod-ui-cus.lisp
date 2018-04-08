@@ -253,6 +253,7 @@
 	     (item-id (parse-integer (hunchentoot:parameter "id")))
 	     (company (hunchentoot:session-value :login-customer-company))
 	     (order (get-order-by-id order-id company)))
+     
 					; delete the order item. 
 	(delete-order-items (list item-id) company)
 	
@@ -270,7 +271,7 @@
 	  
 	  (setf (slot-value order 'order-amt) custordertotal)
 	  (update-order order)
-
+	  
 	  (if (equal custordertotal 0) 
 	      (delete-order order))
 					;(sleep 1) 
