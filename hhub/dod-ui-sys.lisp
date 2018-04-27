@@ -6,43 +6,6 @@
 (defvar *current-user-session* nil)
 
 
-(defun display-as-tiles (data displayfunc) 
-:documentation "This is a generic function which will display items in list as tiles. You need to pass the list data, and a display function which will display 
-individual tiles. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizingrefer to style.css. " 
-  (cl-who:with-html-output-to-string (*standard-output* nil)
-    ; searchresult div will be used to store the search result. 
-    (:div :id "searchresult" 
-    (:div :class "row-fluid"  (mapcar (lambda (item)
-					(htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
-						    (funcall displayfunc item))))  data)))))
-
-
-(defun copy-hash-table (hash-table)
-  (let ((ht (make-hash-table 
-             :test (hash-table-test hash-table)
-             :rehash-size (hash-table-rehash-size hash-table)
-             :rehash-threshold (hash-table-rehash-threshold hash-table)
-             :size (hash-table-size hash-table))))
-    (loop for key being each hash-key of hash-table
-       using (hash-value value)
-       do (setf (gethash key ht) value)
-       finally (return ht))))
-
-
-(defmacro modal-dialog (id title &rest body )
-:documentation "This macro returns the html text for generating a modal dialog using bootstrap."
-`(cl-who:with-html-output (*standard-output* nil)
- (:div :class "modal fade" :id ,id :role "dialog"
-       (:div :class "modal-dialog" 
-	     (:div :class "modal-content" 
-		   (:div :class "modal-header" 
-			 (:button :type "button" :class "close" :data-dismiss "modal") 
-			 (:h4 :class "modal-title" ,title))
-		   (:div :class "modal-body" ,@body)
-		   (:div :class "modal-footer" 
-			 (:button :type "button" :class "btn btn-default" :data-dismiss "modal" "Close")))))))
-
-
 
 (defmacro navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
@@ -192,13 +155,13 @@ individual tiles. It also supports search functionality by including the searchr
 
 
 	
-(defun new-company-html (&optional id)
+(defun com-hhub-transaction-create-company (&optional id)
   (let* ((company (if id (select-company-by-id id)))
 	 (cmpname (if company (slot-value company 'name)))
 	 (cmpaddress (if company(slot-value company 'address)))
 	 (cmpcity (if company (slot-value company 'city)))
 	 (cmpstate (if company (slot-value company 'state))) 
-	 (transaction (select-bus-trans-by-trans-func "new-company-html"))
+	 (transaction (select-bus-trans-by-trans-func "com-hhub-transaction-create-company"))
 	 (cmpzipcode (if company (slot-value company 'zipcode))))
     (if (has-permission transaction)
 	(cl-who:with-html-output (*standard-output* nil)
@@ -241,11 +204,15 @@ individual tiles. It also supports search functionality by including the searchr
 	(standard-page (:title "Welcome to Highrisehub")
 	  (:div :class "row" 
 		(:div :class "col-xs-6" 
+		      (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")
 		      (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Attributes  ")
 		      (:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objects  ")
 		      (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Transactions  ")))
 	  (:hr)
-	  (str (display-as-tiles policies 'policy-card))))
+	    (:div :class "row"
+	      (:div :class "col-md-12" (:h4 "Business Policies")))
+	  (str (display-as-table (list "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
+	  (modal-dialog "addpolicy-modal" "Add/Edit Policy" (new-policy-html))))
       (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
@@ -265,7 +232,7 @@ individual tiles. It also supports search functionality by including the searchr
 	      (:div :id "col-xs-6" :align "right" 
 		    (:span :class "badge" (str (format nil "~A" (length companies))))))
 	(:hr)
-	(modal-dialog "editcompany-modal" "Add/Edit Group" (new-company-html))
+	(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
        
 	(str (display-as-tiles companies 'company-card )))))
       
@@ -278,12 +245,28 @@ individual tiles. It also supports search functionality by including the searchr
 (if (is-dod-session-valid?)
 (let ((busobjs (select-bus-object-by-company (get-login-company))))
 (standard-page (:title "Business Objects ...")
-    (str (display-as-tiles busobjs 'busobj-card))
+	(:div :class "row"
+	      (:div :class "col-md-12" (:h4 "Business Objects")))
+  (str (display-as-tiles busobjs 'busobj-card))
     (:h4 "Note: To add new business objects to the system, follow these steps.")
-    (:h4 "In the Lisp REPL call the function, (create-business-object company-instance)")
+    (:h4 "In the Lisp REPL call the function, (create-bus-object)")))
+(hunchentoot:redirect "/hhub/opr-login.html")))
 
 
-))
+(defun dod-controller-list-bustrans ()
+:documentation "List all the business transactions" 
+(if (is-dod-session-valid?)
+    (let ((bustrans (select-bus-trans-by-company (get-login-company))))
+      (standard-page (:title "Business Transactions...")
+	(:div :class "row"
+	 (:div :class "col-md-12" 
+	  (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addtransaction-modal" "Add New Transaction"))
+	   (:div :class "col-md-12" 
+	    (:div :class "col-md-12" (:h4 "Business Transactions"))))
+	(str (display-as-table (list "Name" "URI" "Function" "Action")  bustrans 'bustrans-card))
+	(modal-dialog "addtransaction-modal" "Add/Edit Transaction" (new-transaction-html))
+   (:h4 "Note: To add new Business Transactions to the system, follow these steps.")
+   (:h4 "In the Lisp REPL call the function, (create-bus-transaction)")))
 (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
@@ -292,13 +275,16 @@ individual tiles. It also supports search functionality by including the searchr
     (if (is-dod-session-valid?)
 	(let ((lstattributes (select-auth-attrs-by-company (get-login-company))))
 (standard-page (:title "attributes ...")
+  
   (:div :class "row"
+	(:div :class "col-md-12" (:h4 "Attributes"))
 	(:div :class "col-md-12" 
 	      (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addattribute-modal" "Add New Attribute")))
   (:hr)		       
-  (str (display-as-tiles lstattributes 'attribute-card))
+  
+  (str (display-as-table (list "Name" "Description" "Function" "Type" )  lstattributes 'attribute-card))
 ;  (ui-list-attributes lstattributes)
-(modal-dialog "addattribute-modal" "Add/Edit Attribute" (new-attribute-html))))
+  (modal-dialog "addattribute-modal" "Add/Edit Attribute" (com-hhub-transaction-create-attribute))))
 (hunchentoot:redirect "/hhub/opr-login.html")))
 
     
@@ -524,6 +510,10 @@ individual tiles. It also supports search functionality by including the searchr
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodsyssearchtenantaction" 'dod-controller-company-search-for-sys-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddattribute" 'dod-controller-add-attribute)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listbusobj" 'dod-controller-list-busobjs)
+	(hunchentoot:create-regex-dispatcher "^/hhub/listbustrans" 'dod-controller-list-bustrans)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddpolicyaction" 'dod-controller-add-policy-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddtransactionaction" 'dod-controller-add-transaction-action)
+	
 		
 	
 	;************CUSTOMER LOGIN RELATED ********************

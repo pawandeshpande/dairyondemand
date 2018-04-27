@@ -9,10 +9,10 @@
 
 (defun select-bus-object-by-company (company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
- (clsql:select 'dod-bus-object  :where
+    (clsql:select 'dod-bus-object  :where
 		[and [= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]]
-     :caching *dod-database-caching* :flatp t )))
+		:caching *dod-database-caching* :flatp t )))
 
   
 (defun persist-bus-object(name tenant-id )
@@ -51,7 +51,7 @@
 		[= [:tenant-id] tenant-id]]
      :caching *dod-database-caching* :flatp t )))
 
-  (defun select-bus-trans-by-name (name-like-clause company-instance )
+(defun select-bus-trans-by-name (name-like-clause company-instance )
       (let ((tenant-id (slot-value company-instance 'row-id)))
   (car (clsql:select 'dod-bus-transaction :where [and
 		[= [:deleted-state] "N"]
@@ -59,6 +59,8 @@
 		[like  [:name] name-like-clause]]
 		:caching *dod-database-caching* :flatp t))))
 
+(defun update-bus-transaction (instance); This function has side effect of modifying the database record.
+  (clsql:update-records-from-instance instance))
 
 
 
@@ -83,31 +85,31 @@
     (setf (slot-value object 'deleted-state) "N")
     (clsql:update-record-from-slot object 'deleted-state))) list )))
 
-(defun persist-bus-transaction(name description uri auth-policy-id bo-id trans-type trans-func tenant-id )
+(defun persist-bus-transaction(name  uri auth-policy-id bo-id trans-type trans-func tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-bus-transaction
 						    :name name
-						    :description description
 						    :uri uri
 						    :auth-policy-id auth-policy-id
 						    :bo-id bo-id 
 						    :trans-type trans-type
-						     :active-flg "Y" 
-						     :trans-func trans-func
+						    :active-flg "Y" 
+						    :trans-func trans-func
 						    :tenant-id tenant-id
 						    :deleted-state "N")))
  
 
 
-(defun create-bus-transaction (name description uri auth-policy bus-object trans-type trans-func company-instance)
+(defun create-bus-transaction (name  uri auth-policy bus-object trans-type trans-func company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id))
 	(auth-policy-id (if auth-policy (slot-value auth-policy 'row-id)))
 	(bo-id (if bus-object (slot-value bus-object 'row-id))))
-    	      (persist-bus-transaction name description uri auth-policy-id bo-id trans-type trans-func  tenant-id)))
+    	      (persist-bus-transaction name  uri auth-policy-id bo-id trans-type trans-func  tenant-id)))
 
 
 
 (defun has-permission (transaction)
-  (let* ((policy-id (slot-value transaction 'auth-policy-id))
-	(policy (select-auth-policy-by-id policy-id))
-	(policy-func (slot-value policy 'policy-func)))
-     (funcall (intern  (string-upcase policy-func)))))
+  (let* ((policy-id (if transaction (slot-value transaction 'auth-policy-id)))
+	(policy (if policy-id (select-auth-policy-by-id policy-id)))
+	(policy-func (if policy (slot-value policy 'policy-func))))
+    
+     (if policy-func (funcall (intern  (string-upcase policy-func))))))

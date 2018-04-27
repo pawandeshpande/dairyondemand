@@ -137,7 +137,7 @@
           (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustindex") "Shop Now")
     (:h3 "Orders")
   
-      (:table :class "table table-responsive table-hover"  (:thead (:tr
+      (:table :class "table table-striped table-hover"  (:thead (:tr
  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
 								  (mapcar (lambda (order)
 									    (htm (:tr (:td  :height "12px" (str (slot-value order 'row-id)))

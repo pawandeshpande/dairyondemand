@@ -84,8 +84,8 @@
 (bo-id
  :type integer
  :initarg :bo-id)
-(bus-object-for-bus-tran
- :accessor get-bus-object-for-bus-tran
+(bus-tran-busobject 
+ :accessor get-bus-tran-busobject
     :DB-KIND :JOIN
     :DB-INFO (:JOIN-CLASS dod-bus-object
                           :HOME-KEY bo-id

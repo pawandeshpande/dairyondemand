@@ -23,10 +23,10 @@
 		(:div :class "col-xs-12" :align "right"
 		      (:a  :data-toggle "modal" :data-target (format nil "#editcompany-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
 		       ;(:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group")
-		     (modal-dialog (format nil "editcompany-modal~a" row-id) "Add/Edit Group" (new-company-html row-id))
+		     (modal-dialog (format nil "editcompany-modal~a" row-id) "Add/Edit Group" (com-hhub-transaction-create-company row-id))
 		      )) 
 	  (:div :class "row"
-		(:div :class "col-xs-12"  (:h3 (str comp-name))))
+		(:div :class "col-xs-12"  (:h3 (str (if (> (length comp-name) 20)  (subseq comp-name 0 20) comp-name)))))
 	  (:div :class "row"
 		(:div :class "col-xs-12"  (str address)))
 	  (:div :class "row"
@@ -37,9 +37,8 @@
 	  (:div :class "row"
 		(:div :class "col-xs-6" (str zipcode)))
 	  (:div :class "row" 
-		(:div :class "col-xs-6" (:b (:h5 (str (format nil "No of Customers: ~A " (count-company-customers instance)))))))
-	  (:div :class "row" 
-		(:div :class "col-xs-6" (:b (:h5 (str (format nil  "No of Vendors: ~A " (count-company-vendors instance )))))))
+		(:div :class "col-xs-6" (:b (:h5 (str (format nil "No of Customers: ~A " (count-company-customers instance))))))
+	  (:div :class "col-xs-6" (:b (:h5 (str (format nil  "No of Vendors: ~A " (count-company-vendors instance )))))))
 	  ))))
 
 
@@ -52,20 +51,19 @@
 
 
 (defun ui-list-companies (company-list)
-  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
-    (if company-list 
-	(htm 
-	 (:div :class "row-fluid"	  (mapcar (lambda (cmp)
-						      (htm 
-						       (:form :method "POST" :action "custsignup1action" :id "custsignup1form" 
-							      (:div :class "col-sm-4 col-lg-3 col-md-4"
-								    (:div :class "form-group"
-									  (:input :class "form-control" :name "cname" :type "hidden" :value (str (format nil "~A" (slot-value cmp 'name)))))
-								    (:div :class "form-group"
-									  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" (str (format nil "~A" (slot-value cmp 'name)))))))))  company-list)))
-	;else
-	(htm (:div :class "col-sm-12 col-md-12 col-lg-12"
-	      (:h3 "No records found"))))))
+ (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+  (if company-list 
+      (htm (:div :class "row-fluid"	  
+	    (mapcar (lambda (cmp)
+		      (htm (:form :method "POST" :action "custsignup1action" :id "custsignup1form" 
+			   (:div :class "col-sm-4 col-lg-3 col-md-4"
+			    (:div :class "form-group"
+			     (:input :class "form-control" :name "cname" :type "hidden" :value (str (format nil "~A" (slot-value cmp 'name)))))
+			    (:div :class "form-group"
+				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" (str (format nil "~A" (slot-value cmp 'name)))))))))  company-list)))
+					;else
+      (htm (:div :class "col-sm-12 col-md-12 col-lg-12"
+		 (:h3 "No records found"))))))
 
 
 
