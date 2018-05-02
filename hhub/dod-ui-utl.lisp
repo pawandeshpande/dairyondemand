@@ -13,6 +13,13 @@
 	(list hour minute second)))
 
 
+(defmacro with-hhub-transaction (name &body body)
+`(let ((transaction (select-bus-trans-by-trans-func ,name)))
+   (if (has-permission transaction) 
+       ,@body
+       ;else 
+      "Permission Denied")))
+
 
 (defmacro with-html-dropdown (name kvhash selectedkey)
 `(cl-who:with-html-output (*standard-output* nil)
@@ -25,20 +32,18 @@
 
 
 
-(defun display-as-table (header data rowdisplayfunc) 
+(defun display-as-table (header listdata rowdisplayfunc) 
 :documentation "This is a generic function which will display items in list as a html table. You need to pass the html table header and  list data, and a display function which will display data. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizingrefer to style.css. " 
   (cl-who:with-html-output-to-string (*standard-output* nil)
-    ; searchresult div will be used to store the search result. 
-    (:div :id "searchresult" 
-     (:table :class "table  table-striped  table-hover"
+    (:table :class "table  table-striped  table-hover"
       (:thead (:tr
 	(mapcar (lambda (item) (htm (:th (str item)))) header))) 
           (:tbody
 	    (mapcar (lambda (item)
-		      (htm (:tr (funcall rowdisplayfunc item))))  data))))))
+		      (htm (:tr (funcall rowdisplayfunc item))))  listdata)))))
 
-
-(defun display-as-tiles (data displayfunc) 
+;; Can this function be converted into a macro?
+(defun display-as-tiles (listdata displayfunc) 
 :documentation "This is a generic function which will display items in list as tiles. You need to pass the list data, and a display function which will display 
 individual tiles. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizingrefer to style.css. " 
   (cl-who:with-html-output-to-string (*standard-output* nil)
@@ -46,8 +51,23 @@ individual tiles. It also supports search functionality by including the searchr
     (:div :id "searchresult" 
     (:div :class "row-fluid"  (mapcar (lambda (item)
 					(htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
-						    (funcall displayfunc item))))  data)))))
+						    (funcall displayfunc item))))  listdata)))))
 
+
+(defmacro with-html-search-form (search-form-action search-placeholder &body body) 
+:documentation "Arguments: search-form-action - the form's action, search-placeholder - placeholder for search text box, body - any additional hidden form input elements"  
+`(cl-who:with-html-output (*standard-output* nil ) 
+    (:form :id "theForm" :name "theForm" :method "POST" :action ,search-form-action :onSubmit "return false"
+     (:div :class "row" 
+      (:div :class "col-lg-6 col-md-6 col-sm-12 col-xs-12" 
+       (:div :class "input-group"
+	(:input :type "text" :name "livesearch" :id "livesearch"  :class "form-control" :placeholder ,search-placeholder)
+	,@body
+	(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Go!" ))))))
+    (:div :id "searchresult")))
+
+     
+ 
 
 (defun copy-hash-table (hash-table)
   (let ((ht (make-hash-table 

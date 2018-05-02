@@ -82,17 +82,15 @@
 
 
 (defun get-login-company ()
-  (let ((tenant-id (get-login-tenant-id)))
-    (select-company-by-id tenant-id)))
+  ( hunchentoot:session-value :login-company))
 
 
 (defun get-login-customer-company ()
-  (let ((tenant-id (get-login-cust-tenant-id)))
-    (select-company-by-id tenant-id)))
+  ( hunchentoot:session-value :login-customer-company))
 
 (defun get-login-customer-company-name ()
-  (let ((company (select-company-by-id  (get-login-cust-tenant-id))))
-    (slot-value company 'name)))
+    ( hunchentoot:session-value :login-customer-company-name))
+
 
 (defun get-login-vendor-company ()
 (hunchentoot:session-value :login-vendor-company))  

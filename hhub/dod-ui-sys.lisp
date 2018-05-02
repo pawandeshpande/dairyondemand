@@ -154,6 +154,7 @@
 
 
 
+
 	
 (defun com-hhub-transaction-create-company (&optional id)
   (let* ((company (if id (select-company-by-id id)))
@@ -161,10 +162,9 @@
 	 (cmpaddress (if company(slot-value company 'address)))
 	 (cmpcity (if company (slot-value company 'city)))
 	 (cmpstate (if company (slot-value company 'state))) 
-	 (transaction (select-bus-trans-by-trans-func "com-hhub-transaction-create-company"))
 	 (cmpzipcode (if company (slot-value company 'zipcode))))
-    (if (has-permission transaction)
-	(cl-who:with-html-output (*standard-output* nil)
+    (with-hhub-transaction "com-hhub-transaction-create-company" 
+    	(cl-who:with-html-output (*standard-output* nil)
 	  (:div :class "row" 
 		(:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		      (:form :class "form-addcompany" :role "form" :method "POST" :action "company-added" 
@@ -187,10 +187,7 @@
 				  (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
 			    
 			    (:div :class "form-group"
-				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
-	(cl-who:with-html-output (*standard-output* nil)
-	  (:div :class "row" 
-		(:h3 "Permission Denied"))))))
+				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
 
 
 (defun dod-controller-company-search-for-sys-action ()
@@ -212,7 +209,7 @@
 	    (:div :class "row"
 	      (:div :class "col-md-12" (:h4 "Business Policies")))
 	  (str (display-as-table (list "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
-	  (modal-dialog "addpolicy-modal" "Add/Edit Policy" (new-policy-html))))
+	  (modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create))))
       (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
@@ -233,10 +230,8 @@
 		    (:span :class "badge" (str (format nil "~A" (length companies))))))
 	(:hr)
 	(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
-       
-	(str (display-as-tiles companies 'company-card )))))
-      
-(hunchentoot:redirect "/hhub/opr-login.html")))
+   	(str (display-as-tiles companies 'company-card )))))
+   (hunchentoot:redirect "/hhub/opr-login.html")))
   
 (setq *logged-in-users* (make-hash-table :test 'equal))
 
@@ -264,9 +259,7 @@
 	   (:div :class "col-md-12" 
 	    (:div :class "col-md-12" (:h4 "Business Transactions"))))
 	(str (display-as-table (list "Name" "URI" "Function" "Action")  bustrans 'bustrans-card))
-	(modal-dialog "addtransaction-modal" "Add/Edit Transaction" (new-transaction-html))
-   (:h4 "Note: To add new Business Transactions to the system, follow these steps.")
-   (:h4 "In the Lisp REPL call the function, (create-bus-transaction)")))
+	(modal-dialog "addtransaction-modal" "Add/Edit Transaction" (new-transaction-html))))
 (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
@@ -336,9 +329,6 @@
 	    (hunchentoot:remove-session *current-user-session*)
 	    (hunchentoot:redirect "/hhub/opr-login.html")))
 
-
-(defun get-current-login-company ()
- ( hunchentoot:session-value :login-company))
 
 (defun is-dod-session-valid? ()
  (if  (null (get-current-login-username)) NIL T))
@@ -513,6 +503,9 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/listbustrans" 'dod-controller-list-bustrans)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddpolicyaction" 'dod-controller-add-policy-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddtransactionaction" 'dod-controller-add-transaction-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dassearchpolicies" 'dod-controller-policy-search-action )
+	(hunchentoot:create-regex-dispatcher "^/hhub/transtopolicylinkpage" 'dod-controller-trans-to-policy-link-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/transtopolicylinkaction" 'dod-controller-trans-to-policy-link-action)
 	
 		
 	
@@ -530,7 +523,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustaddopfaction" 'dod-controller-cust-add-orderpref-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/delopref" 'dod-controller-del-opref)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorderaddpage" 'dod-controller-cust-add-order-page)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorderaddaction" 'dod-controller-cust-add-order-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorderaddaction" 'com-hhub-transaction-create-order)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorderdetailaddpage" 'dod-controller-cust-add-order-detail-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorderdetailaddaction" 'dod-controller-cust-add-order-detail-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustaddtocart" 'dod-controller-cust-add-to-cart)

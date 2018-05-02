@@ -317,7 +317,7 @@
 
 
 (defun dod-controller-search-products ()
-(let* ((search-clause (hunchentoot:parameter "livesearch"))
+(let* ((search-clause (hunchentoot:parameter "livesearchs"))
       (products (if (not (equal "" search-clause)) (search-products search-clause (get-login-cust-company))))
       (shoppingcart (hunchentoot:session-value :login-shopping-cart)))
 (ui-list-customer-products  products shoppingcart)))
@@ -357,7 +357,7 @@
 
 
 (defmacro standard-customer-page ((&key title) &body body)
-    `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+ `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
 	 (:html :xmlns "http://www.w3.org/1999/xhtml"
 	     :xml\:lang "en" 
 	     :lang "en"
@@ -390,12 +390,9 @@
 		 (:div :class "container theme-showcase" :role "main" 
 		   (:div :id "header"  ,@body))
 		       		 ;; rangeslider
-		 
-		 
 		 ;; bootstrap core javascript
 		 (:script :src "js/bootstrap.min.js")
 		  (:script :src "js/dod.js"))))))
-
 
 ;**********************************************************************************
 ;***************** customer login related functions ******************************
@@ -420,7 +417,7 @@
     (standard-customer-page (:title "Welcome to HighriseHub Platform- Your Demand And Supply destination.")
       	(:form :class "form-custregister" :role "form" :method "POST" :action "dodcustregisteraction"
 	   (:div :class "row"
-			(:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+			(:img :class "profile-img" :src "resources/logo.png" :alt "")
 				(:h1 :class "text-center login-title"  "New Registration to HighriseHub")
 				(:hr)) 
 	       (:div :class "row" 
@@ -545,6 +542,9 @@
 	(company-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr))))
     (ui-list-companies company-list)))
 
+
+
+
 (defun dod-controller-company-search-page ()
   (handler-case
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
@@ -583,7 +583,7 @@
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin"
 				       (:div :class "account-wall"
-					     (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+					     (:img :class "profile-img" :src "resources/logo.png" :alt "")
 					     (:h1 :class "text-center login-title"  "Customer - Login to HighriseHub")
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text" ))
@@ -851,8 +851,9 @@
     		    (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorders") " My Orders Page"))))))
 
 
-(defun dod-controller-cust-add-order-action ()
-    (if (is-dod-cust-session-valid?)
+(defun com-hhub-transaction-create-order ()
+ (if (is-dod-cust-session-valid?)
+    (with-hhub-transaction "com-hhub-transaction-create-order" 
 	(let* ((odts (hunchentoot:session-value :login-shopping-cart))
 	       (products (hunchentoot:session-value :login-prd-cache))
 	       (payment-mode (hunchentoot:parameter "payment-mode"))
@@ -872,7 +873,7 @@
 	  (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
 	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	  (setf (hunchentoot:session-value :login-shopping-cart ) nil)
-	  (hunchentoot:redirect "/hhub/dodcustordsuccess"))
+	  (hunchentoot:redirect "/hhub/dodcustordsuccess")))
 	 (hunchentoot:redirect "/hhub/customer-login.html")))
 
 

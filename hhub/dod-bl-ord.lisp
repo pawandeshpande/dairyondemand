@@ -309,7 +309,7 @@
 
 
 
-(defun create-order (order-date customer-instance request-date ship-date ship-address context-id order-amt payment-mode company-instance)
+(defun create-order (order-date customer-instance request-date ship-date ship-address context-id order-amt payment-mode company-instance) 
   (let ((customer-id (slot-value  customer-instance 'row-id) )
 	(tenant-id (slot-value company-instance 'row-id)))
     (persist-order order-date customer-id request-date ship-date ship-address  context-id order-amt payment-mode  tenant-id)))
