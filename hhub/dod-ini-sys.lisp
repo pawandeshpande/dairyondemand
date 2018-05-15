@@ -27,7 +27,8 @@
 (defvar *ABAC-ATTRIBUTE-FUNC-PREFIX* "com-hhub-attribute-")
 (defvar *ABAC-POLICY-FUNC-PREFIX* "com-hhub-policy-")
 (defvar *ABAC-TRANSACTION-FUNC-PREFIX* "com-hhub-transaction-")
-
+(defvar *PAYMENTAPIKEY* "9f64df72-0b21-4c7e-b9f3-19b9fb34dce6")
+(defvar *PAYMENTAPISALT* "531337f97ac843613e9a191a4c639ec70b3056c3")
 
 (defun set-customer-page-title (name)
   (setf *customer-page-title* (format nil "Welcome to HighriseHub - ~A." name))) 

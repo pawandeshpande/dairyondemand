@@ -20,6 +20,16 @@
        ;else 
       "Permission Denied")))
 
+; Policy Enforcement Point for HHUB
+(defmacro with-hhub-pep (name subject resource action env &body body)
+`(let* ((transaction (select-bus-trans-by-trans-func ,name))
+       (policy-id (slot-value transaction 'auth-policy-id)))
+   (if (has-permission1 policy-id ,subject ,resource ,action ,env) 
+       ,@body
+       ;else 
+      "Permission Denied")))
+
+
 
 (defmacro with-html-dropdown (name kvhash selectedkey)
 `(cl-who:with-html-output (*standard-output* nil)

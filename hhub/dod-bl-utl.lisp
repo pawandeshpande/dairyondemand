@@ -9,14 +9,27 @@
   (multiple-value-bind (value present) (gethash key hash-table)
       (if present value )))
 
-(defun parse-date-string (date)
+(defun parse-date-string (datestr)
   "Read a date string of the form \"DD/MM/YYYY\" and return the 
 corresponding universal time."
-  (let ((date (parse-integer date :start 0 :end 2))
-        (month (parse-integer date :start 3 :end 5))
-        (year (parse-integer date :start 6 :end 10)))
+  (let ((date (parse-integer datestr :start 0 :end 2))
+        (month (parse-integer datestr :start 3 :end 5))
+        (year (parse-integer datestr :start 6 :end 10)))
     (encode-universal-time 0 0 0 date month year)))
 
+(defun parse-time-string (timestr)
+  :documentation "Read a time string of the form \"HH:MM:SS\" and return the corresponding universal time"
+ (let ((hour (parse-integer timestr :start 0 :end 2))
+       (minute (parse-integer timestr :start 3 :end 5))
+       (second (parse-integer timestr :start 6 :end 8)))
+   (encode-universal-time second minute hour 1 1 0)))
+
+(defun current-time-string ()
+  "Returns current time  as a string in HH:MM:SS  format"
+  (multiple-value-bind (sec min hr day mon yr dow dst-p tz)
+                       (get-decoded-time)
+    (declare (ignore day mon yr dow dst-p tz))
+      (format nil "~2,'0d:~2,'0d:~2,'0d" hr min  sec)))
 
 
 (defun get-date-from-string (datestr)
@@ -44,6 +57,54 @@ corresponding universal time."
   "Returns current date as a string in DD-MM-YYYY format."
   (multiple-value-bind (yr mon day)
                        (date-ymd dateobj)  (format nil "~4,'0d-~2,'0d-~2,'0d 00:00:00" yr mon day)))
+
+
+
+(defun test-alist ( amount salt )
+  (let* (
+	 (description "This is test description")
+	 (order-id "testorder1234")
+	 (mode "TEST")
+	 (currency "INR")
+	 (customer-name "Test customer")
+	 (customer-email "pawan.deshpande@gmail.com")
+	 (customer-phone "+919972022281")
+	 (customer-city "Bangalore")
+	 (customer-country "India")
+	 (customer-zipcode "560096")
+	 (return-url "http://www.highrisehub.com/hhub/paymentsuccessful")
+	 (msg (concatenate 'string  salt ""))
+	 (param-names (list "amount" "api_key" "city" "country" "currency" "description" "email" "mode" "name" "order_id" "phone" "return_url" "zip_code"))
+	 (param-values (list amount *PAYMENTAPIKEY* customer-city customer-country currency description customer-email mode customer-name order-id  customer-phone return-url customer-zipcode))
+	 (params-alist (pairlis param-names param-values)))
+	
+    
+
+
+
+    (setf param-names (sort param-names  #'string-lessp))
+    
+    (loop for item in param-names do 
+	 (let ((str (find item params-alist :test #'equal :key #'car )))
+	   (setf msg (concatenate 'string msg  "|" (cdr str)))))
+    msg))
+
+    
+
+
+(defun generatehashkey (params-alist salt hashmethod)
+  (let ((param-names (list "amount" "api_key" "city" "country" "currency" "description" "email" "mode" "name" "order_id" "phone" "return_url" "zip_code"))
+	(msg salt))
+    (setf param-names (sort param-names  #'string-lessp))
+    (loop for item in param-names do 
+	 (let ((str (find item params-alist :test #'equal :key #'car)))
+	 (setf msg (concatenate 'string msg "|" (cdr str)))))
+    (string-upcase (ironclad:byte-array-to-hex-string 
+     (ironclad:digest-sequence
+      hashmethod
+      (ironclad:ascii-string-to-byte-array msg))))))
+
+
 
 (defun get-cipher (salt)
   (ironclad:make-cipher :blowfish

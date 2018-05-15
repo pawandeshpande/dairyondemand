@@ -3,17 +3,44 @@
 
 ;;; Add a new attribute. 
 
-(defun com-das-policy-customer-create-order ()
-  T);(if (equal (get-login-customer-role) "CUSTOMER" ) T NIL))
+(defun com-hhub-policy-create-order (&optional transaction)
+  (let ((transbo (get-bus-tran-busobject transaction)))
+    ; Match the Resource attribute and Action attribute for Create Order.
+    (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
+	      (if (> (search (com-hhub-attribute-create-order) (slot-value transaction 'name)) 0) T NIL)
+	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
 
-(defun com-das-policy-create-company ()
+
+(defun com-hhub-policy-create-order1 (subject resource action env ) 
+  (let ((transbo (get-bus-tran-busobject transaction)))
+    ; Match the Resource attribute and Action attribute for Create Order.
+    (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
+	      (if (> (search (com-hhub-attribute-create-order) (slot-value transaction 'name)) 0) T NIL)
+	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
+
+
+
+; This is a Resource attribute function for order.
+(defun com-hhub-attribute-order ()
+  "Order")
+
+; This is an Action attribute function for create order.
+(defun com-hhub-attribute-create-order ()
+"create.order")
+
+(defun com-hhub-attribute-maxordertime ()
+  "23:00:00")
+
+
+
+(defun com-hhub-policy-create-company (&optional transaction)
   (if (equal (get-login-user-name) "superadmin") T NIL)) 
 
 
-(defun com-das-policy-create-attribute ()
+(defun com-hhub-policy-create-attribute (&optional transaction)
   (if (equal (get-login-user-name) "superadmin") T NIL)) 
 
-(defun com-das-policy-create ()
+(defun com-hhub-policy-create (&optional transaction)
   (if (equal (get-login-user-name) "superadmin") T NIL)) 
 
 (defun dod-controller-add-transaction-action ()
@@ -52,12 +79,12 @@
 	   (policyfunc (hunchentoot:parameter "policyfunc")))
       (if policy 
 	  (progn 
-	    (setf (slot-value policy 'name) (concatenate 'string "com.das.policy." policyname))
+	    (setf (slot-value policy 'name) (concatenate 'string *ABAC-POLICY-NAME-PREFIX*  policyname))
 	    (setf (slot-value policy 'description) policydesc)
-	    (setf (slot-value policy 'policy-func) (concatenate 'string "com-das-policy-" policyfunc))
+	    (setf (slot-value policy 'policy-func) (concatenate 'string *ABAC-POLICY-FUNC-PREFIX*  policyfunc))
 	    (update-auth-policy policy))
 	  ;else
-	(create-auth-policy (concatenate 'string "com.das.policy." policyname)  policydesc (concatenate 'string "com-das-policy-" policyfunc) company))
+	(create-auth-policy (concatenate 'string *ABAC-POLICY-NAME-PREFIX*  policyname)  policydesc (concatenate 'string *ABAC-POLICY-FUNC-PREFIX*  policyfunc) company))
 	(hunchentoot:redirect "/hhub/dasabacsecurity"))
       ;else
       (hunchentoot:redirect "/hhub/opr-login.html")))
@@ -80,7 +107,7 @@
 	      (setf (slot-value attribute 'attr-type) attrtype)
 	      (update-auth-attr-lookup attribute))
 	    ;else 
-	(create-auth-attr-lookup (concatenate 'string  "com.das.attr." attrname)   attrdesc (concatenate 'string "com-das-attribute-" attrfunc)  attrtype company))
+	(create-auth-attr-lookup (concatenate 'string  *ABAC-ATTRIBUTE-NAME-PREFIX* attrname)   attrdesc (concatenate 'string *ABAC-ATTRIBUTE-FUNC-PREFIX*  attrfunc)  attrtype company))
 	(hunchentoot:redirect "/hhub/listattributes"))
   ;else
   (hunchentoot:redirect "/hhub/opr-login.html")))
@@ -342,15 +369,15 @@
 			     (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
 			     (:h1 :class "text-center login-title"  "Add/Edit Policy")
 			     (:div :class "form-group input-group"
-				   (:span :class "input-group-addon" :id "attrnameprefix" "com.das.policy.") 
-				   (:input :class "form-control" :name "policyname" :aria-describedby "polnameprefix" :maxlength "30"  :value (if policy (subseq policyname (length "com.das.policy."))) :placeholder "Enter Policy  Name ( max 30 characters) " :type "text" ))
+				   (:span :class "input-group-addon" :id "attrnameprefix" (str *ABAC-POLICY-NAME-PREFIX*) ) 
+				   (:input :class "form-control" :name "policyname" :aria-describedby "polnameprefix" :maxlength "30"  :value (if policy (subseq policyname (length *ABAC-POLICY-NAME-PREFIX*))) :placeholder "Enter Policy  Name ( max 30 characters) " :type "text" ))
 			     (:div :class "form-group"
 				   (:label :for "policydesc")
 				   (:textarea :class "form-control" :name "policydesc"  :placeholder "Enter Policy Description ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str policydesc) ))
 			     (:div :class "form-group" :id "charcount")
 			     (:div :class "form-group input-group"
-				   (:span :class "input-group-addon" :id "policyfuncprefix" "com-das-policy-") 
-				   (:input :class "form-control" :name "policyfunc" :maxlength "30"  :value (if policy (subseq  policyfunc (length "com-das-policy-"))) :placeholder "Declare Policy Function Name ( max 100 characters) " :aria-describedby "policyfuncprefix"  :type "text" ))
+				   (:span :class "input-group-addon" :id "policyfuncprefix" (str *ABAC-POLICY-FUNC-PREFIX*)) 
+				   (:input :class "form-control" :name "policyfunc" :maxlength "30"  :value (if policy (subseq  policyfunc (length *ABAC-POLICY-FUNC-PREFIX*))) :placeholder "Declare Policy Function Name ( max 100 characters) " :aria-describedby "policyfuncprefix"  :type "text" ))
 			     (:div :class "form-group"
 				   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
 	(cl-who:with-html-output (*standard-output* nil)

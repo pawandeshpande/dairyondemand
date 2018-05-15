@@ -141,6 +141,9 @@
 				      (htm (:td :height "12px" (:h4 (:span :class "label label-danger" (str (format nil "Rs. ~$ " balance))))))
 				      ;else
 				      (htm (:td :height "12px" (str (format nil "Rs. ~$ " balance)))))
+				  
+				  (:td :height "12px" (:a  :data-toggle "modal" :data-target (format nil "#makepayment1000-modal")  :href "#" "Recharge Rs 1000.00 "))
+				  (modal-dialog (format nil "makepayment1000-modal") "Recharge Wallet" (make-payment-request-html "1000"))
 				      )))) wallets))))))
 
 
@@ -853,28 +856,29 @@
 
 (defun com-hhub-transaction-create-order ()
  (if (is-dod-cust-session-valid?)
-    (with-hhub-transaction "com-hhub-transaction-create-order" 
-	(let* ((odts (hunchentoot:session-value :login-shopping-cart))
-	       (products (hunchentoot:session-value :login-prd-cache))
-	       (payment-mode (hunchentoot:parameter "payment-mode"))
-	       (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
-	       (cust (hunchentoot:session-value :login-customer))
-	       (shopcart-total (get-shop-cart-total))
-	       (custcomp (hunchentoot:session-value :login-customer-company))
-	       (vendor-list (get-shopcart-vendorlist odts))
-	       (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
-	       (shipaddr (hunchentoot:parameter "shipaddress")))
-	  
-	  (if  (equal payment-mode "PRE")
-		      ; at least one vendor wallet has low balance 
-	       (if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
-							(check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalance")))
-		;(if (equal payment-mode "COD")  
-	  (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
-	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
-	  (setf (hunchentoot:session-value :login-shopping-cart ) nil)
-	  (hunchentoot:redirect "/hhub/dodcustordsuccess")))
-	 (hunchentoot:redirect "/hhub/customer-login.html")))
+     (let* ((odts (hunchentoot:session-value :login-shopping-cart))
+	    (products (hunchentoot:session-value :login-prd-cache))
+	    (payment-mode (hunchentoot:parameter "payment-mode"))
+	    (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
+	    (cust (hunchentoot:session-value :login-customer))
+	    (shopcart-total (get-shop-cart-total))
+	    (custcomp (hunchentoot:session-value :login-customer-company))
+	    (vendor-list (get-shopcart-vendorlist odts))
+	    (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
+	    (shipaddr (hunchentoot:parameter "shipaddress")))
+       
+       (with-hhub-transaction "com-hhub-transaction-create-order" 
+	 (progn  
+	   (if  (equal payment-mode "PRE")
+					; at least one vendor wallet has low balance 
+		(if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
+								   (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalance"))
+					;(if (equal payment-mode "COD")  
+		(create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp))
+	   (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
+	   (setf (hunchentoot:session-value :login-shopping-cart ) nil)
+	   (hunchentoot:redirect "/hhub/dodcustordsuccess"))))
+ (hunchentoot:redirect "/hhub/customer-login.html")))
 
 
 

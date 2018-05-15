@@ -109,9 +109,15 @@
     	      (persist-bus-transaction name  uri  bo-id trans-type trans-func  tenant-id)))
 
 
+; POLICY ENFORCEMENT POINT 
+(defun has-permission1 (policy-id subject resource action env)
+  (let* ((policy (if policy-id (select-auth-policy-by-id policy-id)))
+	(policy-func (if policy (slot-value policy 'policy-func))))
+     (if policy-func (funcall (intern  (string-upcase policy-func)) subject resource action env))))
+
 
 (defun has-permission (transaction)
   (let* ((policy-id (if transaction (slot-value transaction 'auth-policy-id)))
 	(policy (if policy-id (select-auth-policy-by-id policy-id)))
 	(policy-func (if policy (slot-value policy 'policy-func))))
-     (if policy-func (funcall (intern  (string-upcase policy-func))))))
+     (if policy-func (funcall (intern  (string-upcase policy-func)) transaction))))

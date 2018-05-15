@@ -549,6 +549,9 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustprofile" 'dod-controller-customer-profile)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustorditemedit" 'dod-controller-order-item-edit )
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodshowcalendar" 'dod-page-with-calendar)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dasmakepaymentrequest" 'dod-controller-make-payment-request-action )
+	(hunchentoot:create-regex-dispatcher "^/hhub/custpaymentsuccess" 'dod-controller-customer-payment-successful-page )
+	(hunchentoot:create-regex-dispatcher "^/hhub/custpaymentfailure" 'dod-controller-customer-payment-failure-page )
 	
 
 ;************VENDOR RELATED ********************
