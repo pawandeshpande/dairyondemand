@@ -123,7 +123,7 @@
 
 
 (defun list-customer-wallets (wallets)
-(let ((header (list "Vendor" "Phone" "Balance")))
+(let ((header (list "Vendor" "Phone" "Balance" "Recharge")))
   (cl-who:with-html-output (*standard-output* nil)
       (:h3 "My Wallets.")      
       (:table :class "table table-striped"  (:thead (:tr
@@ -132,6 +132,7 @@
 	       (mapcar (lambda (wallet)
 			 (let ((vendor (slot-value wallet 'vendor))
 			       (balance (slot-value wallet 'balance))
+			       (wallet-id (slot-value wallet 'row-id))
 			       (lowbalancep (if (check-low-wallet-balance wallet) t nil)))
 			   (htm (:tr
 				 (:td  :height "12px" (str (slot-value vendor  'name)))
@@ -141,10 +142,18 @@
 				      (htm (:td :height "12px" (:h4 (:span :class "label label-danger" (str (format nil "Rs. ~$ " balance))))))
 				      ;else
 				      (htm (:td :height "12px" (str (format nil "Rs. ~$ " balance)))))
+				 
+				  (:td :height "12px" 
+				       (:a  :class "btn btn-primary" :role "button" :data-toggle "modal" :href (format nil "/hhub/dasmakepaymentrequest?amount=500&wallet-id=~A" wallet-id)  "500")
+				   
+					; Recharge 1500 
+				        
+				       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=1000&wallet-id=~A" wallet-id) "1000"))
+
 				  
-				  (:td :height "12px" (:a  :data-toggle "modal" :data-target (format nil "#makepayment1000-modal")  :href "#" "Recharge Rs 1000.00 "))
-				  (modal-dialog (format nil "makepayment1000-modal") "Recharge Wallet" (make-payment-request-html "1000"))
-				      )))) wallets))))))
+				  
+				  
+				  )))) wallets))))))
 
 
 (defun list-lowbalance-customer-wallets (wallets)

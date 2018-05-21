@@ -93,8 +93,9 @@ corresponding universal time."
 
 
 (defun generatehashkey (params-alist salt hashmethod)
-  (let ((param-names (list "amount" "api_key" "city" "country" "currency" "description" "email" "mode" "name" "order_id" "phone" "return_url" "zip_code"))
-	(msg salt))
+  (let* ((msg salt)
+	(param-names (mapcar (lambda (param) 
+				(car param)) params-alist)))
     (setf param-names (sort param-names  #'string-lessp))
     (loop for item in param-names do 
 	 (let ((str (find item params-alist :test #'equal :key #'car)))
@@ -105,6 +106,13 @@ corresponding universal time."
       (ironclad:ascii-string-to-byte-array msg))))))
 
 
+(defun responsehashcheck (params-alist salt hashmethod)
+  (let* ((received-hash (cdr (find "hash" params-alist :test #'equal :key #'car)))
+	 (params-alist (remove (find "hash" params-alist :test #'equal :key #'car) params-alist))
+	 (newhash (generatehashkey params-alist salt hashmethod)))
+    (equal newhash received-hash)))
+    
+	
 
 (defun get-cipher (salt)
   (ironclad:make-cipher :blowfish
