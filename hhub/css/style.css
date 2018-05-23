@@ -403,8 +403,8 @@ transition: all 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 
 .stampbox
 {
-  width:200px;
-  height:200px;
+  width:160px;
+  height:60px;
   border:solid 1px #333;
   display:inline-block;
   vertical-align:top;
@@ -427,7 +427,7 @@ transition: all 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
     -ms-transform: rotate(-25deg); /* IE */
     -o-transform: rotate(-25deg); /* Opera */
     transform: rotate(-25deg);
-    font-size:40px;
+    font-size:30px;
     color:#c00;
     background:#fff;
     border:solid 4px #c00;

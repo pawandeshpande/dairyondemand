@@ -881,9 +881,9 @@
 	   (if  (equal payment-mode "PRE")
 					; at least one vendor wallet has low balance 
 		(if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
-								   (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalance"))
+								   (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalance")))
 					;(if (equal payment-mode "COD")  
-		(create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp))
+	   (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
 	   (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	   (setf (hunchentoot:session-value :login-shopping-cart ) nil)
 	   (hunchentoot:redirect "/hhub/dodcustordsuccess"))))

@@ -182,45 +182,43 @@
 					      (:div :class "form-group"
 						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
 (hunchentoot:redirect "/hhub/vendor-login.html")))					    
-					     
-		
+
+
 (defun dod-controller-vendor-add-product-action ()
   (if (is-dod-vend-session-valid?)
-  (let* ((prodname (hunchentoot:parameter "prdname"))
+      (let* ((prodname (hunchentoot:parameter "prdname"))
 	 (id (hunchentoot:parameter "id"))
 	 (product (if id (select-product-by-id id (get-login-vendor-company))))
 	 (description (hunchentoot:parameter "description"))
-	(prodprice (with-input-from-string (in (hunchentoot:parameter "prdprice"))
+	 (prodprice (with-input-from-string (in (hunchentoot:parameter "prdprice"))
 		     (read in)))
-	(qtyperunit (hunchentoot:parameter "qtyperunit"))
-	(catg-id (hunchentoot:parameter "prodcatg"))
+	 (qtyperunit (hunchentoot:parameter "qtyperunit"))
+	 (catg-id (hunchentoot:parameter "prodcatg"))
 	 (subscriptionflag (hunchentoot:parameter "yesno"))
-	(prodimageparams (hunchentoot:post-parameter "prodimage"))
-	;(destructuring-bind (path file-name content-type) prodimageparams))
+	 (prodimageparams (hunchentoot:post-parameter "prodimage"))
+					;(destructuring-bind (path file-name content-type) prodimageparams))
 	 (tempfilewithpath (first prodimageparams))
-	 (file-name (format nil "~A-~A" (second prodimageparams) (get-universal-time)))
-	 )
-	;(content-type (third prodimageparams)))
-    
-     (if tempfilewithpath 
-	      (progn 
-		(probe-file tempfilewithpath)
-		(rename-file tempfilewithpath (make-pathname :directory "/home/hunchentoot/dairyondemand/hhub/resources/" :name file-name))))
+	 (file-name (format nil "~A-~A" (second prodimageparams) (get-universal-time))))
 	
-    (if product 
-	(progn 
-	  (setf (slot-value product 'description) description)
-	  (setf (slot-value product 'unit-price) prodprice)
-	  (setf (slot-value product 'qty-per-unit) qtyperunit)
-	  (setf (slot-value product 'subscribe-flag) subscriptionflag)
-	  (if tempfilewithpath (setf (slot-value product 'prd-image-path) (format nil "resources/~A" file-name)))
-	  (update-prd-details product))
-       	;else
-      (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice (format nil "resources/~A" file-name)  subscriptionflag  (get-login-vendor-company)))
-      (dod-reset-vendor-products-functions (get-login-vendor))
-      (hunchentoot:redirect "/hhub/dodvenproducts"))
-  ;else
-  (hunchentoot:redirect "/hhub/vendor-login.html")))
+	(if tempfilewithpath 
+	    (progn 
+	      (probe-file tempfilewithpath)
+	      (rename-file tempfilewithpath (make-pathname :directory "/home/hunchentoot/dairyondemand/hhub/resources/" :name file-name))))
+	
+	(if product 
+	    (progn 
+	      (setf (slot-value product 'description) description)
+	      (setf (slot-value product 'unit-price) prodprice)
+	      (setf (slot-value product 'qty-per-unit) qtyperunit)
+	      (setf (slot-value product 'subscribe-flag) subscriptionflag)
+	      (if tempfilewithpath (setf (slot-value product 'prd-image-path) (format nil "resources/~A" file-name)))
+	      (update-prd-details product))
+					;else
+	    (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice (format nil "resources/~A" file-name)  subscriptionflag  (get-login-vendor-company)))
+	(dod-reset-vendor-products-functions (get-login-vendor))
+	(hunchentoot:redirect "/hhub/dodvenproducts"))
+					;else
+      (hunchentoot:redirect "/hhub/vendor-login.html")))
 
     
 
@@ -621,6 +619,7 @@
 		((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
 						     (progn (htm (str (format nil "Completed orders"))
 								 (:span :class "badge" (str (format nil " ~d " (length orders)))) 
+								 (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=completedorders" "Export To Excel")
 								 (:hr))
 							(str(display-as-tiles orders 'vendor-order-card)))))
 							    

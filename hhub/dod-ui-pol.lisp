@@ -11,12 +11,12 @@
 	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
 
 
-(defun com-hhub-policy-create-order1 (subject resource action env ) 
-  (let ((transbo (get-bus-tran-busobject transaction)))
-    ; Match the Resource attribute and Action attribute for Create Order.
-    (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
-	      (if (> (search (com-hhub-attribute-create-order) (slot-value transaction 'name)) 0) T NIL)
-	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
+;(defun com-hhub-policy-create-order1 (subject resource action env ) 
+;  (let ((transbo (get-bus-tran-busobject transaction)))
+;    ; Match the Resource attribute and Action attribute for Create Order.
+;    (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
+;	      (if (> (search (com-hhub-attribute-create-order) (slot-value transaction 'name)) 0) T NIL)
+;	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
 
 
 
@@ -29,7 +29,7 @@
 "create.order")
 
 (defun com-hhub-attribute-maxordertime ()
-  "23:00:00")
+  "23:59:00")
 
 
 

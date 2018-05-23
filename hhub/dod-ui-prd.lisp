@@ -98,7 +98,7 @@
 		(:div :class "col-sm-12" (:a :href (format nil "dodproducts?id=~A" row-id) (str catg-name)))))))
 		
 
-(defun modal.vendor-product-edit-html (prd-id)
+(defun modal.vendor-product-edit-html (prd-id mode)
   (let* ((product (select-product-by-id prd-id (get-login-vendor-company)))
 	 (prd-image-path (slot-value product 'prd-image-path))
 	 (description (slot-value product 'description))
@@ -111,15 +111,14 @@
  (cl-who:with-html-output (*standard-output* nil)
    (:div :class "row" 
 	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-	       (:form :class "form-vendorprodadd" :role "form" :method "POST" :action "dodvenaddproductaction" :enctype "multipart/form-data" 
+	       (:form :id (format nil "form-vendorprod~A" mode)  :role "form" :method "POST" :action "dodvenaddproductaction" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
-		(if product (htm (:input :class "form-control" :type "hidden" :value prd-id :name "prd-id")))
+		(if (and product (equal mode "EDIT")) (htm (:input :class "form-control" :type "hidden" :value prd-id :name "id")))
 		 (:div :align "center"  :class "form-group" 
-		       (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
-		 (:h1 :class "text-center login-title"  "Edit Product")
+		       (:a :href "#" (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
+		 (:h1 :class "text-center login-title"  "Edit/Copy Product")
 		      (:div :class "form-group"
 			    (:input :class "form-control" :name "prdname" :value prd-name :placeholder "Enter Product Name ( max 30 characters) " :type "text" ))
-		      (:input :class "form-control" :name "id" :value prd-id :type "hidden")
 		      (:div :class "form-group"
 			    (:label :for "description")
 			    (:textarea :class "form-control" :name "description"  :placeholder "Enter Product Description ( max 1000 characters) "  :rows "5" :onkeyup "countChar(this, 1000)" (str (format nil "~A" description))))
@@ -140,7 +139,6 @@
 			    (:input :class "form-control" :name "prodimage" :placeholder "Product Image" :type "file" ))
 		      (:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
-
 
 
 (defun product-card-for-vendor (product-instance)
@@ -165,10 +163,11 @@
 		
 		
 		(:div :class "col-xs-2" 
-		      (:a  :href (format nil "dodvendcopyprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-copy")))
+		      (:a :data-toggle "modal" :data-target (format nil "#dodvendcopyprod-modal~A" prd-id)  :href "#"  (:span :class "glyphicon glyphicon-copy"))
+		      (modal-dialog (format nil "dodvendcopyprod-modal~A" prd-id) "Copy Product" (modal.vendor-product-edit-html  prd-id "COPY")))
 		(:div :class "col-xs-2" :align "right" 
 		     (:a :data-toggle "modal" :data-target (format nil "#dodvendeditprod-modal~A" prd-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
-		     (modal-dialog (format nil "dodvendeditprod-modal~A" prd-id) "Edit Product" (modal.vendor-product-edit-html  prd-id))) 
+		     (modal-dialog (format nil "dodvendeditprod-modal~A" prd-id) "Edit Product" (modal.vendor-product-edit-html  prd-id "EDIT"))) 
 		    
 		(:div :class "col-xs-4" :align "right" "")
 		(:div :class "col-xs-2" :align "right"
