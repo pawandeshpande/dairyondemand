@@ -198,12 +198,12 @@
 	 (prodimageparams (hunchentoot:post-parameter "prodimage"))
 					;(destructuring-bind (path file-name content-type) prodimageparams))
 	 (tempfilewithpath (first prodimageparams))
-	 (file-name (format nil "~A-~A" (second prodimageparams) (get-universal-time))))
+	 (file-name (format nil "~A-~A" (get-universal-time) (second prodimageparams))))
 	
 	(if tempfilewithpath 
 	    (progn 
 	      (probe-file tempfilewithpath)
-	      (rename-file tempfilewithpath (make-pathname :directory "/home/hunchentoot/dairyondemand/hhub/resources/" :name file-name))))
+	      (rename-file tempfilewithpath (make-pathname :directory *HHUBRESOURCESDIR*  :name file-name))))
 	
 	(if product 
 	    (progn 

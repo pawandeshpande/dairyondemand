@@ -3,14 +3,14 @@
 
 (defun dod-controller-order-item-edit ()
   (let* ((item-id (hunchentoot:parameter "item-id"))
-	 (company (hunchentoot:session-value :login-customer-company))
+	; (company (hunchentoot:session-value :login-customer-company))
 	 (prdqty (parse-integer (hunchentoot:parameter "prdqty")))
 	 (order-id (hunchentoot:parameter "order-id"))
 	 (order-item (get-order-item-by-id item-id)))
     (cond ((> prdqty 0) (progn 
 			  (setf (slot-value order-item 'prd-qty) prdqty)
-			  (update-order-item order-item)))
-	  ((equal prdqty 0) (delete-order-items (list item-id) company)))
+			  (update-order-item order-item))))
+	 ; ((equal prdqty 0) (delete-order-items (list item-id) company)))
     (hunchentoot:redirect (format nil "/hhub/dodmyorderdetails?id=~A" order-id))))
 
 

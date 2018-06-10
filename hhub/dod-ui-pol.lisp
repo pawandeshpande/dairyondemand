@@ -1,7 +1,7 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
-;;; Add a new attribute. 
+
 
 (defun com-hhub-policy-create-order (&optional transaction)
   (let ((transbo (get-bus-tran-busobject transaction)))
@@ -19,23 +19,8 @@
 ;	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
 
 
-
-; This is a Resource attribute function for order.
-(defun com-hhub-attribute-order ()
-  "Order")
-
-; This is an Action attribute function for create order.
-(defun com-hhub-attribute-create-order ()
-"create.order")
-
-(defun com-hhub-attribute-maxordertime ()
-  "23:59:00")
-
-
-
 (defun com-hhub-policy-create-company (&optional transaction)
   (if (equal (get-login-user-name) "superadmin") T NIL)) 
-
 
 (defun com-hhub-policy-create-attribute (&optional transaction)
   (if (equal (get-login-user-name) "superadmin") T NIL)) 
@@ -119,10 +104,9 @@
 (defun busobj-card (busobj-instance)
   (let ((name (slot-value busobj-instance 'name)))
 	(cl-who:with-html-output (*standard-output* nil)
+	  (:td :height "10px" 
+	   (:h6 :class "busobj-name"  (str (format nil " ~A" name)))))))
 	  
-	  (:div :class "product-box row"
-		(:div :class "col-xs-12"
-		      (:h3 :class "busobj-name"  (str name)))))))
 		    
 
 (defun bustrans-card (bustrans-instance)
@@ -224,11 +208,16 @@
 
 (defun dod-controller-trans-to-policy-link-page ()
   (let* ((trans-id (hunchentoot:parameter "trans-id"))
-	(transaction (get-bus-transaction trans-id)))
+	 (transaction (get-bus-transaction trans-id))
+	 (policy (get-bus-tran-policy transaction)))
   (standard-page (:title "Link Transaction To Policy")  
     (:div :class "row" 
 	  (:div :class "col-xs-12" 
-		(:h4 (str (format nil "Change Transaction Policy for : ~A" (slot-value transaction 'name))))))
+		(:h4 (str (format nil "Transaction:   ~A" (slot-value transaction 'name))))))
+    (:div :class "row" 
+	  (:div :class "col-xs-12" 
+		(:h4 (str (format nil "Currently linked policy:   ~A" (slot-value policy 'name))))))
+
     (with-html-search-form "dassearchpolicies" "Enter Policy Name..." 
       (:input :class "form-control" :name "trans-id" :type "hidden" :value trans-id)))))
     

@@ -242,7 +242,7 @@
 (standard-page (:title "Business Objects ...")
 	(:div :class "row"
 	      (:div :class "col-md-12" (:h4 "Business Objects")))
-  (str (display-as-tiles busobjs 'busobj-card))
+  (str (display-as-table (list "Name")  busobjs 'busobj-card))
     (:h4 "Note: To add new business objects to the system, follow these steps.")
     (:h4 "In the Lisp REPL call the function, (create-bus-object)")))
 (hunchentoot:redirect "/hhub/opr-login.html")))
@@ -499,7 +499,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbresetaction" 'dod-controller-dbreset-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodsyssearchtenantaction" 'dod-controller-company-search-for-sys-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddattribute" 'dod-controller-add-attribute)
-	(hunchentoot:create-regex-dispatcher "^/hhub/listbusobj" 'dod-controller-list-busobjs)
+	(hunchentoot:create-regex-dispatcher "^/hhub/listbusobjects" 'dod-controller-list-busobjs)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listbustrans" 'dod-controller-list-bustrans)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddpolicyaction" 'dod-controller-add-policy-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddtransactionaction" 'dod-controller-add-transaction-action)

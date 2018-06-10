@@ -101,7 +101,7 @@
 	    [and [= [:tenant-id] tenant-id]
 		  [= [:vendor-id] vendor-id]
 		  [= [:deleted-state] "N"]
-		   [= [:fulfilled] fulfilled]] :limit rowcount 
+		   [= [:fulfilled] fulfilled]] :limit rowcount :order-by '( ([row-id] :desc)) 
 			  :caching nil :flatp t)))
     
 
