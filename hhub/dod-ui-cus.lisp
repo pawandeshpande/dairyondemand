@@ -156,22 +156,45 @@
 				  )))) wallets))))))
 
 
-(defun list-lowbalance-customer-wallets (wallets)
-(let ((header (list "Vendor" "Phone" "Balance")))
+
+
+(defun list-customer-wallets-for-shopcart (wallets order-items-totals)
+(let ((header (list "Vendor" "Phone" "Balance" "Order Items Total"  "Recharge")))
   (cl-who:with-html-output (*standard-output* nil)
       (:h3 "My Wallets.")      
       (:table :class "table table-striped"  (:thead (:tr
  (mapcar (lambda (item) (htm (:th (str item)))) header))) 
 	      (:tbody
-	       (mapcar (lambda (wallet)
-			 (let ((vendor (slot-value wallet 'vendor))
+	       (mapcar (lambda (wallet order-item-total)
+			 (let* ((vendor (slot-value wallet 'vendor))
 			       (balance (slot-value wallet 'balance))
-			       (lowbalancep (if (check-low-wallet-balance wallet) t nil)))
-			   (if lowbalancep
-			       (htm (:tr
-				     (:td  :height "12px" (str (slot-value vendor  'name)))
-				     (:td  :height "12px" (str (slot-value vendor  'phone)))
-				     (:td :height "12px" (:h4 (:span :class "label label-danger" (str (format nil "Rs. ~$ " balance)))))))))) wallets))))))
+			       (wallet-id (slot-value wallet 'row-id))
+			       (lowbalancep (or (if (check-low-wallet-balance wallet) t nil)
+						(< balance order-item-total))))
+			   (htm (:tr
+				 (:td  :height "12px" (str (slot-value vendor  'name)))
+				  (:td  :height "12px" (str (slot-value vendor  'phone)))
+				  
+				  (if lowbalancep
+				      (htm (:td :height "12px" (:h4 (:span :class "label label-danger" (str (format nil "Rs. ~$ " balance))))))
+				      ;else
+				      (htm (:td :height "12px" (str (format nil "Rs. ~$ " balance)))))
+				
+				  (:td :height "12px" (str (format nil "Rs. ~$ " order-item-total)))
+				  
+				  (:td :height "12px" 
+				       (:a  :class "btn btn-primary" :role "button" :data-toggle "modal" :href (format nil "/hhub/dasmakepaymentrequest?amount=500&wallet-id=~A" wallet-id)  "500")
+				   
+					; Recharge 1500 
+				        
+				       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=1000&wallet-id=~A" wallet-id) "1000"))
+
+				  
+				  
+				  
+				  )))) wallets order-items-totals))))))
+
+
 
 
 
@@ -831,16 +854,22 @@
 
 (defun dod-controller-low-wallet-balance ()
   (if (is-dod-cust-session-valid?)
-      (let* ((company (hunchentoot:session-value :login-customer-company))
-	     (customer (hunchentoot:session-value :login-customer))
-	     (wallets (get-cust-wallets customer company)))
-	    
+      (let* ((odts (hunchentoot:session-value :login-shopping-cart))
+	     (vendor-list (get-shopcart-vendorlist odts))
+	     (company (get-login-customer-company)) 
+	     (customer (get-login-customer))
+	     (wallets (mapcar (lambda (vendor) 
+				(get-cust-wallet-by-vendor  customer vendor company)) vendor-list))
+	     (order-items-totals (mapcar (lambda (vendor)
+					   (get-order-items-total-for-vendor vendor odts)) vendor-list)))
+	    	
+
 	
 	(standard-customer-page (:title "Low Wallet Balance")
 	(:div :class "row" 
 	      (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
-		    (:h3 (:span :class "label label-danger" "Low Wallet Balance."))(:br)(:h3 "Please call vendor and recharge your wallet! ")))
-	(list-customer-wallets  wallets)
+		    (:h3 (:span :class "label label-danger" "Low Wallet Balance."))))
+	(list-customer-wallets-for-shopcart  wallets order-items-totals)
 	(:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " Modify Cart  ")))
 	
       (hunchentoot:redirect "/hhub/customer-login.html")))
@@ -1031,32 +1060,32 @@
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "My Shopping Cart")
 	    (let* ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
-		      (prd-cache (hunchentoot:session-value :login-prd-cache))
-		      (lstcount (length lstshopcart))
-		      (total  (get-shop-cart-total) ))
-		(if (> lstcount 0)
-		    (let ((products (mapcar (lambda (odt)
-						(let ((prd-id (slot-value odt 'prd-id)))
-						    (search-prd-in-list prd-id prd-cache ))) lstshopcart))) ; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
+		   (prd-cache (hunchentoot:session-value :login-prd-cache))
+		   (lstcount (length lstshopcart))
+		   (total  (get-shop-cart-total) ))
+	      (if (> lstcount 0)
+		  (let ((products (mapcar (lambda (odt)
+					    (let ((prd-id (slot-value odt 'prd-id)))
+					      (search-prd-in-list prd-id prd-cache ))) lstshopcart))) ; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
 					; This function is responsible for displaying the shopping cart. 
-			(htm(:div :class "row"
-			    (:div :class "col-xs-12" 
-			(ui-list-shop-cart products lstshopcart))))
-			(htm
-			    (:hr)
-			    (:div :class "row" 
-				(:div :class "col-xs-12" :align "right" 
-				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))
-				
-				(:div :class "col-xs-12" :align "right"
-				    (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage") "Checkout"))
-				)
-			    (:hr)
-			    ))
+		    (htm(:div :class "row"
+			      (:div :class "col-xs-12" 
+				    (ui-list-shop-cart products lstshopcart))))
+		    (htm
+		     (:hr)
+		     (:div :class "row" 
+			   (:div :class "col-xs-12" :align "right" 
+				 (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))
+			   
+			   (:div :class "col-xs-12" :align "right"
+				 (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage") "Checkout"))
+			   )
+		     (:hr)
+		     ))
 					;If condition ends here. 
-		    (htm(:div :class "row" 
+		  (htm(:div :class "row" 
 			    (:div :class "col-xs-12" (:span :class "label label-info"  (str (format nil " ~A Items in cart.   " lstcount)))
-				(:a :class "btn btn-primary" :role "button" :href "dodcustindex" "Shop Now"  )))))))
+				  (:a :class "btn btn-primary" :role "button" :href "dodcustindex" "Shop Now"  )))))))
 	(hunchentoot:redirect  "/hhub/customer-login.html")))
 
 

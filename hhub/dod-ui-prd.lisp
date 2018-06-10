@@ -73,6 +73,7 @@
 	   (prd-id (slot-value product-instance 'row-id))
 	   (subtotal (* prdqty unit-price))
 	   (prd-vendor (product-vendor product-instance)))
+
       (cl-who:with-html-output (*standard-output* nil)
 	    (:form :class "form-shopcart"  :method "POST" :action "dodcustupdatecart" 
 		   (:div :class "row"
