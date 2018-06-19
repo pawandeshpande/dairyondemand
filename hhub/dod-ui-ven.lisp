@@ -712,23 +712,31 @@
  (if (is-dod-vend-session-valid?)
      (standard-vendor-page (:title "List Vendor Order Details")   
        (let* (( dodvenorder  (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor) (get-login-vendor-company)))
+	      (customer (get-customer dodvenorder))
+	      (wallet (get-cust-wallet-by-vendor customer (get-login-vendor) (get-login-vendor-company)))
+	      (balance (slot-value wallet 'balance))
 	      (venorderfulfilled (if dodvenorder (slot-value dodvenorder 'fulfilled)))
 	      (order (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
+	      (payment-mode (slot-value order 'payment-mode))
 	      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
 	      (odtlst (if order (dod-get-cached-order-items-by-order-id (slot-value order 'row-id))) )
 	      (total   (reduce #'+  (mapcar (lambda (odt)
-					      (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst))))
+					      (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
+	      (lowwalletbalance (< balance total)))
 	 (if order (display-order-header-for-vendor  order)) 
 	 (if odtlst (ui-list-vend-orderdetails header odtlst) "No order details")
 	 (htm(:div :class "row" 
 		   (:div :class "col-md-12" :align "right" 
-			 (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))
+			 (if (and lowwalletbalance (equal payment-mode "PRE")) 
+			     (htm (:h2 (:span :class "label label-danger" (str (format nil "Low wallet Balance = Rs ~$" balance))))))
+			     ;else
+			     (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))
 			 (if (equal venorderfulfilled "Y") 
 			     (htm (:span :class "label label-info" "FULFILLED"))
 					;ELSE
 			     (htm 
 			     ; (:a :onclick "return CancelConfirm();" :href (format nil "dodvenordcancel?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Cancel")) "&nbsp;&nbsp;"  
-			      (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Complete")))))))))
+			       (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Complete")))))))))
 					;ELSE		   						   
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
 

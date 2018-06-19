@@ -325,13 +325,13 @@
    
   
    (defun dod-controller-logout ()
-     (progn (dod-logout (get-current-login-username))
+     (progn (dod-logout (get-login-user-name))
 	    (hunchentoot:remove-session *current-user-session*)
 	    (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
 (defun is-dod-session-valid? ()
- (if  (null (get-current-login-username)) NIL T))
+ (if  (null (get-login-user-name)) NIL T))
 
 
 (defun dod-login (&key company-name username password)
@@ -538,7 +538,8 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodproducts" 'dod-controller-customer-products)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodsearchproducts" 'dod-controller-search-products)
 	(hunchentoot:create-regex-dispatcher "^/hhub/doddelcustorditem" 'dod-controller-del-cust-ord-item)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustlowbalance" 'dod-controller-low-wallet-balance)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustlowbalanceshopcart" 'dod-controller-low-wallet-balance-for-shopcart)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustlowbalanceorderitems" 'dod-controller-low-wallet-balance-for-orderitems)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustwallet" 'dod-controller-cust-wallet-display)
 	(hunchentoot:create-regex-dispatcher "^/hhub/custsignup1action" 'dod-controller-cust-register-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustregisteraction" 'dod-controller-cust-register-action)

@@ -1,4 +1,4 @@
-(in-package :dairyondemand)
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
 
@@ -158,7 +158,7 @@
 
 
 
-(defun list-customer-wallets-for-shopcart (wallets order-items-totals)
+(defun list-customer-low-wallet-balance (wallets order-items-totals)
 (let ((header (list "Vendor" "Phone" "Balance" "Order Items Total"  "Recharge")))
   (cl-who:with-html-output (*standard-output* nil)
       (:h3 "My Wallets.")      
@@ -851,8 +851,7 @@
 	(loop for company in list 
 	     do ( htm (:option :value (slot-value company 'row-id) (str (slot-value company 'name)))))))))
 
-
-(defun dod-controller-low-wallet-balance ()
+(defun dod-controller-low-wallet-balance-for-shopcart ()
   (if (is-dod-cust-session-valid?)
       (let* ((odts (hunchentoot:session-value :login-shopping-cart))
 	     (vendor-list (get-shopcart-vendorlist odts))
@@ -863,15 +862,35 @@
 	     (order-items-totals (mapcar (lambda (vendor)
 					   (get-order-items-total-for-vendor vendor odts)) vendor-list)))
 	    	
+	(standard-customer-page (:title "Low Wallet Balance")
+	(:div :class "row" 
+	      (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
+		    (:h3 (:span :class "label label-danger" "Low Wallet Balance."))))
+	(list-customer-low-wallet-balance   wallets order-items-totals)
+	(:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " Modify Cart  ")))
+	
+      (hunchentoot:redirect "/hhub/customer-login.html")))
 
+
+(defun dod-controller-low-wallet-balance-for-orderitems ()
+  (if (is-dod-cust-session-valid?)
+      (let* ((item-id (hunchentoot:parameter "item-id"))
+	     (prd-qty (parse-integer (hunchentoot:parameter "prd-qty")))
+	     (odts  (list (get-order-item-by-id item-id)))
+	     (vendor-list (get-shopcart-vendorlist odts))
+	     (company (get-login-customer-company)) 
+	     (customer (get-login-customer))
+	     (wallets (mapcar (lambda (vendor) 
+				(get-cust-wallet-by-vendor  customer vendor company)) vendor-list))
+	     (order-items-totals (mapcar (lambda (vendor)
+					   (if prd-qty (setf (slot-value (first odts) 'prd-qty) prd-qty))
+					   (get-order-items-total-for-vendor vendor odts)) vendor-list)))
 	
 	(standard-customer-page (:title "Low Wallet Balance")
 	(:div :class "row" 
 	      (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
 		    (:h3 (:span :class "label label-danger" "Low Wallet Balance."))))
-	(list-customer-wallets-for-shopcart  wallets order-items-totals)
-	(:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " Modify Cart  ")))
-	
+	(list-customer-low-wallet-balance   wallets order-items-totals)))
       (hunchentoot:redirect "/hhub/customer-login.html")))
 
 
@@ -910,7 +929,7 @@
 	   (if  (equal payment-mode "PRE")
 					; at least one vendor wallet has low balance 
 		(if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
-								   (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalance")))
+								   (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts")))
 					;(if (equal payment-mode "COD")  
 	   (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
 	   (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))

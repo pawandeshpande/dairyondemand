@@ -97,7 +97,7 @@
 						    :auth-policy-id 1
 						    :trans-type trans-type
 						    :active-flg "Y" 
-OB						    :trans-func trans-func
+						    :trans-func trans-func
 						    :tenant-id tenant-id
 						    :deleted-state "N")))
  

@@ -1,8 +1,8 @@
 
 ;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; Base: 10 -*-
-;;; $Header: dod-system.asd,v 1.6 2016/01/26 18:31:03 
+;;; $Header: hhub.asd,v 1.6 2018/06/26 18:31:03 
 
-;;; Copyright (c) 2015-2016, Pawan Deshpande.  All rights reserved.
+;;; Copyright (c) 2018-2019, Pawan Deshpande.  All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -30,7 +30,7 @@
 
 (asdf:defsystem #:hhub
   :serial t
-  :description "HighriseHub is an online marketplace for a group of people/colony/apartment. It can be extended to more than one apartment in a city or vendors can register their own areas as supply areas. Backend is MYSQL database and it is a web application."
+  :description "HighriseHub is an online marketplace for a group of people/colony/apartment. It can be extended to more than one apartment in a city or vendors can register their own areas as supply areas. Backend is MYSQL database and it is a web application. It is supported on all the mobile screens like iOS, Android."
   :author "Pawankumar Deshpande <pawan.deshpande@gmail.com>"
   :license "THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
 OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -48,7 +48,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
 	       
 	       	; Util 
 	       (:file "dod-ui-utl" :depends-on ("packages") )
-		  (:file "dod-bl-utl")
+	       (:file "dod-bl-utl")
 	       ; Initial System
 	       (:file "dod-ini-sys" :depends-on ("packages"))
 				
@@ -58,18 +58,10 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
 	       (:file "dod-ui-usr" :depends-on ("packages") )
 	       (:file "dod-bl-usr" :depends-on ("packages") )
 	       (:file "dod-dal-usr" :depends-on ("packages"))
-	       ; Customer 
-	       (:file "dod-ui-cus":depends-on ("packages") )
-	       (:file "dod-bl-cus" :depends-on ("packages") )
-	       (:file "dod-dal-cus" :depends-on ("packages"))
-	       ; Product 
+	        ; Product 
 	       (:file "dod-dal-prd" :depends-on ("packages"))
 	       (:file "dod-bl-prd" :depends-on ("packages"))
 	       (:file "dod-ui-prd" :depends-on ("packages"))
-	       ; Vendor
-	       (:file "dod-ui-ven" :depends-on ("packages"))
-	       (:file "dod-bl-ven" :depends-on ("packages"))
-	       (:file "dod-dal-ven" :depends-on ("packages"))
 	       ; Order 
 	       (:file "dod-bl-ord" :depends-on ("packages"))
 	       (:file "dod-ui-ord" :depends-on ("packages"))
@@ -91,6 +83,22 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
 	       (:file "dod-dal-pol" :depends-on ("packages"))
 	       (:file "dod-bl-pol" :depends-on ("packages"))
 	       (:file "dod-ui-pol" :depends-on ("packages"))
-	   
+	      
+	       ; Business objects and Business Transactions
+	       (:file "dod-dal-bo" :depends-on ("packages"))
+	       (:file "dod-bl-bo" :depends-on ("packages"))
+	    
+	      
+	       
+					; Vendor
+	       (:file "dod-ui-ven" :depends-on ("packages"))
+	       (:file "dod-bl-ven" :depends-on ("packages"))
+	       (:file "dod-dal-ven" :depends-on ("packages"))
+	      
+	       ; Customer 
+	       (:file "dod-ui-cus":depends-on ("packages") )
+	       (:file "dod-bl-cus" :depends-on ("packages") )
+	       (:file "dod-dal-cus" :depends-on ("packages"))
+	      
 	       ))
 

@@ -22,7 +22,7 @@
 	     (mapcar (lambda (voitem)
 			(progn     (setf (slot-value voitem 'status) "CMP")
 			    (setf (slot-value voitem 'fulfilled) value)
-			    (update-order-detail voitem)))   vendor-order-items)
+			    (update-order-item voitem)))   vendor-order-items)
 	     (sleep 1)
 
 					; complete the vendor_order  

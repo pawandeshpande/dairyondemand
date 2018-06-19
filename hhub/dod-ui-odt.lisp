@@ -3,15 +3,24 @@
 
 (defun dod-controller-order-item-edit ()
   (let* ((item-id (hunchentoot:parameter "item-id"))
-	; (company (hunchentoot:session-value :login-customer-company))
+	 (company (get-login-customer-company))
+	 (customer (get-login-customer))
 	 (prdqty (parse-integer (hunchentoot:parameter "prdqty")))
 	 (order-id (hunchentoot:parameter "order-id"))
-	 (order-item (get-order-item-by-id item-id)))
+	 (order (get-order-by-id order-id company))
+	 (payment-mode (slot-value order 'payment-mode))
+	 (order-item (get-order-item-by-id item-id))
+	 (vendor (odt-vendorobject order-item)))
     (cond ((> prdqty 0) (progn 
 			  (setf (slot-value order-item 'prd-qty) prdqty)
-			  (update-order-item order-item))))
+			  ; Check if there is enough balance in the wallet if order was in prepaid mode. 
+					; at least one vendor wallet has low balance 
+			  (if (and (equal payment-mode "PRE") 
+				   (check-wallet-balance (get-order-items-total-for-vendor vendor (list order-item)) (get-cust-wallet-by-vendor customer vendor company)))
+			      (update-order-item order-item)
+			      (hunchentoot:redirect (format nil "/hhub/dodcustlowbalanceorderitems?item-id=~A&prd-qty=~A" item-id prdqty)))
 	 ; ((equal prdqty 0) (delete-order-items (list item-id) company)))
-    (hunchentoot:redirect (format nil "/hhub/dodmyorderdetails?id=~A" order-id))))
+    (hunchentoot:redirect (format nil "/hhub/dodmyorderdetails?id=~A" order-id)))))))
 
 
 (defun order-item-edit-popup (item-id) 

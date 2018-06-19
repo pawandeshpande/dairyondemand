@@ -75,9 +75,12 @@
 (defun create-auth-attr-lookup (name description attr-func  attr-type company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id))) 
     (persist-auth-attr-lookup name description attr-func attr-type tenant-id)
-    (with-open-file (stream "~/dairyondemand/hhub/dod-ui-attr.lisp" :if-exists nil :direction :output)
-      (print (format stream "(defun test-func123 ())" ))
+     (with-open-file (stream "~/dairyondemand/hhub/dod-ui-attr.lisp" :if-exists :append :direction :output)
+      (print (format stream "(defun ~A ())" attr-func))
       (terpri stream))))
+
+
+
 
 
 ;    (with-open-file (stream "~/dairyondemand/hhub/dod-ui-attr.lisp" :if-exists nil :direction :output)

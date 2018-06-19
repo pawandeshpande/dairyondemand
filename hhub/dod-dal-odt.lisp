@@ -45,7 +45,7 @@
 (vendorobject
 	:accessor odt-vendorobject
 	:db-kind :join
-	:db-info (:join-class dod-vend-master
+	:db-info (:join-class dod-vend-profile
 		     :home-key vendor-id
 		     :foreign-key row-id
 		     :set nil))
