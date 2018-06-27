@@ -352,7 +352,7 @@
 
 
 (defun dod-controller-search-products ()
-(let* ((search-clause (hunchentoot:parameter "livesearchs"))
+(let* ((search-clause (hunchentoot:parameter "livesearch"))
       (products (if (not (equal "" search-clause)) (search-products search-clause (get-login-cust-company))))
       (shoppingcart (hunchentoot:session-value :login-shopping-cart)))
 (ui-list-customer-products  products shoppingcart)))

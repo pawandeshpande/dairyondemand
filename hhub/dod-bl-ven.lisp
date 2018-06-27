@@ -21,9 +21,11 @@
 		[like  [:name] name-like-clause]]
 		:caching nil :flatp t))))
 
-
-
-
+(defun update-vendor-payment-params (payment-api-key payment-api-salt vendor)
+  (setf (slot-value vendor 'payment-api-key) payment-api-key)
+  (setf (slot-value vendor 'payment-api-salt) payment-api-salt)
+  (update-vendor-details vendor))
+ 
 
 (defun update-vendor-details (vendor-instance); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance vendor-instance))

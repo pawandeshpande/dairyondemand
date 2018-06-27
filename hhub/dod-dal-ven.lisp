@@ -76,6 +76,17 @@
     :type (string 128)
     :initarg :salt)
 
+   (payment-api-key 
+    :accessor payment-api-key
+    :type (string 40)
+    :initarg :payment-api-key)
+
+   (payment-api-salt 
+    :accessor payment-api-salt
+    :type (string 40)
+    :initarg :payment-api-salt)
+
+
       
    (deleted-state
     :type (string 1)

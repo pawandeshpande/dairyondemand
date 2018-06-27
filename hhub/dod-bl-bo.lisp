@@ -120,4 +120,4 @@
   (let* ((policy-id (if transaction (slot-value transaction 'auth-policy-id)))
 	(policy (if policy-id (select-auth-policy-by-id policy-id)))
 	(policy-func (if policy (slot-value policy 'policy-func))))
-     (if policy-func (funcall (intern  (string-upcase policy-func)) transaction))))
+     (if policy-func (funcall (intern  (string-upcase policy-func) :hhub) transaction))))
