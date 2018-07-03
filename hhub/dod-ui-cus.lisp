@@ -9,7 +9,6 @@
        (:hr)
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6 col-xs-12"
 		    (:a :class "list-group-item" :href "dodcustupddetails" "update contact info")
-		    (:a :class "list-group-item" :href "dodshowcalendar" "Show Calendar")
 		    (:a :class "list-group-item" :href "#" "settings")
 		    (:a :class "list-group-item" :href "https://goo.gl/forms/xazdzf30z6k43gqm2" "feature wishlist")
 		    (:a :class "list-group-item" :href "https://goo.gl/forms/sgizzxywxduitgvy2" "bugs")))
@@ -218,16 +217,61 @@
     :documentation "a callback function which prints orders for a logged in customer in html format."
     (if (is-dod-cust-session-valid?)
 	(standard-customer-page (:title "list dod customer orders")   
-	 
+	  (:ul :class "nav nav-pills" 
+	       (:li :role "presentation" :class "active" (:a :href "dodmyorders" (:span :class "glyphicon glyphicon-th-list")))
+	       (:li :role "presentation" :class "active" (:a :href "dodcustorderscal" (:span :class "glyphicon glyphicon-calendar")))
+	       (:li :role "presentation" :class "active" (:a :href "dodcustindex" "Shop Now")))
+
 	  (let (( dodorders (hunchentoot:session-value :login-cusord-cache))
 		     (header (list  "order no" "order date" "request date"  "actions")))
 	    (if dodorders (ui-list-customer-orders header dodorders) "no orders")))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
 
-(defun dod-page-with-calendar()
+(defun dod-controller-cust-order-data-json ()
+  (let (;(starttime (* 1000 (get-unix-time)))
+	(templist '())
+	(appendlist '())
+	(endtime (* 1000 (get-unix-time)))
+	(mylist '())
+	(dodorders (hunchentoot:session-value :login-cusord-cache)))
+	
+    (setf (hunchentoot:content-type*) "application/json")
+    
+    (mapcar (lambda (order) 
+	      (let* ((reqdate (slot-value order 'req-date))
+		    (fulfilled (slot-value order 'order-fulfilled))
+		    (id (slot-value order 'row-id)))
+	 (progn 
+	   (setf templist (acons "start"  (format nil "~A" (* 1000 (universal-to-unix-time (get-universal-time-from-date reqdate )))) templist))
+	   (setf templist (acons "end"  (format nil "~A" (* 1000 (universal-to-unix-time (get-universal-time-from-date reqdate)))) templist))
+	   (if (equal fulfilled "Y")
+	       (progn (setf templist (acons "title" (format nil "Order ~A (Completed)" id)  templist))
+		      (setf templist (acons "class" "event-success" templist)))
+	   ;else
+	       (progn (setf templist (acons "title" (format nil "Order ~A (Pending)" id)  templist))
+		      (setf templist (acons "class" "event-warning" templist))))
+	   (setf templist (acons "url" (format nil "dodmyorderdetails?id=~A" id )  templist))
+	   (setf templist (acons "id" (format nil "~A" id) templist))
+	   
+	   (setf appendlist (append appendlist (list templist))) 
+	   (setf templist nil)))) dodorders)
+	  
+           
+    (setf mylist (acons "result" appendlist  mylist))    
+    (setf mylist (acons "success" 1 mylist))
+    (json:encode-json-to-string mylist)))
+    
+
+(defun dod-controller-cust-orders-calendar ()
   (standard-customer-page (:title "list dod customer orders")   
      (:link :href "css/calendar.css" :rel "stylesheet")
+ (:ul :class "nav nav-pills" 
+	       (:li :role "presentation" :class "active" (:a :href "dodmyorders" (:span :class "glyphicon glyphicon-th-list")))
+	       (:li :role "presentation" :class "active" (:a :href "dodcustorderscal" (:span :class "glyphicon glyphicon-calendar")))
+	       (:li :role "presentation" :class "active" (:a :href "dodcustindex" "Shop Now")))
+ 
+     
      (:div :class "container"
 	   (:div :class "page-header"
 		 (:div :class "pull-right form-inline"
@@ -371,12 +415,12 @@
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "highrisehub" (:img :style "width: 30px; height: 30px;" :src "resources/demand&supply.png" )  ))
+		     (:a :class "navbar-brand" :href "#" :title "highrisehub" (:img :style "width: 50px; height: 50px;" :src "resources/logo.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navheadercollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/dodcustindex" (:span :class "glyphicon glyphicon-home")  " Home"))
 			 (:li :align "center" (:a :href "dodcustorderprefs" "Subscriptions"))
-			 (:li :align "center" (:a :href "dodmyorders" "Orders"))
+			 (:li :align "center" (:a :href "dodcustorderscal" "Orders"))
 			 (:li :align "center" (:a :href "dodcustwallet" (:span :class "glyphicon glyphicon-piggy-bank") " Wallets" ))
 			 ;(:li :align "center" (:a :href "#" (print-web-session-timeout)))
 			  (:li :align "center" (:a :href "#" (str (format nil "Group: ~a" (get-login-customer-company-name))))))

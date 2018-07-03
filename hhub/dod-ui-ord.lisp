@@ -134,7 +134,7 @@
 
 (defun ui-list-customer-orders (header data)
   (cl-who:with-html-output (*standard-output* nil)
-          (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustindex") "Shop Now")
+    
     (:h3 "Orders")
   
       (:table :class "table table-striped table-hover"  (:thead (:tr

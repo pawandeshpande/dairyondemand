@@ -3,11 +3,11 @@
 	"use strict";
 
 	var options = {
-		events_source: 'events.json.php',
-		view: 'month',
+		events_source: '/hhub/dodcustordersdata',
+	        view: 'month',
 		tmpl_path: 'tmpls/',
 		tmpl_cache: false,
-		day: '2013-03-12',
+		day: '2018-07-03',
 		onAfterEventsLoad: function(events) {
 			if(!events) {
 				return;

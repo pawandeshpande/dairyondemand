@@ -59,6 +59,24 @@ corresponding universal time."
                        (date-ymd dateobj)  (format nil "~4,'0d-~2,'0d-~2,'0d 00:00:00" yr mon day)))
 
 
+(defun get-universal-time-from-date (dateobj)
+  (multiple-value-bind (day mon year) 
+	  (decode-date dateobj) 
+	    (encode-universal-time  0 0 0 day mon year)))
+
+
+(defvar *unix-epoch-difference*
+  (encode-universal-time 0 0 0 1 1 1970 0))
+
+(defun universal-to-unix-time (universal-time)
+  (- universal-time *unix-epoch-difference*))
+
+(defun unix-to-universal-time (unix-time)
+  (+ unix-time *unix-epoch-difference*))
+
+(defun get-unix-time ()
+  (universal-to-unix-time (get-universal-time)))
+
 
 (defun test-alist ( amount salt )
   (let* (
