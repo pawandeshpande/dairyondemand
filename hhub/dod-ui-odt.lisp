@@ -1,8 +1,9 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
-(defun dod-controller-order-item-edit ()
-  (let* ((item-id (hunchentoot:parameter "item-id"))
+(defun com-hhub-transaction-cust-edit-order ()
+  (with-hhub-transaction "com-hhub-transaction-cust-edit-order" 
+    (let* ((item-id (hunchentoot:parameter "item-id"))
 	 (company (get-login-customer-company))
 	 (customer (get-login-customer))
 	 (prdqty (parse-integer (hunchentoot:parameter "prdqty")))
@@ -20,7 +21,7 @@
 			      (update-order-item order-item)
 			      (hunchentoot:redirect (format nil "/hhub/dodcustlowbalanceorderitems?item-id=~A&prd-qty=~A" item-id prdqty)))
 	 ; ((equal prdqty 0) (delete-order-items (list item-id) company)))
-    (hunchentoot:redirect (format nil "/hhub/dodmyorderdetails?id=~A" order-id)))))))
+    (hunchentoot:redirect (format nil "/hhub/dodmyorderdetails?id=~A" order-id))))))))
 
 
 (defun order-item-edit-popup (item-id) 

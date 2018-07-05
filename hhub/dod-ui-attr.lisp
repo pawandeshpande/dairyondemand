@@ -8,7 +8,11 @@
 
 ; This is an Action attribute function for create order.
 (defun com-hhub-attribute-create-order ()
-"create.order")
+"com.hhub.transaction.create.order")
+
+; This is an Action attribute functin for customer order edit. 
+(defun com-hhub-attribute-cust-edit-order ()
+"com.hhub.transaction.cust.edit.order")
 
 (defun com-hhub-attribute-maxordertime ()
   "23:59:00")

@@ -27,6 +27,9 @@
 		:caching *dod-database-caching* :flatp t))))
 
 
+(defun update-customer (customer-instance); This function has side effect of modifying the database record.
+  (clsql:update-records-from-instance customer-instance))
+
 (defun duplicate-customerp(phone company)
   (if (select-customer-by-phone phone company) T NIL))
     

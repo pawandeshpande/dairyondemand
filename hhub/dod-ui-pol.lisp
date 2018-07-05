@@ -1,13 +1,19 @@
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
+(defun com-hhub-policy-cust-edit-order (&optional transaction)
+  (let ((transbo (get-bus-tran-busobject transaction)))
+    ; Match the Resource attribute and Action attribute for Edit Order.
+    (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
+	      (if (equal (com-hhub-attribute-cust-edit-order) (slot-value transaction 'name))  T NIL)
+	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
 
 
 (defun com-hhub-policy-create-order (&optional transaction)
   (let ((transbo (get-bus-tran-busobject transaction)))
     ; Match the Resource attribute and Action attribute for Create Order.
     (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
-	      (if (> (search (com-hhub-attribute-create-order) (slot-value transaction 'name)) 0) T NIL)
+	      (if (equal (com-hhub-attribute-create-order) (slot-value transaction 'name)) T NIL)
 	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
 
 
@@ -41,6 +47,7 @@
 	    (transtype (hunchentoot:parameter "transtype")))
        (if transaction 
 	   (progn 
+	     (setf (slot-value transaction 'bo-id) (slot-value transbo 'row-id))
 	     (setf (slot-value transaction 'name) (concatenate 'string *ABAC-TRANSACTION-NAME-PREFIX* transname))
 	     (setf (slot-value transaction 'uri) transuri)
 	     (setf (slot-value transaction 'trans-func) (concatenate 'string *ABAC-TRANSACTION-FUNC-PREFIX* transfunc))
@@ -190,7 +197,7 @@
 			       (slot-value item 'name)) bolist))
 	(bohash (make-hash-table)))
 	(mapcar (lambda (key) (setf (gethash key bohash) key)) bonameslist)
-	(with-html-dropdown "busobject" bohash  (if (not selectedkey) (car bonameslist)))))
+	(with-html-dropdown "busobject" bohash  (if (not selectedkey) (car bonameslist) selectedkey))))
 		     
 (defun link-bus-transaction-to-policy (&optional id)
   (let* ((transaction (if id (get-bus-transaction id)))
@@ -268,7 +275,8 @@
 	 (transname (if transaction (slot-value transaction 'name)))
 	 (transuri (if transaction (slot-value transaction 'uri)))
 	 (transbo (if transaction (get-bus-tran-busobject transaction)))
-	 (bo-id (if transbo (slot-value transbo 'row-id)))
+	; (bo-id (if transbo (slot-value transbo 'row-id)))
+	 (bo-name (if transbo (slot-value transbo 'name)))
 	 (transtype (if transaction (slot-value transaction 'trans-type)))
 	 (transfunc (if transaction (slot-value transaction 'trans-func))))
 	
@@ -277,12 +285,12 @@
    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
      (:form :class "form-addtransaction" :role "form" :method "POST" :action "dasaddtransactionaction"
        (if transaction (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
-       (if transbo (htm (:input :class "form-control" :type "hidden" :value bo-id :name "bo-id")))
+       ;(if transbo (htm (:input :class "form-control" :type "hidden" :value bo-id :name "bo-id")))
        (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
        (:h1 :class "text-center login-title"  "Add/Edit Transaction")
        (:div :class "form-group input-group"
 	     (:span :class "input-group-addon"  "Business Object") 
-	     (business-objects-dropdown))
+	     (business-objects-dropdown bo-name))
        (:div :class "form-group input-group"
 	(:span :class "input-group-addon" :id "transnameprefix" (str *ABAC-TRANSACTION-NAME-PREFIX*) )
 	(:label :class "input-group"  :for "transname" "Name:")

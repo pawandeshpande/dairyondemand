@@ -2,16 +2,67 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
+
+(defun modal.customer-update-details ()
+  (let* ((customer (get-login-customer))
+	 (name (name customer))
+	 (address (address customer))
+	 (phone  (phone customer))
+	 (email (email customer)))
+	 
+
+ (cl-who:with-html-output (*standard-output* nil)
+   (:div :class "row" 
+	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+	       (:form :id (format nil "form-customerupdate")  :role "form" :method "POST" :action "hhubcustupdateaction" :enctype "multipart/form-data" 
+					;(:div :class "account-wall"
+		 
+		 (:h1 :class "text-center login-title"  "Update Customer Details")
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "name" :value name :placeholder "Customer Name" :type "text"))
+		      (:div :class "form-group"
+			    (:label :for "address")
+			    (:textarea :class "form-control" :name "address"  :placeholder "Enter Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str (format nil "~A" address))))
+		      (:div :class "form-group" :id "charcount")
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "phone"  :value phone  :type "text" ))
+		      
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "email" :value email :placeholder "Email" :type "text"))
+			
+		      (:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+
+(defun dod-controller-customer-update-action ()
+  (if (is-dod-cust-session-valid?)
+    (let* ((name (hunchentoot:parameter "name"))
+	   (address (hunchentoot:parameter "address"))
+	   (phone (hunchentoot:parameter "phone"))
+	   (email (hunchentoot:parameter "email"))
+	   (customer (get-login-customer)))
+      (setf (slot-value customer 'name) name)
+      (setf (slot-value customer 'address) address)
+      (setf (slot-value customer 'phone) phone)
+      (setf (slot-value customer 'email) email)
+      (update-customer customer)
+      (hunchentoot:redirect "/hhub/dodcustprofile"))
+    ;else
+    (hunchentoot:redirect "/hhub/customer-login.html")))
+      
+
+  
+
 (defun dod-controller-customer-profile ()
 (if (is-dod-cust-session-valid?)
     (standard-customer-page (:title "welcome to highrisehub - customer")
        (:h3 "Welcome " (str (format nil "~a" (get-login-cust-name))))
        (:hr)
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6 col-xs-12"
-		    (:a :class "list-group-item" :href "dodcustupddetails" "update contact info")
-		    (:a :class "list-group-item" :href "#" "settings")
-		    (:a :class "list-group-item" :href "https://goo.gl/forms/xazdzf30z6k43gqm2" "feature wishlist")
-		    (:a :class "list-group-item" :href "https://goo.gl/forms/sgizzxywxduitgvy2" "bugs")))
+	     (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodcustupdate-modal")  :href "#"  "Contact Info")
+	     (modal-dialog (format nil "dodcustupdate-modal") "Update Customer" (modal.customer-update-details)) 
+	     (:a :class "list-group-item" :href "#" "Settings")
+	     (:a :class "list-group-item" :href "https://goo.gl/forms/hI9LIM9ebPSFwOrm1" "Feature Wishlist")
+	     (:a :class "list-group-item" :href "https://goo.gl/forms/3iWb2BczvODhQiWW2" "Report Issues")))
     (hunchentoot:redirect "/hhub/customer-login.html")))
 
 
@@ -229,10 +280,9 @@
 
 
 (defun dod-controller-cust-order-data-json ()
-  (let (;(starttime (* 1000 (get-unix-time)))
-	(templist '())
+ (if (is-dod-cust-session-valid?)
+  (let ((templist '())
 	(appendlist '())
-	(endtime (* 1000 (get-unix-time)))
 	(mylist '())
 	(dodorders (hunchentoot:session-value :login-cusord-cache)))
 	
@@ -260,10 +310,13 @@
            
     (setf mylist (acons "result" appendlist  mylist))    
     (setf mylist (acons "success" 1 mylist))
-    (json:encode-json-to-string mylist)))
+    (json:encode-json-to-string mylist))
+  ;else
+	(hunchentoot:redirect "/hhub/customer-login.html")))
     
 
 (defun dod-controller-cust-orders-calendar ()
+  (if (is-dod-cust-session-valid?)
   (standard-customer-page (:title "list dod customer orders")   
      (:link :href "css/calendar.css" :rel "stylesheet")
  (:ul :class "nav nav-pills" 
@@ -287,7 +340,9 @@
      
      (:script :type "text/javascript" :src "js/underscore-min.js")
      (:script :type "text/javascript" :src "js/calendar.js")
-     (:script :type "text/javascript" :src "js/app.js")))
+     (:script :type "text/javascript" :src "js/app.js"))
+;else
+	(hunchentoot:redirect "/hhub/customer-login.html")))
 
 
 (defun dod-controller-my-orders1 ()
