@@ -30,6 +30,17 @@ var spinner = new Spinner(opts).spin();
 
 $busyindicator.appendChild(spinner.el);
 
+$(document).ready(function () {
+        $('#reg-type').change(function () {
+            if ($('#reg-type').val() == 'CUS') {
+                $('#housenum').show();
+            }
+            else {
+                $('#housenum').hide();
+            }
+        });
+    });
+
 $(document).ready(function() {
         $('[data-toggle="tooltip"]').tooltip({'placement': 'top'});
 });

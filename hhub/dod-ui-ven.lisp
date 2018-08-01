@@ -319,9 +319,10 @@
        (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
        (:hr)
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6"
-		    (:a :class "list-group-item" :href "dodsearchcustwalletpage" "Recharge Customer Wallet")
+		    (:a :class "list-group-item" :href "dodsearchcustwalletpage" "My Customers")
 		    (:a :class "list-group-item" :href "dodvendortenants" "My Groups")
 		    (:a :class "list-group-item" :href "#" "Contact Information")
+		    (:a :class "list-group-item" :href "#" "Change PIN")
 		    (:a :class "list-group-item" :href "#" "Settings")))
     (hunchentoot:redirect "/hhub/vendor-login.html")))
 

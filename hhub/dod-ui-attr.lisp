@@ -18,4 +18,8 @@
   "23:59:00")
 
 
-(defun test-func123 ())
+
+(defun com-hhub-attribute-cust-order-payment-mode (order-id)
+ (let ((order (get-order-by-id order-id (get-login-cust-company))))
+   (slot-value order 'payment-mode)))
+

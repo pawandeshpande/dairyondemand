@@ -546,7 +546,9 @@
 
 
 (defun dod-controller-cust-register-page ()
-  (let ((cname (hunchentoot:parameter "cname")))
+  (let* ((cname (hunchentoot:parameter "cname"))
+	 (company (select-company-by-name cname))
+	 (cmpaddress (slot-value company 'address)))
    
     (standard-customer-page (:title "Welcome to HighriseHub Platform- Your Demand And Supply destination.")
       	(:form :class "form-custregister" :role "form" :method "POST" :action "dodcustregisteraction"
@@ -558,14 +560,16 @@
 	    (:div :class "col-lg-6 col-md-6 col-sm-6"
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "tenant-name" :value (format nil "~A" cname) :type "text" :readonly T ))
-		 
+		  (:div :class "form-group" 
+			(:textarea :class "form-control" :name "address"   :rows "2" :readonly T (str (format nil "~A" cmpaddress))))
+		  
 		   (:div  :class "form-group" (:label :for "reg-type" "Register as:" )
 				    (customer-vendor-dropdown))
 			   
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "name" :placeholder "Full Name (Required)" :type "text" ))
 		  (:div :class "form-group"
-			(:input :class "form-control" :name "address" :placeholder "Address (Required)" :type "text" ))
+			(:input :class "form-control" :id "housenum" :name "housenum" :placeholder "Apt/Flat (Required)" :type "text" ))
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "email" :placeholder "Email (Required)" :type "text" ))
 		  
@@ -609,7 +613,10 @@
                        :parameters param-alist  ))))
        (name (hunchentoot:parameter "name"))
        (email (hunchentoot:parameter "email"))
+       (housenum (hunchentoot:parameter "housenum"))
+       (groupname (hunchentoot:parameter "tenant-name"))
        (address (hunchentoot:parameter "address"))
+       (fulladdress (concatenate 'string  housenum ", " groupname ", " address)) 
        (phone (hunchentoot:parameter "phone"))
        (password (hunchentoot:parameter "password"))
        (confirmpass (hunchentoot:parameter "confirmpass"))
@@ -647,7 +654,7 @@
     ((and encryptedpass (equal reg-type "CUS"))  
 	 (progn 
        ; 1 
-       (create-customer name address phone email nil encryptedpass salt nil nil nil company)
+       (create-customer name fulladdress phone email nil encryptedpass salt nil nil nil company)
        ; 2
        
        (standard-customer-page (:title "Welcome to HighriseHub platform")
@@ -937,7 +944,7 @@
 ;; This is customer/vendor  dropdown
 (defun customer-vendor-dropdown ()
   (cl-who:with-html-output (*standard-output* nil)
-     (htm (:select :class "form-control"  :name "reg-type"
+     (htm (:select :class "form-control" :id "reg-type"  :name "reg-type"
 		   (:option    :value  "CUS" :selected "true"  (str "Customer"))
 		   (:option :value "VEN" (str "Vendor"))))))
 
