@@ -5,6 +5,15 @@
 (defvar *logged-in-users* nil)
 (defvar *current-user-session* nil)
 
+(defun dod-controller-run-daily-orders-batch ()
+ (if (is-dod-session-valid?)
+   (standard-page (:title "welcome to highrisehub - customer")
+       (:h3 "Daily Orders Batch Process Successful! ")
+       (:hr)   
+       (run-daily-orders-batch 1))
+  ; else 
+   (hunchentoot:redirect "/hhub/opr-login.html")))
+
 
 
 (defmacro navigation-bar ()
@@ -556,6 +565,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/custpaymentfailure" 'dod-controller-customer-payment-failure-page )
 	(hunchentoot:create-regex-dispatcher "^/hhub/custpaymentcancel" 'dod-controller-customer-payment-cancel-page )
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustupdateaction" 'dod-controller-customer-update-action )
+	(hunchentoot:create-regex-dispatcher "^/hhub/rundailyordersbatch" 'dod-controller-run-daily-orders-batch)
 	
 
 ;************VENDOR RELATED ********************

@@ -3,6 +3,7 @@
 
 
 
+
 (defun modal.customer-update-details ()
   (let* ((customer (get-login-customer))
 	 (name (name customer))
