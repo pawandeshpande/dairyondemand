@@ -6,13 +6,11 @@
 (defvar *current-user-session* nil)
 
 (defun dod-controller-run-daily-orders-batch ()
- (if (is-dod-session-valid?)
-   (standard-page (:title "welcome to highrisehub - customer")
-       (:h3 "Daily Orders Batch Process Successful! ")
-       (:hr)   
-       (run-daily-orders-batch 1))
-  ; else 
-   (hunchentoot:redirect "/hhub/opr-login.html")))
+ :documentation "This controller function is responsible to run the daily orders batch against all the subscriptions customers have made for a particular group/apartment/tenant" 
+  (let ((batchresult (run-daily-orders-batch 1)))
+    (json:encode-json-to-string batchresult)))
+
+
 
 
 
