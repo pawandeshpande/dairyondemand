@@ -406,7 +406,16 @@
 					;Get a list of all the customers belonging to the current company. 
 					; For each customer, get the order preference list and pass to the below function.
 	      (mapcar (lambda (customer)
-			  (let ((custopflist (get-opreflist-for-customer customer)))
+			  (let ((custopflist (remove-if-not (lambda (preference)
+							      (let  ((lst  (list (if (equal (slot-value preference 'sun) "Y") 0 )
+										 (if (equal (slot-value preference 'mon) "Y")  1)
+										 (if (equal (slot-value preference 'tue) "Y") 2)
+										 (if (equal (slot-value preference 'wed) "Y") 3)
+										 (if (equal (slot-value preference 'thu) "Y") 4)
+										 (if (equal (slot-value preference 'fri) "Y") 5) 
+										 (if (equal (slot-value preference 'sat) "Y") 6))))
+								(if (member (date-dow requestdate) lst) t nil)))
+							    (get-opreflist-for-customer customer))))
 			    (if custopflist  (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) nil   customer dodcompany)) )) customers)))
 
 
