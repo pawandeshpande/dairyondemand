@@ -468,9 +468,9 @@
 	     (:div :class "container-fluid"
 		 (:div :class "navbar-header"
 		     (:button :type "button" :class "navbar-toggle" :data-toggle "collapse" :data-target "#navheadercollapse"
-			 (:span :class "icon-bar")
-			 (:span :class "icon-bar")
-			 (:span :class "icon-bar"))
+			      (:span :class "icon-bar")
+			      (:span :class "icon-bar")
+			      (:span :class "icon-bar"))
 		     (:a :class "navbar-brand" :href "#" :title "highrisehub" (:img :style "width: 50px; height: 50px;" :src "resources/logo.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navheadercollapse"
 		     (:ul :class "nav navbar-nav navbar-left"

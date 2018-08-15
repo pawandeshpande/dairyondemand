@@ -76,6 +76,15 @@
 	  :void-value "N"
 	  :initarg :subscribe-flag)
 
+   (approved-flag 
+    :type (string 1) 
+    :void-value "N"
+    :initarg :approved-flag) 
+   (approval-status 
+    :type (string 20) 
+    :void-value "PENDING"
+    :initarg :approval-status)
+
     (tenant-id
     :type integer
     :initarg :tenant-id)

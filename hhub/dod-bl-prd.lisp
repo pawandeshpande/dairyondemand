@@ -18,7 +18,8 @@
   (clsql:select 'dod-prd-master  :where 
 		[and 
 		[= [:deleted-state] "N"] 
-		[= [:active-flag] "Y"] 
+		[= [:active-flag] "Y"]
+		[= [:approved-flag] "Y"]
 		[= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
 
 (defun select-products-by-company (company-instance)
@@ -27,6 +28,7 @@
 		[and 
 		[= [:active-flag] "Y"] 
 		[= [:deleted-state] "N"]
+		[= [:approved-flag] "Y"]
 		[= [:tenant-id] tenant-id]]
      :caching *dod-database-caching* :flatp t )))
 
@@ -67,6 +69,7 @@
    (clsql:select 'dod-prd-master :where [and
 		[= [:deleted-state] "N"]
 		[= [:active-flag] "Y"] 
+		[= [:approved-flag] "Y"]
 		[= [:tenant-id] tenant-id]
 		[like  [:catg-id] catg-id]]
 		:caching *dod-database-caching* :flatp t)))
@@ -77,6 +80,7 @@
   (car (clsql:select 'dod-prd-master :where [and
 		[= [:deleted-state] "N"]
 		[= [:active-flag] "Y"] 
+		[= [:approved-flag] "Y"]
 		[= [:tenant-id] tenant-id]
 		[like  [:prd-name] name-like-clause]]
 		:caching *dod-database-caching* :flatp t))))
@@ -86,7 +90,8 @@
   (let ((tenant-id (slot-value company-instance 'row-id)))
 	(clsql:select 'dod-prd-master :where [and
 		      [= [:deleted-state] "N"]
-		      [= [:active-flag] "Y"] 
+		      [= [:active-flag] "Y"]
+		      [= [:approved-flag] "Y"]
 		      [= [:tenant-id] tenant-id] 
 		      [like [:prd-name] (format NIL "%~a%" search-string)]]
 		      :caching *dod-database-caching* :flatp t)))
@@ -128,10 +133,12 @@
 				    :catg-id catg-id
 				    :qty-per-unit qtyperunit
 				    :unit-price unitprice
-					 :prd-image-path img-file-path
-					 :subscribe-flag subscribe-flag
+				    :prd-image-path img-file-path
+				    :subscribe-flag subscribe-flag
 				    :tenant-id tenant-id
 				    :active-flag "Y"
+				    :approved-flag "N"
+				    :approval-status "PENDING"
 				    :deleted-state "N")))
  
 

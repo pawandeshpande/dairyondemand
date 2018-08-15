@@ -116,7 +116,7 @@
 					;(:div :class "account-wall"
 		(if (and product (equal mode "EDIT")) (htm (:input :class "form-control" :type "hidden" :value prd-id :name "id")))
 		 (:div :align "center"  :class "form-group" 
-		       (:a :href "#" (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
+		       (:a :href "#" (:img :src (if prd-image-path  (format nil "~A" prd-image-path)) :height "83" :width "100" :alt prd-name " ")))
 		 (:h1 :class "text-center login-title"  "Edit/Copy Product")
 		      (:div :class "form-group"
 			    (:input :class "form-control" :name "prdname" :value prd-name :placeholder "Enter Product Name ( max 30 characters) " :type "text" ))
@@ -149,6 +149,8 @@
 	  (prd-image-path (slot-value product-instance 'prd-image-path))
 	  (prd-id (slot-value product-instance 'row-id))
 	  (active-flag (slot-value product-instance 'active-flag))
+	  (approved-flag (slot-value product-instance 'approved-flag))
+	  (approval-status (slot-value product-instance 'approval-status))
 	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
 	    
 	(cl-who:with-html-output (*standard-output* nil)
@@ -183,7 +185,7 @@
 		
 		(:div :class "row"
 		      (:div :class "col-xs-6"
-			    (:h5 :class "product-name"  (str prd-name)))
+			    (:h5 :class "product-name" (str (if (> (length prd-name) 30)  (subseq prd-name  0 30) prd-name))))
 		(:div :class "col-xs-6"
 		      (if (equal subscribe-flag "Y") (htm (:div :class "col-xs-6"  (:h5 (:span :class "label label-default" "Can be Subscribed")))))))
 		(:div :class "row" 
@@ -192,6 +194,8 @@
 		
 		(if (equal active-flag "N") 
 		    (htm (:div :class "stampbox rotated" "INACTIVE" )))
+		(if (equal approved-flag "N")
+		    (htm (:div :class "stampbox rotated" (str (format nil "~A" approval-status)))))
 		))))
 
 (defun product-card (product-instance prdincart-p)
