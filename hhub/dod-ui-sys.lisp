@@ -11,7 +11,24 @@
     (json:encode-json-to-string batchresult)))
 
 
-
+(defun dod-controller-products-approval-page ()
+  :documentation "This controller function is used by the System admin and Company Admin to approve products" 
+ (if (is-dod-session-valid?)
+   (let ((products (get-products-for-approval)))
+     (standard-page (:title "New products approval") 
+	(:div :class "container"
+	(:div :id "row"
+	      (:div :id "col-xs-6" 
+	(:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+	  
+	(:div :id "row"
+	      (:div :id "col-xs-6"
+		    (:div :id "col-xs-6" :align "right" 
+			  (:span :class "badge" (str (format nil "~A" (length products)))))))
+	(:hr)
+   	(str (display-as-tiles products 'product-card-for-approval )))))
+   (hunchentoot:redirect "/hhub/opr-login.html")))
+ 
 
 
 (defmacro navigation-bar ()
@@ -29,12 +46,16 @@
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/dodindex"  (:span :class "glyphicon glyphicon-home")  " Home"))
 			 (:li  (:a :href "/hhub/dasabacsecurity" "ABAC Security"))
+			 (:li  (:a :href "/hhub/dasproductapprovals" "Product Approvals"))
 			 (:li  (:a :href "/hhub/adminsettings" "Admin Settings"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     
 		     (:ul :class "nav navbar-nav navbar-right"
 			 (:li :align "center" (:a :href "dodvendprofile"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
 			 (:li :align "center" (:a :href "dodlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
+
+
+
 
 
 
@@ -513,6 +534,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dassearchpolicies" 'dod-controller-policy-search-action )
 	(hunchentoot:create-regex-dispatcher "^/hhub/transtopolicylinkpage" 'dod-controller-trans-to-policy-link-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/transtopolicylinkaction" 'dod-controller-trans-to-policy-link-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dasproductapprovals" 'dod-controller-products-approval-page)
 	
 		
 	

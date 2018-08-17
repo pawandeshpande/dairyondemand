@@ -12,7 +12,24 @@
     (setf (slot-value product 'active-flag) "Y")
     (update-prd-details product)))
 
+(defun get-products-for-approval ()
+:documentation "This function will be used only by the superadmin user. "
+  (clsql:select 'dod-prd-master  :where 
+		[and 
+		[= [:deleted-state] "N"] 
+		[= [:active-flag] "Y"]
+		[= [:approved-flag] "N"]]
+		:caching *dod-database-caching* :flatp t ))
 
+(defun get-products-for-approval-by-company (tenant-id)
+  :documentation "This function will be userd by the company administrator"
+  (clsql:select 'dod-prd-master  :where 
+		[and 
+		[= [:deleted-state] "N"] 
+		[= [:active-flag] "Y"]
+		[= [:tenant-id] tenant-id]
+		[= [:approved-flag] "N"]]
+		:caching *dod-database-caching* :flatp t ))
 
 (defun get-products (tenant-id)
   (clsql:select 'dod-prd-master  :where 

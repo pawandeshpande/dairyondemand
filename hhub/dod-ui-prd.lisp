@@ -142,6 +142,66 @@
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
 
 
+
+(defun modal.vendor-product-reject-html (prd-id tenant-id)
+  (let* ((company (select-company-by-id tenant-id))
+	 (product (select-product-by-id prd-id company))
+	 (prd-image-path (slot-value product 'prd-image-path))
+	 (description (slot-value product 'description))
+	 (prd-name (slot-value product 'prd-name))
+	 (prd-id (slot-value product 'row-id)))
+	 
+
+ (cl-who:with-html-output (*standard-output* nil)
+   (:div :class "row" 
+	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "dodvendrejectproductaction" :enctype "multipart/form-data" 
+					;(:div :class "account-wall"
+		      (:input :class "form-control" :type "hidden" :value prd-id :name "id")
+		 (:div :align "center"  :class "form-group" 
+		       (:a :href "#" (:img :src (if prd-image-path  (format nil "~A" prd-image-path)) :height "83" :width "100" :alt prd-name " ")))
+		 (:h1 :class "text-center login-title"  "Reject Product")
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "prdname" :value prd-name :placeholder "Enter Product Name ( max 30 characters) " :type "text" :readonly "true" ))
+		      (:div :class "form-group"
+			    (:label :for "description" "Enter Rejection Reason")
+			    (:textarea :class "form-control" :name "description"  :placeholder "Enter Reject Reason "  :rows "5" :onkeyup "countChar(this, 1000)" (str (format nil "~A" description))))
+		      (:div :class "form-group" :id "charcount")
+		      
+		       (:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+
+
+(defun modal.vendor-product-accept-html (prd-id tenant-id)
+  (let* ((company (select-company-by-id tenant-id))
+	 (product (select-product-by-id prd-id company))
+	 (prd-image-path (slot-value product 'prd-image-path))
+	 (description (slot-value product 'description))
+	 (prd-name (slot-value product 'prd-name))
+	 (prd-id (slot-value product 'row-id)))
+	 
+
+ (cl-who:with-html-output (*standard-output* nil)
+   (:div :class "row" 
+	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "dodvendacceptproductaction" :enctype "multipart/form-data" 
+					;(:div :class "account-wall"
+		      (:input :class "form-control" :type "hidden" :value prd-id :name "id")
+		 (:div :align "center"  :class "form-group" 
+		       (:a :href "#" (:img :src (if prd-image-path  (format nil "~A" prd-image-path)) :height "83" :width "100" :alt prd-name " ")))
+		 (:h1 :class "text-center login-title"  "Accept Product")
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "prdname" :value prd-name :placeholder "Enter Product Name ( max 30 characters) " :type "text" :readonly "true" ))
+		      (:div :class "form-group"
+			    (:label :for "description")
+			    (:textarea :class "form-control" :name "description"  :placeholder "Description "  :rows "5" :onkeyup "countChar(this, 1000)" (str (format nil "~A" description))))
+		      (:div :class "form-group" :id "charcount")
+		      
+		       (:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+
+
+
 (defun product-card-for-vendor (product-instance)
     (let ((prd-name (slot-value product-instance 'prd-name))
 	  (unit-price (slot-value product-instance 'unit-price))
@@ -197,6 +257,55 @@
 		(if (equal approved-flag "N")
 		    (htm (:div :class "stampbox rotated" (str (format nil "~A" approval-status)))))
 		))))
+
+
+(defun product-card-for-approval (product-instance)
+    (let* ((prd-name (slot-value product-instance 'prd-name))
+	  (unit-price (slot-value product-instance 'unit-price))
+	  (description (slot-value product-instance 'description))
+	  (prd-image-path (slot-value product-instance 'prd-image-path))
+	  (prd-id (slot-value product-instance 'row-id))
+	  (active-flag (slot-value product-instance 'active-flag))
+	  (approved-flag (slot-value product-instance 'approved-flag))
+	  (tenant-id (slot-value product-instance 'tenant-id))
+	  (company (select-company-by-id tenant-id))
+	  (company-name (slot-value company 'name))
+	  (approval-status (slot-value product-instance 'approval-status))
+	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
+	    
+	(cl-who:with-html-output (*standard-output* nil)
+	  (:div :class "product-box" 
+		(:div :style "background-color:#E2DBCD; border-bottom: solid 1px; margin-bottom: 3px;" :class "row"
+		      (:div :class "col-xs-12" (:h5 (str (format nil "~A" company-name)))))
+		 
+
+	  (:div :class "row"
+		(:div :class "col-xs-5" 
+		      (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
+		(:div :class "col-xs-3" (:h3 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))))))
+		
+		(:div :class "row"
+		      (:div :class "col-xs-6"
+			    (:h5 :class "product-name" (str (if (> (length prd-name) 30)  (subseq prd-name  0 30) prd-name))))
+		(:div :class "col-xs-6"
+		      (if (equal subscribe-flag "Y") (htm (:div :class "col-xs-6"  (:h5 (:span :class "label label-default" "Can be Subscribed")))))))
+			(if (equal approved-flag "N")
+		    (htm (:div :class "stampbox rotated" (str (format nil "~A" approval-status)))))
+			
+		(:div :class "row"
+		      (:div :class "col-xs-6"
+			    (:button :data-toggle "modal" :data-target (format nil "#dodvendrejectprod-modal~A" prd-id)  :href "#"  (:span :class "glyphicon glyphicon-remove") "Reject")
+			    (modal-dialog (format nil "dodvendrejectprod-modal~A" prd-id) "Reject Product" (modal.vendor-product-reject-html  prd-id tenant-id)))
+		      (:div :class "col-xs-6"
+			    (:button :data-toggle "modal" :data-target (format nil "#dodvendacceptprod-modal~A" prd-id)  :href "#"  (:span :class "glyphicon glyphicon-ok") "Accept")
+			    (modal-dialog (format nil "dodvendacceptprod-modal~A" prd-id) "Accept Product" (modal.vendor-product-accept-html  prd-id tenant-id))))
+			))))
+
+
+
+
+
+
 
 (defun product-card (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))
