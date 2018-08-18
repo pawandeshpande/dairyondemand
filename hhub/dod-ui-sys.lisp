@@ -104,6 +104,7 @@
 
 
 
+
 (defmacro test-standard-page ((&key title) &body body)
   `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
      (:html :xmlns "http://www.w3.org/1999/xhtml"
@@ -493,7 +494,7 @@
 
 (setq hunchentoot:*dispatch-table*
     (list
-	;***************** OPERATOR RELATED ********************
+	;***************** SUPERADMIN/OPERATOR RELATED ********************
      
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodindex" 'dod-controller-index)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasabacsecurity" 'dod-controller-abac-security)
@@ -536,6 +537,12 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/transtopolicylinkaction" 'dod-controller-trans-to-policy-link-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasproductapprovals" 'dod-controller-products-approval-page)
 	
+	;***************** COMPADMIN/COMPANYHELPDESK/COMPANYOPERATOR  RELATED ********************
+     
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadindex" 'dod-controller-compadmin-index)
+	(hunchentoot:create-regex-dispatcher "^/hhub/cad-login.html" 'dod-controller-compadmin-loginpage)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadlogin" 'dod-controller-cadlogin)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhublogout" 'dod-controller-cadlogout)
 		
 	
 	;************CUSTOMER LOGIN RELATED ********************

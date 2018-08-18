@@ -75,3 +75,5 @@
 
 (defun get-login-user-name ()
   (hunchentoot:session-value :login-username))
+
+
