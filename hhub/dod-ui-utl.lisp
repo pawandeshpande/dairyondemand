@@ -17,8 +17,8 @@
 `(let ((transaction (select-bus-trans-by-trans-func ,name)))
    (if (has-permission transaction) 
        ,@body
-       ;else 
-      "Permission Denied")))
+      ;else
+       "Permission Denied")))
 
 ; Policy Enforcement Point for HHUB
 (defmacro with-hhub-pep (name subject resource action env &body body)

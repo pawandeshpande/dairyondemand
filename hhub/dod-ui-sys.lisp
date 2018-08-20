@@ -20,7 +20,8 @@
 	(:div :id "row"
 	      (:div :id "col-xs-6" 
 	(:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
-	  
+	(:hr)
+	(:h4 "Pending Product Approvals")
 	(:div :id "row"
 	      (:div :id "col-xs-6"
 		    (:div :id "col-xs-6" :align "right" 
@@ -44,7 +45,7 @@
 		     (:a :class "navbar-brand" :href "#" :title "DAS" (:img :style "width: 30px; height: 30px;" :src "resources/demand&supply.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
-			 (:li :class "active" :align "center" (:a :href "/hhub/dodindex"  (:span :class "glyphicon glyphicon-home")  " Home"))
+			 (:li :class "active" :align "center" (:a :href "/hhub/sadminhome"  (:span :class "glyphicon glyphicon-home")  " Home"))
 			 (:li  (:a :href "/hhub/dasabacsecurity" "ABAC Security"))
 			 (:li  (:a :href "/hhub/dasproductapprovals" "Product Approvals"))
 			 (:li  (:a :href "/hhub/adminsettings" "Admin Settings"))
@@ -53,12 +54,6 @@
 		     (:ul :class "nav navbar-nav navbar-right"
 			 (:li :align "center" (:a :href "dodvendprofile"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
 			 (:li :align "center" (:a :href "dodlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
-
-
-
-
-
-
 
 
 (defmacro standard-page ( (&key title) &body body)
@@ -242,9 +237,10 @@
       (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
-(defun dod-controller-index () 
-  (if (is-dod-session-valid?)
-   (let (( companies (list-dod-companies)))
+(defun com-hhub-transaction-sadmin-home () 
+ (if (is-dod-session-valid?)
+  (with-hhub-transaction "com-hhub-transaction-sadmin-home" 
+      (let (( companies (list-dod-companies)))
       (standard-page (:title "Welcome to Highrisehub.")
 	(:div :class "container"
 	(:div :id "row"
@@ -259,7 +255,7 @@
 		    (:span :class "badge" (str (format nil "~A" (length companies))))))
 	(:hr)
 	(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
-   	(str (display-as-tiles companies 'company-card )))))
+   	(str (display-as-tiles companies 'company-card ))))))
    (hunchentoot:redirect "/hhub/opr-login.html")))
   
 (setq *logged-in-users* (make-hash-table :test 'equal))
@@ -316,7 +312,7 @@
   (handler-case 
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
 	      (if (is-dod-session-valid?)
-		  (hunchentoot:redirect "/hhub/dodindex")
+		  (hunchentoot:redirect "/hhub/sadminhome")
 		  ;else
 		  (standard-page (:title "Welcome to Dairy ondemand")
 		    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
@@ -350,7 +346,7 @@
 	    ( or (null cname) (zerop (length cname)))
 	    ( or (null uname) (zerop (length uname)))
 	    ( or (null passwd) (zerop (length passwd))))
-      (if (equal (dod-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/hhub/opr-login.html") (hunchentoot:redirect  "/hhub/dodindex")))))
+      (if (equal (dod-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/hhub/opr-login.html") (hunchentoot:redirect  "/hhub/sadminhome")))))
    
   
    (defun dod-controller-logout ()
@@ -488,7 +484,7 @@
 		     (update-company company))
 					;else
 	      (new-dod-company cmpname cmpaddress cmpcity cmpstate cmpcountry cmpzipcode loginuser loginuser)))
-	(hunchentoot:redirect  "/hhub/dodindex"))
+	(hunchentoot:redirect  "/hhub/sadminhome"))
       (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
@@ -496,7 +492,7 @@
     (list
 	;***************** SUPERADMIN/OPERATOR RELATED ********************
      
-	(hunchentoot:create-regex-dispatcher "^/hhub/dodindex" 'dod-controller-index)
+	(hunchentoot:create-regex-dispatcher "^/hhub/sadminhome" 'com-hhub-transaction-sadmin-home)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasabacsecurity" 'dod-controller-abac-security)
 	(hunchentoot:create-regex-dispatcher "^/hhub/company-added" 'dod-controller-company-added)
 	(hunchentoot:create-regex-dispatcher "^/hhub/new-company" 'dod-controller-new-company)

@@ -2,7 +2,6 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
-
 (defmacro compadmin-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
     `(cl-who:with-html-output (*standard-output* nil)
@@ -20,18 +19,12 @@
 			 (:li  (:a :href "/hhub/dasproductapprovals" "Product Approvals"))
 			 (:li  (:a :href "/hhub/dasproductapprovals" "Customer Approvals"))
 			 (:li  (:a :href "/hhub/dasproductapprovals" "Vendor Approvals"))
-			 (:li  (:a :href "/hhub/adminsettings" "Admin Settings"))
+			 (:li  (:a :href "/hhub/compadminsettings" "Admin Settings"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     
 		     (:ul :class "nav navbar-nav navbar-right"
-			 (:li :align "center" (:a :href "dodvendprofile"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
-			 (:li :align "center" (:a :href "dodlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
-
-
-
-
-
-
+			 (:li :align "center" (:a :href "#"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
+			 (:li :align "center" (:a :href "hhub/dodcadlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
 
 
 (defmacro standard-compadmin-page ( (&key title) &body body)
@@ -83,7 +76,7 @@
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
 				      (:h1 :class "text-center login-title"  "Login to HighriseHub")
-				      (:form :class "form-signin" :role "form" :method "POST" :action "dodlogin"
+				      (:form :class "form-signin" :role "form" :method "POST" :action "hhubcadlogin"
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "company" :placeholder "Company Name"  :type "text"))
 					     (:div :class "form-group"
@@ -99,25 +92,17 @@
 
 
 
-(defun dod-controller-index () 
+(defun dod-controller-compadmin-index () 
   (if (is-dod-session-valid?)
-   (let (( companies (list-dod-companies)))
       (standard-compadmin-page (:title "Welcome to Highrisehub.")
 	(:div :class "container"
 	(:div :id "row"
 	      (:div :id "col-xs-6" 
 	(:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
-	  (company-search-html)
-	(:div :id "row"
-	      (:div :id "col-xs-6"
-		  ;  (:a :class "btn btn-primary" :role "button" :href "new-company" :data-toggle "modal" :data-target "#editcompany-modal" (:span :class "glyphicon glyphicon-shopping-plus") " Add New Group  ")
-	       (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group"))
-	      (:div :id "col-xs-6" :align "right" 
-		    (:span :class "badge" (str (format nil "~A" (length companies))))))
 	(:hr)
-	(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
-   	(str (display-as-tiles companies 'company-card )))))
-   (hunchentoot:redirect "/hhub/cad-login.html")))
+	(hunchentoot:redirect "/hhub/dasproductapprovals")))
+					;else
+      (hunchentoot:redirect "/hhub/cad-login.html")))
 
 
 
@@ -158,6 +143,9 @@
 				      (setf (hunchentoot:session-value :login-caduserid) login-userid)
 				      (setf (hunchentoot:session-value :login-cadtenant-id) login-tenant-id)
 				      (setf (hunchentoot:session-value :login-cadcompany-name) company-name)
-				      (setf (hunchentoot:session-value :login-cadcompany) login-company))
-		 
-       	 )))
+				      (setf (hunchentoot:session-value :login-cadcompany) login-company)))))
+
+
+
+
+

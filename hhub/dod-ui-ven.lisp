@@ -603,12 +603,10 @@
 	    (cond ((equal context "ctxordprd") (ui-list-vendor-orders-by-products dodorders))
 		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/hhub/dodvenexpexl?reqdate=~A" reqdate)))
 		((equal context "ctxordcus") (ui-list-vendor-orders-by-customers dodorders))
-		((equal context "home")
-		 (htm (:div :class "list-group col-xs-6 col-sm-6 col-md-6 col-lg-6" 
-			    (:a :class "list-group-item" :href "dodvendindex?context=pendingorders" " Orders " (:span :class "badge" (str (format nil " ~d " (length dodorders)))))
-			    (:a :class "list-group-item" :href "dodvendindex?context=ctxordprd" "Todays Demand")
-			    (:a :class "list-group-item" :href (str (format nil "dodvendrevenue"))  "Today's Revenue")
-			    )))  
+		((equal context "home")	(htm (:div :class "list-group col-xs-6 col-sm-6 col-md-6 col-lg-6" 
+						   (:a :class "list-group-item" :href "dodvendindex?context=pendingorders" " Orders " (:span :class "badge" (str (format nil " ~d " (length dodorders)))))
+						   (:a :class "list-group-item" :href "dodvendindex?context=ctxordprd" "Todays Demand")
+						   (:a :class "list-group-item" :href (str (format nil "dodvendrevenue"))  "Today's Revenue"))))  
    
 		((equal context "pendingorders") 
 		 (progn (htm (str "Pending Orders") (:span :class "badge" (str (format nil " ~d " (length dodorders))))

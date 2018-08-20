@@ -117,7 +117,10 @@
 
 
 (defun has-permission (transaction)
+  :documentation "This function is the PEP (Policy Enforcement Point) in the ABAC system"
   (let* ((policy-id (if transaction (slot-value transaction 'auth-policy-id)))
-	(policy (if policy-id (select-auth-policy-by-id policy-id)))
+	(policy (if policy-id (search-prd-in-list policy-id (HHUB-GET-CACHED-AUTH-POLICIES))))
 	(policy-func (if policy (slot-value policy 'policy-func))))
      (if policy-func (funcall (intern  (string-upcase policy-func) :hhub) transaction))))
+
+

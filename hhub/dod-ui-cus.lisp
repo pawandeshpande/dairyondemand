@@ -1020,6 +1020,7 @@
 
 (defun com-hhub-transaction-create-order ()
  (if (is-dod-cust-session-valid?)
+   (with-hhub-transaction "com-hhub-transaction-create-order" 
      (let* ((odts (hunchentoot:session-value :login-shopping-cart))
 	    (products (hunchentoot:session-value :login-prd-cache))
 	    (payment-mode (hunchentoot:parameter "payment-mode"))
@@ -1030,19 +1031,17 @@
 	    (vendor-list (get-shopcart-vendorlist odts))
 	    (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
 	    (shipaddr (hunchentoot:parameter "shipaddress")))
-       
-       (with-hhub-transaction "com-hhub-transaction-create-order" 
-	 (progn  
-	   (if  (equal payment-mode "PRE")
+       (progn  
+	 (if  (equal payment-mode "PRE")
 					; at least one vendor wallet has low balance 
-		(if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
-								   (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts")))
+	      (if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
+								 (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts")))
 					;(if (equal payment-mode "COD")  
-	   (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
-	   (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
+	 (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
+	 (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	   (setf (hunchentoot:session-value :login-shopping-cart ) nil)
 	   (hunchentoot:redirect "/hhub/dodcustordsuccess"))))
- (hunchentoot:redirect "/hhub/customer-login.html")))
+   (hunchentoot:redirect "/hhub/customer-login.html")))
 
 
 
@@ -1260,7 +1259,7 @@
 	  (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
-	  )))
+	  '(1))))
 
         ; Handle this condition
    

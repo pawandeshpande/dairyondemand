@@ -31,6 +31,10 @@
 (defvar *PAYMENTAPISALT* "531337f97ac843613e9a191a4c639ec70b3056c3")
 (defvar *HHUBRESOURCESDIR* "/home/hunchentoot/dairyondemand/hhub/resources/")
 (defvar *HHUBDEFAULTPRDIMG* "HHubDefaultPrdImg.png")
+(defvar *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* NIL)
+
+
+
 
 (defun set-customer-page-title (name)
   (setf *customer-page-title* (format nil "Welcome to HighriseHub - ~A." name))) 
@@ -128,4 +132,15 @@ the hunchentoot server with ssl settings"
 (setf *http-server* nil))
 )
 
+;;;;*********** Globally Cached lists and their accessor functions *********************************
 
+(defun hhub-gen-globally-cached-lists-functions ()
+  :documentation "These functions are list returning functions. The various lists are accessible throughout the application. For example, list of all the authorization policies, attributes, etc."
+  (let ((policies (get-auth-policies 1))) ; The first tenant is the system tenant. 
+    (list (function (lambda () policies)))))
+
+
+
+(defun hhub-get-cached-auth-policies()
+  (let ((policiesfunc (first *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+    (funcall policiesfunc)))
