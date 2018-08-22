@@ -435,7 +435,7 @@
 	  (progn
 	    (stop-das) 
 	    (start-das)
-	    (hunchentoot:redirect "/hhub/customer-login.html"))))))
+	    (hunchentoot:redirect "/hhub/vendor-login.html"))))))
 
 (defun dod-controller-vendor-switch-tenant ()
 (if (is-dod-vend-session-valid?) 

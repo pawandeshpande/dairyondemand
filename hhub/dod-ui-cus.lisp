@@ -1246,7 +1246,7 @@
 		 password-verified
 		 (null (hunchentoot:session-value :login-customer-name))) ;; customer should not be logged-in in the first place.
 	(progn
-	  (princ "Starting session")
+	  (hunchentoot:log-message* :info "Login successful for customer  ~A" customer-name)
 	  (setf *current-customer-session* (hunchentoot:start-session))
 	  (setf (hunchentoot:session-value :login-customer ) customer)
 	  (setf (hunchentoot:session-value :login-customer-name) customer-name)
@@ -1259,7 +1259,8 @@
 	  (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
-	  '(1))))
+	 ))
+      )
 
         ; Handle this condition
    

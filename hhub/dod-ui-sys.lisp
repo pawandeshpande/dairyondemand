@@ -370,9 +370,10 @@
 	 (login-company (slot-value login-user 'company))
 	 (login-company-name (slot-value (users-company login-user) 'name)))
 
-    (when (and(equal  login-company-name company-name)
-	    login-user 
-	      (null (hunchentoot:session-value :login-username)) ;; User should not be logged-in in the first place.
+    (when (and   
+	   (equal  login-company-name company-name)
+	   login-user 
+	   (null (hunchentoot:session-value :login-username)) ;; User should not be logged-in in the first place.
 	      )  (progn (add-login-user username  login-user)
 				      (setf *current-user-session* (hunchentoot:start-session))
 				      (setf (hunchentoot:session-value :login-username) username)
