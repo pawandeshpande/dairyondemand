@@ -1,11 +1,24 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
+(defun approve-product (id description company)
+  (let ((product (select-product-by-id id company)))
+    (setf (slot-value product 'approved-flag) "Y")
+    (setf (slot-value product 'approval-status) "APPROVED")
+    (setf (slot-value product 'description) description)
+    (update-prd-details product)))
+
+(defun reject-product (id description company)
+  (let ((product (select-product-by-id id  company)))
+    (setf (slot-value product 'approved-flag) "N")
+    (setf (slot-value product 'approval-status) "REJECTED")
+    (setf (slot-value product 'description) description)
+    (update-prd-details product)))
+
 (defun deactivate-product (id company)
   (let ((product (select-product-by-id id company)))
     (setf (slot-value product 'active-flag) "N")
     (update-prd-details product)))
-
 
 (defun activate-product (id company)
   (let ((product (select-product-by-id id company)))
@@ -18,7 +31,8 @@
 		[and 
 		[= [:deleted-state] "N"] 
 		[= [:active-flag] "Y"]
-		[= [:approved-flag] "N"]]
+		[= [:approved-flag] "N"]
+		[= [:approval-status] "PENDING"]]
 		:caching *dod-database-caching* :flatp t ))
 
 (defun get-products-for-approval-by-company (tenant-id)

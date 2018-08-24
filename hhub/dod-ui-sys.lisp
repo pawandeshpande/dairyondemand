@@ -539,8 +539,11 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadindex" 'dod-controller-compadmin-index)
 	(hunchentoot:create-regex-dispatcher "^/hhub/cad-login.html" 'dod-controller-compadmin-loginpage)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadlogin" 'dod-controller-cadlogin)
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhublogout" 'dod-controller-cadlogout)
-		
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadlogout" 'dod-controller-cadlogout)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendrejectproductaction" 'dod-controller-vendor-reject-product-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendacceptproductaction" 'dod-controller-vendor-accept-product-action)
+	
+	
 	
 	;************CUSTOMER LOGIN RELATED ********************
 	(hunchentoot:create-regex-dispatcher  "^/hhub/customer-login.html" 'dod-controller-customer-loginpage)

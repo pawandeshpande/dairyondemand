@@ -155,7 +155,7 @@
  (cl-who:with-html-output (*standard-output* nil)
    (:div :class "row" 
 	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "dodvendrejectproductaction" :enctype "multipart/form-data" 
+	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "hhubvendrejectproductaction" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
 		      (:input :class "form-control" :type "hidden" :value prd-id :name "id")
 		 (:div :align "center"  :class "form-group" 
@@ -184,7 +184,7 @@
  (cl-who:with-html-output (*standard-output* nil)
    (:div :class "row" 
 	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "dodvendacceptproductaction" :enctype "multipart/form-data" 
+	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "hhubvendacceptproductaction" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
 		      (:input :class "form-control" :type "hidden" :value prd-id :name "id")
 		 (:div :align "center"  :class "form-group" 
@@ -262,10 +262,10 @@
 (defun product-card-for-approval (product-instance)
     (let* ((prd-name (slot-value product-instance 'prd-name))
 	  (unit-price (slot-value product-instance 'unit-price))
-	  (description (slot-value product-instance 'description))
+	  ;(description (slot-value product-instance 'description))
 	  (prd-image-path (slot-value product-instance 'prd-image-path))
 	  (prd-id (slot-value product-instance 'row-id))
-	  (active-flag (slot-value product-instance 'active-flag))
+	  ;(active-flag (slot-value product-instance 'active-flag))
 	  (approved-flag (slot-value product-instance 'approved-flag))
 	  (tenant-id (slot-value product-instance 'tenant-id))
 	  (company (select-company-by-id tenant-id))

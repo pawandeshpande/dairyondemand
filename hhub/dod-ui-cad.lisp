@@ -15,8 +15,7 @@
 		     (:a :class "navbar-brand" :href "#" :title "DAS" (:img :style "width: 30px; height: 30px;" :src "resources/demand&supply.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
-			 (:li :class "active" :align "center" (:a :href "/hhub/dodindex"  (:span :class "glyphicon glyphicon-home")  " Home"))
-			 (:li  (:a :href "/hhub/dasproductapprovals" "Product Approvals"))
+			 (:li :class "active" :align "center" (:a :href "/hhub/hhubcadindex"  (:span :class "glyphicon glyphicon-home")  " Home"))
 			 (:li  (:a :href "/hhub/dasproductapprovals" "Customer Approvals"))
 			 (:li  (:a :href "/hhub/dasproductapprovals" "Vendor Approvals"))
 			 (:li  (:a :href "/hhub/compadminsettings" "Admin Settings"))
@@ -24,7 +23,7 @@
 		     
 		     (:ul :class "nav navbar-nav navbar-right"
 			 (:li :align "center" (:a :href "#"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
-			 (:li :align "center" (:a :href "hhub/dodcadlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
+			 (:li :align "center" (:a :href "/hhub/hhubcadlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
 
 
 (defmacro standard-compadmin-page ( (&key title) &body body)
@@ -71,7 +70,7 @@
 	      (if (is-dod-session-valid?)
 		  (hunchentoot:redirect "/hhub/dodcadindex")
 		  ;else
-		  (standard-page (:title "Welcome to HighriseHub Company Administrator")
+		  (standard-compadmin-page (:title "Welcome to HighriseHub Company Administrator")
 		    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
@@ -94,13 +93,21 @@
 
 (defun dod-controller-compadmin-index () 
   (if (is-dod-session-valid?)
-      (standard-compadmin-page (:title "Welcome to Highrisehub.")
-	(:div :class "container"
-	(:div :id "row"
-	      (:div :id "col-xs-6" 
-	(:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
-	(:hr)
-	(hunchentoot:redirect "/hhub/dasproductapprovals")))
+      (let ((products (get-products-for-approval)))
+	(standard-compadmin-page (:title "Welcome to Highrisehub.")
+	  (:div :class "container"
+		(:div :id "row"
+		      (:div :id "col-xs-6" 
+			    (:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+		(:hr)
+		(:h4 "Pending Product Approvals")
+		(:div :id "row"
+		      (:div :id "col-xs-6"
+			    (:div :id "col-xs-6" :align "right" 
+				  (:span :class "badge" (str (format nil "~A" (length products)))))))
+		(:hr)
+		(str (display-as-tiles products 'product-card-for-approval )))))
+	
 					;else
       (hunchentoot:redirect "/hhub/cad-login.html")))
 
@@ -115,7 +122,7 @@
 	    ( or (null cname) (zerop (length cname)))
 	    ( or (null uname) (zerop (length uname)))
 	    ( or (null passwd) (zerop (length passwd))))
-      (if (equal (dod-cad-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/hhub/cad-login.html") (hunchentoot:redirect  "/hhub/hhubcadindex")))))
+      (if (equal (dod-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/hhub/cad-login.html") (hunchentoot:redirect  "/hhub/hhubcadindex")))))
    
   
    (defun dod-controller-cadlogout ()
@@ -124,29 +131,26 @@
 	    (hunchentoot:redirect "/hhub/cad-login.html")))
 
 
-(defun dod-cad-login (&key company-name username password)
-  (let* ((login-user (car (clsql:select 'dod-users :where [and
-				       [= [slot-value 'dod-users 'username] username]
-				       [= [slot-value 'dod-users 'password] password]]
-				      :caching nil :flatp t)))
-	 (login-userid (slot-value login-user 'row-id))
-	 (login-tenant-id (slot-value  (users-company login-user) 'row-id))
-	 (login-company (slot-value login-user 'company))
-	 (login-company-name (slot-value (users-company login-user) 'name)))
 
-    (when (and
-	   (equal  login-company-name company-name)
-	   login-user 
-	   (null (hunchentoot:session-value :login-cadusername))) ;; User should not be logged-in in the first place.
-      (progn (add-login-user username  login-user)
-	     (setf *current-user-session* (hunchentoot:start-session))
-	     (setf (hunchentoot:session-value :login-cadusername) username)
-	     (setf (hunchentoot:session-value :login-caduserid) login-userid)
-	     (setf (hunchentoot:session-value :login-cadtenant-id) login-tenant-id)
-	     (setf (hunchentoot:session-value :login-cadcompany-name) company-name)
-	     (setf (hunchentoot:session-value :login-cadcompany) login-company)))))
+(defun dod-controller-vendor-reject-product-action ()
+  (if (is-dod-session-valid?)
+      (let ((id (hunchentoot:parameter "id"))
+	    (description (hunchentoot:parameter "description")))
+	(reject-product id description (get-login-company))
+	(hunchentoot:redirect "/hhub/hhubcadindex"))
+      					;else
+  (hunchentoot:redirect "/hhub/cad-login.html")))
 
 
 
+(defun dod-controller-vendor-accept-product-action ()
+  (if (is-dod-session-valid?)
+      (let ((id (hunchentoot:parameter "id"))
+	    (description (hunchentoot:parameter "description")))
+
+	(approve-product id description (get-login-company))
+	(hunchentoot:redirect "/hhub/hhubcadindex"))
+      					;else
+      (hunchentoot:redirect "/hhub/cad-login.html")))
 
 
