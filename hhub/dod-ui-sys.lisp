@@ -15,7 +15,7 @@
   :documentation "This controller function is used by the System admin and Company Admin to approve products" 
  (if (is-dod-session-valid?)
    (let ((products (get-products-for-approval)))
-     (standard-page (:title "New products approval") 
+     (standard-compadmin-page (:title "New products approval") 
 	(:div :class "container"
 	(:div :id "row"
 	      (:div :id "col-xs-6" 
@@ -47,7 +47,6 @@
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/sadminhome"  (:span :class "glyphicon glyphicon-home")  " Home"))
 			 (:li  (:a :href "/hhub/dasabacsecurity" "ABAC Security"))
-			 (:li  (:a :href "/hhub/dasproductapprovals" "Product Approvals"))
 			 (:li  (:a :href "/hhub/adminsettings" "Admin Settings"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     
@@ -187,7 +186,7 @@
 	 (cmpcity (if company (slot-value company 'city)))
 	 (cmpstate (if company (slot-value company 'state))) 
 	 (cmpzipcode (if company (slot-value company 'zipcode))))
-    (with-hhub-transaction "com-hhub-transaction-create-company" 
+    (with-hhub-transaction "com-hhub-transaction-create-company" nil
     	(cl-who:with-html-output (*standard-output* nil)
 	  (:div :class "row" 
 		(:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
@@ -239,7 +238,7 @@
 
 (defun com-hhub-transaction-sadmin-home () 
  (if (is-dod-session-valid?)
-  (with-hhub-transaction "com-hhub-transaction-sadmin-home" 
+  (with-hhub-transaction "com-hhub-transaction-sadmin-home" nil 
       (let (( companies (list-dod-companies)))
       (standard-page (:title "Welcome to Highrisehub.")
 	(:div :class "container"
@@ -319,7 +318,7 @@
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
 				      (:h1 :class "text-center login-title"  "Login to Dairy Ondemand")
-				      (:form :class "form-signin" :role "form" :method "POST" :action "dodlogin"
+				      (:form :class "form-signin" :role "form" :method "POST" :action "sadminlogin"
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "company" :placeholder "Company Name"  :type "text"))
 					     (:div :class "form-group"
@@ -337,23 +336,26 @@
 
 
 
-(defun dod-controller-login ()
-  (let  ((uname (hunchentoot:parameter "username"))
-	 (passwd (hunchentoot:parameter "password"))
-	 (cname (hunchentoot:parameter "company")))
-    
+(defun com-hhub-transaction-superadmin-login ()
+ (let  ((uname (hunchentoot:parameter "username"))
+	(passwd (hunchentoot:parameter "password"))
+	(cname (hunchentoot:parameter "company"))
+	(params nil))
+	(setf params (acons "username" uname params))
+	(setf params (acons "password" passwd params))
+	(setf params (acons "company" cname params))
+   (with-hhub-transaction "com-hhub-transaction-superadmin-login"  params   
       (unless(and
 	    ( or (null cname) (zerop (length cname)))
 	    ( or (null uname) (zerop (length uname)))
 	    ( or (null passwd) (zerop (length passwd))))
-      (if (equal (dod-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/hhub/opr-login.html") (hunchentoot:redirect  "/hhub/sadminhome")))))
+      (if (equal (dod-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/hhub/opr-login.html") (hunchentoot:redirect  "/hhub/sadminhome"))))))
    
   
    (defun dod-controller-logout ()
      (progn (dod-logout (get-login-user-name))
 	    (hunchentoot:remove-session *current-user-session*)
 	    (hunchentoot:redirect "/hhub/opr-login.html")))
-
 
 (defun is-dod-session-valid? ()
  (if  (null (get-login-user-name)) NIL T))
@@ -364,11 +366,11 @@
 				       [= [slot-value 'dod-users 'username] username]
 				       [= [slot-value 'dod-users 'password] password]]
 				      :caching nil :flatp t)))
-	 (login-userid (slot-value login-user 'row-id))
+	 (login-userid (if login-user (slot-value login-user 'row-id)))
 	 (login-attribute-cart '())
-	 (login-tenant-id (slot-value  (users-company login-user) 'row-id))
-	 (login-company (slot-value login-user 'company))
-	 (login-company-name (slot-value (users-company login-user) 'name)))
+	 (login-tenant-id (if login-user (slot-value  (users-company login-user) 'row-id)))
+	 (login-company (if login-user (slot-value login-user 'company)))
+	 (login-company-name (if login-user (slot-value (users-company login-user) 'name))))
 
     (when (and   
 	   (equal  login-company-name company-name)
@@ -499,7 +501,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/new-company" 'dod-controller-new-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/editcompany" 'dod-controller-new-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/opr-login.html" 'dod-controller-loginpage)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dodlogin" 'dod-controller-login)
+	(hunchentoot:create-regex-dispatcher "^/hhub/sadminlogin" 'com-hhub-transaction-superadmin-login)
 	(hunchentoot:create-regex-dispatcher "^/hhub/new-customer" 'dod-controller-new-customer)
 	(hunchentoot:create-regex-dispatcher "^/hhub/delcustomer" 'dod-controller-delete-customer)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-customers" 'dod-controller-list-customers)

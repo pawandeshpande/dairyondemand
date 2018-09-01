@@ -1,7 +1,13 @@
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
-(defun com-hhub-policy-cust-edit-order (&optional transaction)
+(defun com-hhub-policy-sadmin-login (&optional transaction params)
+:documentation "Super Administrator Login Policy"
+(let ((username (assoc "username" params :test 'equal)))
+(if (equal (cdr username)  "superadmin") T NIL)))
+
+
+(defun com-hhub-policy-cust-edit-order (&optional transaction params)
   (let ((transbo (get-bus-tran-busobject transaction)))
     ; Match the Resource attribute and Action attribute for Edit Order.
     (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
@@ -9,7 +15,7 @@
 	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
 
 
-(defun com-hhub-policy-create-order (&optional transaction)
+(defun com-hhub-policy-create-order (&optional transaction params)
   (let ((transbo (get-bus-tran-busobject transaction)))
     ; Match the Resource attribute and Action attribute for Create Order.
     (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
@@ -25,16 +31,17 @@
 ;	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
 
 
-(defun com-hhub-policy-sadmin-home (&optional transaction)
+(defun com-hhub-policy-sadmin-home (&optional transaction params)
+  :documentation "Check whether role of the login user is SUPERADMIN or not" 
   (if (equal (get-login-user-name) "superadmin") T NIL)) 
 
-(defun com-hhub-policy-create-company (&optional transaction)
+(defun com-hhub-policy-create-company (&optional transaction params)
   (if (equal (get-login-user-name) "superadmin") T NIL)) 
 
-(defun com-hhub-policy-create-attribute (&optional transaction)
+(defun com-hhub-policy-create-attribute (&optional transaction params)
   (if (equal (get-login-user-name) "superadmin") T NIL)) 
 
-(defun com-hhub-policy-create (&optional transaction)
+(defun com-hhub-policy-create (&optional transaction params)
   (if (equal (get-login-user-name) "superadmin") T NIL)) 
 
 (defun dod-controller-add-transaction-action ()

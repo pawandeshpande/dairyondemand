@@ -10,10 +10,11 @@
 
 (defun reject-product (id description company)
   (let ((product (select-product-by-id id  company)))
-    (setf (slot-value product 'approved-flag) "N")
-    (setf (slot-value product 'approval-status) "REJECTED")
-    (setf (slot-value product 'description) description)
-    (update-prd-details product)))
+    (if product 
+	(progn (setf (slot-value product 'approved-flag) "N")
+	       (setf (slot-value product 'approval-status) "REJECTED")
+	       (setf (slot-value product 'description) description)
+	       (update-prd-details product)))))
 
 (defun deactivate-product (id company)
   (let ((product (select-product-by-id id company)))

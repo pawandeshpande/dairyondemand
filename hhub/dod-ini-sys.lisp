@@ -102,7 +102,8 @@ the hunchentoot server with ssl settings"
 (progn (init-dairyondemand)
        (if withssl  (init-httpserver-withssl))
        (if withssl  (hunchentoot:start *ssl-http-server*) (hunchentoot:start *http-server*) )
-       (crm-db-connect :servername *crm-database-server* :strdb *crm-database-name* :strusr *crm-database-user*  :strpwd *crm-database-password* :strdbtype :mysql)))
+       (crm-db-connect :servername *crm-database-server* :strdb *crm-database-name* :strusr *crm-database-user*  :strpwd *crm-database-password* :strdbtype :mysql)
+       (setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* (hhub-gen-globally-cached-lists-functions))))
 
 
 

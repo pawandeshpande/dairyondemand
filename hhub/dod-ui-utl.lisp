@@ -13,9 +13,9 @@
 	(list hour minute second)))
 
 
-(defmacro with-hhub-transaction (name &body body)
+(defmacro with-hhub-transaction (name &optional params &body body)
 `(let ((transaction (select-bus-trans-by-trans-func ,name)))
-   (if (has-permission transaction) 
+   (if (has-permission transaction ,params) 
        ,@body
       ;else
        "Permission Denied")))

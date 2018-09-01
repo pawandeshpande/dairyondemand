@@ -10,7 +10,6 @@
 	 (address (address customer))
 	 (phone  (phone customer))
 	 (email (email customer)))
-	 
 
  (cl-who:with-html-output (*standard-output* nil)
    (:div :class "row" 
@@ -26,7 +25,7 @@
 			    (:textarea :class "form-control" :name "address"  :placeholder "Enter Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str (format nil "~A" address))))
 		      (:div :class "form-group" :id "charcount")
 		      (:div :class "form-group"
-			    (:input :class "form-control" :name "phone"  :value phone  :type "text" ))
+			    (:input :class "form-control" :name "phone"  :value phone :placeholder "Phone"  :type "text" ))
 		      
 		      (:div :class "form-group"
 			    (:input :class "form-control" :name "email" :value email :placeholder "Email" :type "text"))

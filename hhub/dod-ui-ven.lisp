@@ -351,6 +351,7 @@
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
 		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
 		 (:script :src "js/spin.min.js")
+		
 		 ) ;; Header completes here.
 	     
 	     (:body
@@ -358,6 +359,7 @@
 		     (:a :href "#" :class "scrollup" :style "display: none;") 
 		 (:div :id "dod-error" (:h2 "error..."))
 		 (:div :id "busy-indicator")
+		  (:script :src "js/hhubbusy.js")
 		 (if (is-dod-vend-session-valid?) (vendor-navigation-bar))
 		 (:div :class "container theme-showcase" :role "main" 
 		   (:div :id "header"  ,@body))
@@ -366,7 +368,7 @@
 		 
 		 ;; bootstrap core javascript
 		 (:script :src "js/bootstrap.min.js")
-		  (:script :src "js/dod.js"))))))
+		 (:script :src "js/dod.js"))))))
 
 
 
