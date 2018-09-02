@@ -12,13 +12,13 @@
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "DAS" (:img :style "width: 30px; height: 30px;" :src "resources/demand&supply.png" )  ))
+		     (:a :class "navbar-brand" :href "#" :title "HighriseHub" (:img :style "width: 30px; height: 30px;" :src "resources/logo.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/hhubcadindex"  (:span :class "glyphicon glyphicon-home")  " Home"))
 			 (:li  (:a :href "/hhub/dasproductapprovals" "Customer Approvals"))
 			 (:li  (:a :href "/hhub/dasproductapprovals" "Vendor Approvals"))
-			 (:li  (:a :href "/hhub/compadminsettings" "Admin Settings"))
+			 (:li :align "center" (:a :href "#" (str (format nil "Group: ~a" (slot-value (get-login-company) 'name)))))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     
 		     (:ul :class "nav navbar-nav navbar-right"
@@ -93,7 +93,7 @@
 
 (defun dod-controller-compadmin-index () 
   (if (is-dod-session-valid?)
-      (let ((products (get-products-for-approval)))
+      (let ((products (get-products-for-approval (get-login-tenant-id))))
 	(standard-compadmin-page (:title "Welcome to Highrisehub.")
 	  (:div :class "container"
 		(:div :id "row"

@@ -520,6 +520,7 @@
 		     (:a :href "#" :class "scrollup" :style "display: none;") 
 		 (:div :id "dod-error" (:h2 "error..."))
 		 (:div :id "busy-indicator")
+		 (:script :src "js/hhubbusy.js")
 		 (if (is-dod-cust-session-valid?) (customer-navigation-bar))
 		 (:div :class "container theme-showcase" :role "main" 
 		   (:div :id "header"  ,@body))

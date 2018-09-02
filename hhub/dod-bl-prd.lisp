@@ -3,10 +3,11 @@
 
 (defun approve-product (id description company)
   (let ((product (select-product-by-id id company)))
-    (setf (slot-value product 'approved-flag) "Y")
-    (setf (slot-value product 'approval-status) "APPROVED")
-    (setf (slot-value product 'description) description)
-    (update-prd-details product)))
+    (if product 
+	(progn (setf (slot-value product 'approved-flag) "Y")
+	       (setf (slot-value product 'approval-status) "APPROVED")
+	       (setf (slot-value product 'description) description)
+	       (update-prd-details product)))))
 
 (defun reject-product (id description company)
   (let ((product (select-product-by-id id  company)))
@@ -26,13 +27,14 @@
     (setf (slot-value product 'active-flag) "Y")
     (update-prd-details product)))
 
-(defun get-products-for-approval ()
+(defun get-products-for-approval (tenant-id)
 :documentation "This function will be used only by the superadmin user. "
   (clsql:select 'dod-prd-master  :where 
 		[and 
 		[= [:deleted-state] "N"] 
 		[= [:active-flag] "Y"]
 		[= [:approved-flag] "N"]
+		[= [:tenant-id] tenant-id]
 		[= [:approval-status] "PENDING"]]
 		:caching *dod-database-caching* :flatp t ))
 

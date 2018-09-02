@@ -14,7 +14,7 @@
 (defun dod-controller-products-approval-page ()
   :documentation "This controller function is used by the System admin and Company Admin to approve products" 
  (if (is-dod-session-valid?)
-   (let ((products (get-products-for-approval)))
+   (let ((products (get-products-for-approval (get-login-tenant-id))))
      (standard-compadmin-page (:title "New products approval") 
 	(:div :class "container"
 	(:div :id "row"
@@ -42,7 +42,7 @@
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "DAS" (:img :style "width: 30px; height: 30px;" :src "resources/demand&supply.png" )  ))
+		     (:a :class "navbar-brand" :href "#" :title "HighriseHub" (:img :style "width: 30px; height: 30px;" :src "resources/logo.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/sadminhome"  (:span :class "glyphicon glyphicon-home")  " Home"))
