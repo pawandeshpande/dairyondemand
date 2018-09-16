@@ -131,7 +131,7 @@
  :documentation "a callback function which prints daily order preferences for a logged in customer in html format." 
  (let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
 	(header (list   "product"  "day"  "qty" "qty per unit" "price"  "actions")))
-  (das-cust-page-with-tiles 'ui-list-cust-orderprefs "customer order preferences" header dodorderprefs)))
+      (das-cust-page-with-tiles 'ui-list-cust-orderprefs "customer order preferences" header dodorderprefs)))
 
 
 

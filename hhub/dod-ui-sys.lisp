@@ -7,7 +7,7 @@
 
 (defun dod-controller-run-daily-orders-batch ()
  :documentation "This controller function is responsible to run the daily orders batch against all the subscriptions customers have made for a particular group/apartment/tenant" 
-  (let ((batchresult (run-daily-orders-batch 1)))
+  (let ((batchresult (run-daily-orders-batch 7)))
     (json:encode-json-to-string batchresult)))
 
 
@@ -81,7 +81,10 @@
 	      (:div :id "dod-main-container"
 		    (:a :href "#" :class "scrollup" :style "display: none;") 
 		    (:div :id "dod-error" (:h2 "Error..."))
+		
 		 (:div :id "busy-indicator")
+		 (:script :src "js/hhubbusy.js")
+		
 		 (if (is-dod-session-valid?) (navigation-bar))
 		 (:div :class "container theme-showcase" :role "main" 
 		     (:div :id "header"	; DOD System header
@@ -255,6 +258,7 @@
 	(:hr)
 	(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
    	(str (display-as-tiles companies 'company-card ))))))
+  ;else
    (hunchentoot:redirect "/hhub/opr-login.html")))
   
 (setq *logged-in-users* (make-hash-table :test 'equal))
@@ -336,7 +340,7 @@
 
 
 
-(defun com-hhub-transaction-superadmin-login ()
+(defun com-hhub-transaction-sadmin-login ()
  (let  ((uname (hunchentoot:parameter "username"))
 	(passwd (hunchentoot:parameter "password"))
 	(cname (hunchentoot:parameter "company"))

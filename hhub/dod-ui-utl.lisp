@@ -43,7 +43,7 @@
 
 
 (defun display-as-table (header listdata rowdisplayfunc) 
-:documentation "This is a generic function which will display items in list as a html table. You need to pass the html table header and  list data, and a display function which will display data. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizingrefer to style.css. " 
+:documentation "This is a generic function which will display items in list as a html table. You need to pass the html table header and  list data, and a display function which will display data. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizing refer to style.css. " 
   (cl-who:with-html-output-to-string (*standard-output* nil)
     (:table :class "table  table-striped  table-hover"
       (:thead (:tr

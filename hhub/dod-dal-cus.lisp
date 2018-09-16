@@ -82,10 +82,7 @@
     :void-value "N"
     :initarg :deleted-state)
 
-   (approved-flag
-    :type (string 1)
-    :void-value "N"
-    :initarg :approved-flag)
+
 
     (tenant-id
     :type integer
