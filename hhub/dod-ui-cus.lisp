@@ -470,7 +470,7 @@
 			      (:span :class "icon-bar")
 			      (:span :class "icon-bar")
 			      (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "highrisehub" (:img :style "width: 50px; height: 50px;" :src "resources/logo.png" )  ))
+		     (:a :class "navbar-brand" :href "#" :title "highrisehub" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navheadercollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/dodcustindex" (:span :class "glyphicon glyphicon-home")  " Home"))
@@ -554,7 +554,7 @@
     (standard-customer-page (:title "Welcome to HighriseHub Platform- Your Demand And Supply destination.")
       	(:form :class "form-custregister" :role "form" :method "POST" :action "dodcustregisteraction"
 	   (:div :class "row"
-			(:img :class "profile-img" :src "resources/logo.png" :alt "")
+			(:img :class "profile-img" :src "/img/logo.png" :alt "")
 				(:h1 :class "text-center login-title"  "New Registration to HighriseHub")
 				(:hr)) 
 	       (:div :class "row" 
@@ -725,7 +725,7 @@
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin"
 				       (:div :class "account-wall"
-					     (:img :class "profile-img" :src "resources/logo.png" :alt "")
+					     (:img :class "profile-img" :src "/img/logo.png" :alt "")
 					     (:h1 :class "text-center login-title"  "Customer - Login to HighriseHub")
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text" ))

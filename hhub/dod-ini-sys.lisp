@@ -29,7 +29,7 @@
 (defvar *ABAC-TRANSACTION-FUNC-PREFIX* "com-hhub-transaction-")
 (defvar *PAYMENTAPIKEY* "9f64df72-0b21-4c7e-b9f3-19b9fb34dce6")
 (defvar *PAYMENTAPISALT* "531337f97ac843613e9a191a4c639ec70b3056c3")
-(defvar *HHUBRESOURCESDIR* "/home/hunchentoot/dairyondemand/hhub/resources/")
+(defvar *HHUBRESOURCESDIR* "/data/www/highrisehub.com/public/img")
 (defvar *HHUBDEFAULTPRDIMG* "HHubDefaultPrdImg.png")
 (defvar *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* NIL)
 
@@ -96,8 +96,8 @@ the hunchentoot server with ssl settings"
  
 (setf *dod-debug-mode* debug-mode)
 (setf *http-server* (make-instance 'hunchentoot:easy-acceptor :port 4244 :document-root #p"~/dairyondemand/"))
-(setf (hunchentoot:acceptor-access-log-destination *http-server*)   #p"~/dairyondemand/hhub/logs/dairyondemand-access.log")
-(setf (hunchentoot:acceptor-message-log-destination *http-server*) #p"~/dairyondemand/hhub/logs/dairyondemand-messages.log")
+(setf (hunchentoot:acceptor-access-log-destination *http-server*)   #p"~/hhublogs/highrisehub-access.log")
+(setf (hunchentoot:acceptor-message-log-destination *http-server*) #p"~/hhublogs/highrisehub-messages.log")
 
 (progn (init-dairyondemand)
        (if withssl  (init-httpserver-withssl))
@@ -117,8 +117,8 @@ the hunchentoot server with ssl settings"
 							  :document-root #p"~/dairyondemand/hhub/"
 							  :ssl-privatekey-file #p"~/dairyondemand/privatekey.key"
 							  :ssl-certificate-file #p"~/dairyondemand/certificate.crt" ))
-  (setf (hunchentoot:acceptor-access-log-destination *ssl-http-server* )  #p"~/dairyondemand/logs/dairyondemand-ssl-access.log")
-       (setf  (hunchentoot:acceptor-message-log-destination *ssl-http-server*)   #p"~/dairyondemand/logs/dairyondemand-ssl-messages.log")))
+  (setf (hunchentoot:acceptor-access-log-destination *ssl-http-server* )  #p"~/hhublogs/highrisehub-ssl-access.log")
+       (setf  (hunchentoot:acceptor-message-log-destination *ssl-http-server*)   #p"~/hhublogs/highrisehub-ssl-messages.log")))
 
 
 

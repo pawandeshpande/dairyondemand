@@ -42,7 +42,7 @@
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "HighriseHub" (:img :style "width: 30px; height: 30px;" :src "resources/logo.png" )  ))
+		     (:a :class "navbar-brand" :href "#" :title "HighriseHub" (:img :style "width: 30px; height: 30px;" :src "/img/logo.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/sadminhome"  (:span :class "glyphicon glyphicon-home")  " Home"))
@@ -317,11 +317,11 @@
 	      (if (is-dod-session-valid?)
 		  (hunchentoot:redirect "/hhub/sadminhome")
 		  ;else
-		  (standard-page (:title "Welcome to Dairy ondemand")
+		  (standard-page (:title "Welcome to HighriseHub")
 		    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
-				      (:h1 :class "text-center login-title"  "Login to Dairy Ondemand")
+				      (:h1 :class "text-center login-title"  "Login to HighriseHub")
 				      (:form :class "form-signin" :role "form" :method "POST" :action "sadminlogin"
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "company" :placeholder "Company Name"  :type "text"))
@@ -348,7 +348,7 @@
 	(setf params (acons "username" uname params))
 	(setf params (acons "password" passwd params))
 	(setf params (acons "company" cname params))
-   (with-hhub-transaction "com-hhub-transaction-superadmin-login"  params   
+   (with-hhub-transaction "com-hhub-transaction-sadmin-login"  params   
       (unless(and
 	    ( or (null cname) (zerop (length cname)))
 	    ( or (null uname) (zerop (length uname)))
@@ -505,7 +505,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/new-company" 'dod-controller-new-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/editcompany" 'dod-controller-new-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/opr-login.html" 'dod-controller-loginpage)
-	(hunchentoot:create-regex-dispatcher "^/hhub/sadminlogin" 'com-hhub-transaction-superadmin-login)
+	(hunchentoot:create-regex-dispatcher "^/hhub/sadminlogin" 'com-hhub-transaction-sadmin-login)
 	(hunchentoot:create-regex-dispatcher "^/hhub/new-customer" 'dod-controller-new-customer)
 	(hunchentoot:create-regex-dispatcher "^/hhub/delcustomer" 'dod-controller-delete-customer)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-customers" 'dod-controller-list-customers)

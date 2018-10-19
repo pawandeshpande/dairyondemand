@@ -158,7 +158,7 @@
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:form :class "form-vendorprodadd" :role "form" :method "POST" :action "dodvenaddproductaction" :enctype "multipart/form-data" 
 				       (:div :class "account-wall"
-					     (:img :class "profile-img" :src "resources/logo.png" :alt "")
+					     (:img :class "profile-img" :src "/img/logo.png" :alt "")
 					     (:h1 :class "text-center login-title"  "Add new product")
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "prdname" :placeholder "Enter Product Name ( max 30 characters) " :type "text" ))
@@ -211,10 +211,10 @@
 	      (setf (slot-value product 'unit-price) prodprice)
 	      (setf (slot-value product 'qty-per-unit) qtyperunit)
 	      (setf (slot-value product 'subscribe-flag) subscriptionflag)
-	      (if tempfilewithpath (setf (slot-value product 'prd-image-path) (format nil "resources/~A" file-name)))
+	      (if tempfilewithpath (setf (slot-value product 'prd-image-path) (format nil "/img/~A"  file-name)))
 	      (update-prd-details product))
 					;else
-	    (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice (if tempfilewithpath (format nil "resources/~A" file-name) (format nil "resources/~A" *HHUBDEFAULTPRDIMG*))  subscriptionflag  (get-login-vendor-company)))
+	    (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice (if tempfilewithpath (format nil "resources/~A" file-name) (format nil "/img/~A"   *HHUBDEFAULTPRDIMG*))  subscriptionflag  (get-login-vendor-company)))
 	(dod-reset-vendor-products-functions (get-login-vendor))
 	(hunchentoot:redirect "/hhub/dodvenproducts"))
 					;else
@@ -340,7 +340,7 @@
 		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
 		 (:meta :name "description" :content "")
 		 (:meta :name "author" :content "")
-		 (:link :rel "icon" :href "favicon.ico")
+		 (:link :rel "icon" :href "img/favicon.ico")
 		 (:title ,title )
 		 (:link :href "css/style.css" :rel "stylesheet")
 		 (:link :href "css/bootstrap.min.css" :rel "stylesheet")
@@ -383,7 +383,7 @@
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "HHUB" (:img :style "width: 50px; height: 50px;" :src "resources/logo.png" )  ))
+		     (:a :class "navbar-brand" :href "#" :title "HHUB" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" )  ))
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "dodvendindex?context=home"  (:span :class "glyphicon glyphicon-home")  " Home"))

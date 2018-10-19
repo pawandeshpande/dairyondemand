@@ -102,7 +102,7 @@ body {
     left: 33px;
     display: none;
     text-indent: -9999px;
-    background: url(../resources/icon_top.png) no-repeat;
+    background: url(/img/icon_top.png) no-repeat;
     z-index: 1055;
 }
 
