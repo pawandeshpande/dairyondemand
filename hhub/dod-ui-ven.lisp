@@ -342,15 +342,15 @@
 		 (:meta :name "author" :content "")
 		 (:link :rel "icon" :href "img/favicon.ico")
 		 (:title ,title )
-		 (:link :href "css/style.css" :rel "stylesheet")
-		 (:link :href "css/bootstrap.min.css" :rel "stylesheet")
-		 (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
- 		 (:link :href "css/theme.css" :rel "stylesheet")
+		 (:link :href "/css/style.css" :rel "stylesheet")
+		 (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
+		 (:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")
+ 		 (:link :href "/css/theme.css" :rel "stylesheet")
 		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
 		 ;; JS files
-		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
+		 (:script :src "https://code.jquery.com/jquery-3.3.1.min.js" :integrity "sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" :crossorigin "anonymous")
 		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
-		 (:script :src "js/spin.min.js")
+		 (:script :src "/js/spin.min.js")
 		
 		 ) ;; Header completes here.
 	     
@@ -359,7 +359,7 @@
 		     (:a :href "#" :class "scrollup" :style "display: none;") 
 		 (:div :id "dod-error" (:h2 "error..."))
 		 (:div :id "busy-indicator")
-		  (:script :src "js/hhubbusy.js")
+		  (:script :src "/js/hhubbusy.js")
 		 (if (is-dod-vend-session-valid?) (vendor-navigation-bar))
 		 (:div :class "container theme-showcase" :role "main" 
 		   (:div :id "header"  ,@body))
@@ -367,8 +367,8 @@
 		 
 		 
 		 ;; bootstrap core javascript
-		 (:script :src "js/bootstrap.min.js")
-		 (:script :src "js/dod.js"))))))
+		 (:script :src "/js/bootstrap.min.js")
+		 (:script :src "/js/dod.js"))))))
 
 
 

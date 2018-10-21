@@ -318,7 +318,7 @@
 (defun dod-controller-cust-orders-calendar ()
   (if (is-dod-cust-session-valid?)
   (standard-customer-page (:title "list dod customer orders")   
-     (:link :href "css/calendar.css" :rel "stylesheet")
+     (:link :href "/css/calendar.css" :rel "stylesheet")
  (:ul :class "nav nav-pills" 
 	       (:li :role "presentation" :class "active" (:a :href "dodmyorders" (:span :class "glyphicon glyphicon-th-list")))
 	       (:li :role "presentation" :class "active" (:a :href "dodcustorderscal" (:span :class "glyphicon glyphicon-calendar")))
@@ -338,9 +338,9 @@
 		 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		       (:div :id "calendar"))))
      
-     (:script :type "text/javascript" :src "js/underscore-min.js")
-     (:script :type "text/javascript" :src "js/calendar.js")
-     (:script :type "text/javascript" :src "js/app.js"))
+     (:script :type "text/javascript" :src "/js/underscore-min.js")
+     (:script :type "text/javascript" :src "/js/calendar.js")
+     (:script :type "text/javascript" :src "/js/app.js"))
 ;else
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
@@ -503,16 +503,16 @@
 		 (:meta :name "author" :content "")
 		 (:link :rel "icon" :href "favicon.ico")
 		 (:title ,title )
-		 (:link :href "css/style.css" :rel "stylesheet")
-		 (:link :href "css/bootstrap.min.css" :rel "stylesheet")
-		 (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
+		 (:link :href "/css/style.css" :rel "stylesheet")
+		 (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
+		 (:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")
 		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
 		 (:link :href "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" :rel "stylesheet")
-		 (:link :href "css/theme.css" :rel "stylesheet")
+		 (:link :href "/css/theme.css" :rel "stylesheet")
 		 ;; js files
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
 		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
-		 (:script :src "js/spin.min.js")
+		 (:script :src "/js/spin.min.js")
 		 (:script :src "https://www.google.com/recaptcha/api.js")
 		 ) ;; header completes here.
 	     (:body
@@ -520,14 +520,14 @@
 		     (:a :href "#" :class "scrollup" :style "display: none;") 
 		 (:div :id "dod-error" (:h2 "error..."))
 		 (:div :id "busy-indicator")
-		 (:script :src "js/hhubbusy.js")
+		 (:script :src "/js/hhubbusy.js")
 		 (if (is-dod-cust-session-valid?) (customer-navigation-bar))
 		 (:div :class "container theme-showcase" :role "main" 
 		   (:div :id "header"  ,@body))
 		       		 ;; rangeslider
 		 ;; bootstrap core javascript
-		 (:script :src "js/bootstrap.min.js")
-		  (:script :src "js/dod.js"))))))
+		 (:script :src "/js/bootstrap.min.js")
+		  (:script :src "/js/dod.js"))))))
 
 ;**********************************************************************************
 ;***************** customer login related functions ******************************
