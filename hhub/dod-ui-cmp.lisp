@@ -19,12 +19,17 @@
 	  (row-id (slot-value instance 'row-id)))
 	(cl-who:with-html-output (*standard-output* nil)
 	 (:div :class "product-box" 
-	  (:div :class "row" 
-		(:div :class "col-xs-12" :align "right"
+	  (:div :class "row"
+		(:div :class "col-xs-9" :align "right" 
 		      (:a  :data-toggle "modal" :data-target (format nil "#editcompany-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
-		       ;(:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group")
-		     (modal-dialog (format nil "editcompany-modal~a" row-id) "Add/Edit Group" (com-hhub-transaction-create-company row-id))
-		      )) 
+				(modal-dialog (format nil "editcompany-modal~a" row-id) "Add/Edit Group" (com-hhub-transaction-create-company row-id)))
+		(:div :class "col-xs-2 dropdown" 
+		      (:button :class "btn btn-primary dropdown-toggle" :type "button" :id "dropdownMenu1" :data-toggle "dropdown" :aria-haspopup "true" :aria-expanded "false" (:span :class "glyphicon glyphicon-option-vertical"))
+		      (:ul :class "dropdown-menu" :aria-labelledby "dropdownMenu1"
+			   (:li (:a :href (format nil "/hhub/list-users?tenant-id=~a" row-id) "Manage Users"))
+			   (:li :role "separator" :class "divider" )
+			   (:li (:a :href "#" "Delete")))))
+		 
 	  (:div :class "row"
 		(:div :class "col-xs-12"  (:h3 (str (if (> (length comp-name) 20)  (subseq comp-name 0 20) comp-name)))))
 	  (:div :class "row"

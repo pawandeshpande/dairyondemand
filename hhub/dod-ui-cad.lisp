@@ -39,14 +39,14 @@
 		 (:meta :name "author" :content "")
 		 (:link :rel "icon" :href "favicon.ico")
 		 (:title ,title )
-		 (:link :href "css/style.css" :rel "stylesheet")
-		 (:link :href "css/bootstrap.min.css" :rel "stylesheet")
-		 (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
- 		 (:link :href "css/theme.css" :rel "stylesheet")
+		 (:link :href "/css/style.css" :rel "stylesheet")
+		 (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
+		 (:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")
+ 		 (:link :href "/css/theme.css" :rel "stylesheet")
 		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
 		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
-		 (:script :src "js/spin.min.js")
+		 (:script :src "/js/spin.min.js")
 		 ) ;; Header completes here.
 	     (:body
 	      (:div :id "dod-main-container"
@@ -59,8 +59,8 @@
 			 ,@body))	;container div close
 		 
 		 ;; bootstrap core javascript
-		 (:script :src "js/bootstrap.min.js")
-		 (:script :src "js/dod.js"))))))
+		 (:script :src "/js/bootstrap.min.js")
+		 (:script :src "/js/dod.js"))))))
    
 
 
@@ -76,12 +76,11 @@
 				(:div :class "account-wall"
 				      (:h1 :class "text-center login-title"  "Login to HighriseHub")
 				      (:form :class "form-signin" :role "form" :method "POST" :action "hhubcadlogin"
+					     
 					     (:div :class "form-group"
-						   (:input :class "form-control" :name "company" :placeholder "Company Name"  :type "text"))
+						   (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text"))
 					     (:div :class "form-group"
-						   (:input :class "form-control" :name "username" :placeholder "User name" :type "text"))
-					     (:div :class "form-group"
-						   (:input :class "form-control" :name "password"  :placeholder "Password" :type "password"))
+						   (:input :class "form-control" :name "password"  :placeholder "Password=demo" :type "password"))
 					     (:input :type "submit"  :class "btn btn-primary" :value "Login      "))))))))
 	      (clsql:sql-database-data-error (condition)
 					     (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
@@ -114,16 +113,41 @@
 
 
 (defun dod-controller-cadlogin ()
-  (let  ((uname (hunchentoot:parameter "username"))
-	 (passwd (hunchentoot:parameter "password"))
-	 (cname (hunchentoot:parameter "company")))
-    
+  (let  ((phone (hunchentoot:parameter "phone"))
+	 (passwd (hunchentoot:parameter "password")))
       (unless(and
-	    ( or (null cname) (zerop (length cname)))
-	    ( or (null uname) (zerop (length uname)))
+	    ( or (null phone) (zerop (length phone)))
 	    ( or (null passwd) (zerop (length passwd))))
-      (if (equal (dod-login :company-name cname :username uname :password passwd) NIL) (hunchentoot:redirect "/hhub/cad-login.html") (hunchentoot:redirect  "/hhub/hhubcadindex")))))
+      (if (equal (dod-cad-login :phone phone :password passwd) NIL) (hunchentoot:redirect "/hhub/cad-login.html") (hunchentoot:redirect  "/hhub/hhubcadindex")))))
    
+
+(defun dod-cad-login (&key phone  password)
+  (let* ((login-user (car (clsql:select 'dod-users :where [and
+				       [= [slot-value 'dod-users 'phone-mobile] phone]
+				       [= [slot-value 'dod-users 'password] password]]
+				      :caching nil :flatp t)))
+	 (login-userid (if login-user (slot-value login-user 'row-id)))
+	 (login-attribute-cart '())
+	 (login-tenant-id (if login-user (slot-value  (users-company login-user) 'row-id)))
+	 (login-company (if login-user (slot-value login-user 'company)))
+	 (username (if login-user (slot-value login-user 'username)))
+	 (company-name (if login-user (slot-value (users-company login-user) 'name))))
+
+
+    (when (and   
+	   login-user 
+	   (null (hunchentoot:session-value :login-username)) ;; User should not be logged-in in the first place.
+	   )  (progn 				      (setf *current-user-session* (hunchentoot:start-session))
+				      (setf (hunchentoot:session-value :login-username) username)
+				      (setf (hunchentoot:session-value :login-userid) login-userid)
+				      (setf (hunchentoot:session-value :login-attribute-cart) login-attribute-cart)
+				      (setf (hunchentoot:session-value :login-tenant-id) login-tenant-id)
+				      (setf (hunchentoot:session-value :login-company-name) company-name)
+				      (setf (hunchentoot:session-value :login-company) login-company))
+		 
+       	 )))
+
+
   
    (defun dod-controller-cadlogout ()
      (progn (dod-logout (get-login-user-name))

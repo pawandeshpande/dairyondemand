@@ -233,7 +233,7 @@
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:form :class "form-vendorsignin" :role "form" :method "POST" :action "dodvendlogin"
 				       (:div :class "account-wall"
-					     (:img :class "profile-img" :src "resources/logo.png" :alt "")
+					     (:img :class "profile-img" :src "/img/logo.png" :alt "")
 					     (:h1 :class "text-center login-title"  "Vendor - Login to DAS")
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex:9999999990" :type "text" ))
@@ -735,6 +735,7 @@
 			 (if (equal venorderfulfilled "Y") 
 			     (htm (:span :class "label label-info" "FULFILLED"))
 					;ELSE
+			    ; Convert the complete button to a submit button and introduce a form here. 
 			     (htm 
 			     ; (:a :onclick "return CancelConfirm();" :href (format nil "dodvenordcancel?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Cancel")) "&nbsp;&nbsp;"  
 			       (:a :href (format nil "dodvenordfulfilled?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Complete")))))))))

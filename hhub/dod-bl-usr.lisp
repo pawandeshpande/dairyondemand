@@ -7,6 +7,18 @@
 		[= [:tenant-id] (get-login-tenant-id)]
 		[<> [:name] "superadmin"]]    :caching nil :flatp t ))
 
+(defun get-users-for-company (tenant-id)
+  (clsql:select 'dod-users  :where [and [= [:deleted-state] "N"] 
+		[= [:tenant-id] tenant-id]
+		[<> [:name] "superadmin"]]    :caching nil :flatp t ))
+
+
+(defun select-user-by-id (user-id tenant-id)
+  (car (clsql:select 'dod-users  :where [and [= [:deleted-state] "N"] 
+		[= [:tenant-id] tenant-id]
+		[= [:row-id] user-id]
+		[<> [:name] "superadmin"]]    :caching nil :flatp t )))
+
 
 (defun delete-dod-user ( id )
   (let ((doduser (car (clsql:select 'dod-users :where [= [:row-id] id] :flatp t :caching nil))))

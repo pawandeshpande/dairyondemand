@@ -24,6 +24,13 @@
     :type (string 255)
     :initarg :email)
 
+   (phone-mobile 
+    :accessor phone-mobile
+    :type (string 50)
+    :initarg :phone-mobile)
+   
+   
+
    (deleted-state
     :type (string 1)
     :void-value "N"

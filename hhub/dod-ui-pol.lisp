@@ -31,6 +31,12 @@
 ;	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
 
 
+
+(defun com-hhub-policy-edit-user (&optional transaction params)
+  :documentation "Check whether role of the login user is SUPERADMIN or not" 
+  (if (equal (get-login-user-name) "superadmin") T NIL)) 
+
+
 (defun com-hhub-policy-sadmin-home (&optional transaction params)
   :documentation "Check whether role of the login user is SUPERADMIN or not" 
   (if (equal (get-login-user-name) "superadmin") T NIL)) 

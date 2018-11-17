@@ -23,6 +23,7 @@
 (defvar *admin-page-title* nil) 
 (defvar *ABAC-ATTRIBUTE-NAME-PREFIX* "com.hhub.attribute.")
 (defvar *ABAC-POLICY-NAME-PREFIX* "com.hhub.policy.")
+
 (defvar *ABAC-TRANSACTION-NAME-PREFIX* "com.hhub.transaction.")
 (defvar *ABAC-ATTRIBUTE-FUNC-PREFIX* "com-hhub-attribute-")
 (defvar *ABAC-POLICY-FUNC-PREFIX* "com-hhub-policy-")

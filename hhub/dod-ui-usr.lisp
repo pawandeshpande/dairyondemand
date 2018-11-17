@@ -2,18 +2,67 @@
 (clsql:file-enable-sql-reader-syntax)
 
   
-(defun crm-controller-list-users ()
+(defun dod-controller-list-users ()
 (if (is-dod-session-valid?)
-   (let (( crmusers (list-dod-users)))
+   (let* ((tenant-id (hunchentoot:parameter "tenant-id"))
+	 (users (get-users-for-company tenant-id)))
      (standard-page (:title "List HHUB Users")
        (:h3 "Users")
+       (str (display-as-table (list "Name" "Phone number" "Email" "Action")  users 'user-card))))
+   (hunchentoot:redirect "/hhub/opr-login.html")))
 
-      (:table :class "table table-striped"  
-	      (:thead (:tr (:th "User Name") (:th "Action")))(:tbody
-     (loop for crmuser in crmusers
-       do (htm (:tr (:td  :height "12px" (str (slot-value crmuser 'name)))
-		    (:td :height "12px" (:a :href  (format nil  "/deluser?id=~A" (slot-value crmuser 'row-id)) "Delete")))))))))
-   (hunchentoot:redirect "/login")))
+
+(defun user-card (user-instance)
+  (let ((name (slot-value user-instance 'name))
+	(phone-mobile (slot-value user-instance 'phone-mobile))
+	(email (slot-value user-instance 'email))
+	(row-id (slot-value user-instance 'row-id)))
+
+    (cl-who:with-html-output (*standard-output* nil)
+      
+      (:td :height "10px" 
+	(:h6 :class "user-name"  (str name)))
+      (:td :height "10px" 
+	(:h6 :class "user-phone-mobile"  (str phone-mobile)))
+      (:td :height "10px" 
+       	 (:h6 :class "user-email"  (str email) ))
+      (:td :height "10px" 
+       (:a  :data-toggle "modal" :data-target (format nil "#edituser-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
+	(modal-dialog (format nil "edituser-modal~a" row-id) "Add/Edit Policy" (com-hhub-transaction-edit-user user-instance))))))
+
+
+
+(defun com-hhub-transaction-edit-user (&optional user)
+  (let* ((name (if user (slot-value user 'name)))
+	 (email (if user (slot-value user 'email)))
+	 (phone (if user (slot-value user 'phone-mobile)))
+	 (row-id (if user (slot-value user 'row-id)))
+	 (transaction (select-bus-trans-by-trans-func "com-hhub-transaction-edit-user")))
+    (if (has-permission transaction)
+	(cl-who:with-html-output (*standard-output* nil)
+	  (:div :class "row" 
+		(:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		      (:form :class "form-adduser" :role "form" :method "POST" :action "dasadduseraction"
+			     (if user (htm (:input :class "form-control" :type "hidden" :value row-id :name "id")))
+			     (:img :class "profile-img" :src "/img/demand&supply.png" :alt "")
+			     (:h1 :class "text-center login-title"  "Add/Edit User")
+			     (:div :class "form-group input-group"
+				   (:input :class "form-control" :name "username" :aria-describedby "polnameprefix" :maxlength "30" :type "text"  :value name)) 
+			     (:div :class "form-group"
+				   (:label :for "useremail")
+				   (:input :class "form-control" :name "useremail"  :placeholder "Enter User Email " :type "text" :value email ))
+			     (:div :class "form-group input-group"
+				   (:input :class "form-control" :name "userphone" :maxlength "30"  :value phone :type "text"))
+			     (:div :class "form-group"
+				   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
+	(cl-who:with-html-output (*standard-output* nil)
+	  (:div :class "row" 
+		(:h3 "Permission Denied"))))))
+
+
+
+
+
 
 
 (defun crm-controller-new-user ()
