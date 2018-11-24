@@ -37,6 +37,8 @@
 	 (email (if user (slot-value user 'email)))
 	 (phone (if user (slot-value user 'phone-mobile)))
 	 (row-id (if user (slot-value user 'row-id)))
+	 (tenant-id (if user (slot-value user 'tenant-id)))
+	 (userrole (if user (select-user-role-by-userid row-id tenant-id)))
 	 (transaction (select-bus-trans-by-trans-func "com-hhub-transaction-edit-user")))
     (if (has-permission transaction)
 	(cl-who:with-html-output (*standard-output* nil)
@@ -51,6 +53,10 @@
 			     (:div :class "form-group"
 				   (:label :for "useremail")
 				   (:input :class "form-control" :name "useremail"  :placeholder "Enter User Email " :type "text" :value email ))
+			    (:div :class "form-group"
+				   (:label :for "useremail")
+				   (:input :class "form-control" :name "userrole"  :placeholder "Enter User role " :type "text" :readonly "true" :value email ))
+			    
 			     (:div :class "form-group input-group"
 				   (:input :class "form-control" :name "userphone" :maxlength "30"  :value phone :type "text"))
 			     (:div :class "form-group"

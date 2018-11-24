@@ -16,10 +16,11 @@
 			  (setf (slot-value order-item 'prd-qty) prdqty)
 			  ; Check if there is enough balance in the wallet if order was in prepaid mode. 
 					; at least one vendor wallet has low balance 
-			  (if (and (equal payment-mode "PRE") 
-				   (check-wallet-balance (get-order-items-total-for-vendor vendor (list order-item)) (get-cust-wallet-by-vendor customer vendor company)))
-			      (update-order-item order-item)
-			      (hunchentoot:redirect (format nil "/hhub/dodcustlowbalanceorderitems?item-id=~A&prd-qty=~A" item-id prdqty)))
+			  (if (equal payment-mode "PRE") ; If payment mode is prepaid only then check the wallet balance. 
+				   (if (not (check-wallet-balance (get-order-items-total-for-vendor vendor (list order-item)) (get-cust-wallet-by-vendor customer vendor company)))
+			     (hunchentoot:redirect (format nil "/hhub/dodcustlowbalanceorderitems?item-id=~A&prd-qty=~A" item-id prdqty))))
+			  (update-order-item order-item)
+			      
 	 ; ((equal prdqty 0) (delete-order-items (list item-id) company)))
     (hunchentoot:redirect (format nil "/hhub/dodmyorderdetails?id=~A" order-id))))))))
 
