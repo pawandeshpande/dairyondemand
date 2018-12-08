@@ -33,6 +33,7 @@
 (defvar *HHUBRESOURCESDIR* "/data/www/highrisehub.com/public/img")
 (defvar *HHUBDEFAULTPRDIMG* "HHubDefaultPrdImg.png")
 (defvar *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* NIL)
+(defvar *HHUBGLOBALROLES* NIL) 
 
 
 
@@ -131,18 +132,25 @@ the hunchentoot server with ssl settings"
   (format t "******* Stopping HTTP Server *********~C"  #\linefeed)
 (progn (if *ssl-http-server*  (hunchentoot:stop *ssl-http-server*) (hunchentoot:stop *http-server*))
 (setf *ssl-http-server* nil) 
-(setf *http-server* nil))
-)
+(setf *http-server* nil)
+(setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* NIL)))
 
 ;;;;*********** Globally Cached lists and their accessor functions *********************************
 
 (defun hhub-gen-globally-cached-lists-functions ()
   :documentation "These functions are list returning functions. The various lists are accessible throughout the application. For example, list of all the authorization policies, attributes, etc."
-  (let ((policies (get-auth-policies 1))) ; The first tenant is the system tenant. 
-    (list (function (lambda () policies)))))
-
+  (let ((policies (get-auth-policies 1)) ; The first tenant is the system tenant. 
+	(roles (select-all-roles)))
+    (list (function (lambda () policies))
+	  (function (lambda () roles) ))))
 
 
 (defun hhub-get-cached-auth-policies()
+  :documentation "This function gets a list of all the globally cached policies."
   (let ((policiesfunc (first *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
     (funcall policiesfunc)))
+
+(defun hhub-get-cached-roles ()
+  :documentation "This function gets a list of all the globally cached roles."
+  (let ((rolesfunc (nth 1 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+    (funcall rolesfunc)))

@@ -115,7 +115,8 @@
 (defun dod-controller-cadlogin ()
   (let  ((phone (hunchentoot:parameter "phone"))
 	 (passwd (hunchentoot:parameter "password")))
-      (unless(and
+    	    
+    (unless(and
 	    ( or (null phone) (zerop (length phone)))
 	    ( or (null passwd) (zerop (length passwd))))
       (if (equal (dod-cad-login :phone phone :password passwd) NIL) (hunchentoot:redirect "/hhub/cad-login.html") (hunchentoot:redirect  "/hhub/hhubcadindex")))))
@@ -123,19 +124,21 @@
 
 (defun dod-cad-login (&key phone  password)
   (let* ((login-user (car (clsql:select 'dod-users :where [and
-				       [= [slot-value 'dod-users 'phone-mobile] phone]
-				       [= [slot-value 'dod-users 'password] password]]
-				      :caching nil :flatp t)))
+				       [= [slot-value 'dod-users 'phone-mobile] phone]]
+				       :caching nil :flatp t)))
 	 (login-userid (if login-user (slot-value login-user 'row-id)))
 	 (login-attribute-cart '())
 	 (login-tenant-id (if login-user (slot-value  (users-company login-user) 'row-id)))
 	 (login-company (if login-user (slot-value login-user 'company)))
 	 (username (if login-user (slot-value login-user 'username)))
+	 (pwd (if login-user (slot-value login-user 'password)))
+	 (salt (if login-user (slot-value login-user 'salt)))
+	 (password-verified (if login-user  (check-password password salt pwd)))
 	 (company-name (if login-user (slot-value (users-company login-user) 'name))))
 
 
     (when (and   
-	   login-user 
+	   login-user password-verified
 	   (null (hunchentoot:session-value :login-username)) ;; User should not be logged-in in the first place.
 	   )  (progn 				      (setf *current-user-session* (hunchentoot:start-session))
 				      (setf (hunchentoot:session-value :login-username) username)

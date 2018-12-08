@@ -234,7 +234,7 @@
 	  (:hr)
 	    (:div :class "row"
 	      (:div :class "col-md-12" (:h4 "Business Policies")))
-	  (str (display-as-table (list "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
+	  (str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
 	  (modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create))))
       (hunchentoot:redirect "/hhub/opr-login.html")))
 
@@ -283,7 +283,7 @@
       (standard-page (:title "Business Transactions...")
 	(:div :class "row"
 	 (:div :class "col-md-12" 
-	  (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addtransaction-modal" "Add New Transaction"))
+	  (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addtransaction-modal" "New Transaction"))
 	   (:div :class "col-md-12" 
 	    (:div :class "col-md-12" (:h4 "Business Transactions"))))
 	(str (display-as-table (list "Name" "URI" "Function" "Action")  bustrans 'bustrans-card))
@@ -296,11 +296,11 @@
     (if (is-dod-session-valid?)
 	(let ((lstattributes (select-auth-attrs-by-company (get-login-company))))
 (standard-page (:title "attributes ...")
-  
   (:div :class "row"
 	(:div :class "col-md-12" (:h4 "Attributes"))
 	(:div :class "col-md-12" 
 	      (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addattribute-modal" "Add New Attribute")))
+  
   (:hr)		       
   
   (str (display-as-table (list "Name" "Description" "Function" "Type" )  lstattributes 'attribute-card))
@@ -539,6 +539,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/transtopolicylinkpage" 'dod-controller-trans-to-policy-link-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/transtopolicylinkaction" 'dod-controller-trans-to-policy-link-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasproductapprovals" 'dod-controller-products-approval-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dasadduseraction" 'dod-controller-add-user-action)
 	
 	;***************** COMPADMIN/COMPANYHELPDESK/COMPANYOPERATOR  RELATED ********************
      

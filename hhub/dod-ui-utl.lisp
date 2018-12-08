@@ -44,13 +44,15 @@
 
 (defun display-as-table (header listdata rowdisplayfunc) 
 :documentation "This is a generic function which will display items in list as a html table. You need to pass the html table header and  list data, and a display function which will display data. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizing refer to style.css. " 
-  (cl-who:with-html-output-to-string (*standard-output* nil)
+(let ((incr (let ((count 0)) (lambda () (incf count)))))
+(cl-who:with-html-output-to-string (*standard-output* nil)
     (:table :class "table  table-striped  table-hover"
       (:thead (:tr
-	(mapcar (lambda (item) (htm (:th (str item)))) header))) 
+	(:th "No")
+	       (mapcar (lambda (item) (htm (:th (str item)))) header))) 
           (:tbody
 	    (mapcar (lambda (item)
-		      (htm (:tr (funcall rowdisplayfunc item))))  listdata)))))
+		      (htm (:tr (:td (str (funcall incr))) (funcall rowdisplayfunc item))))  listdata))))))
 
 ;; Can this function be converted into a macro?
 (defun display-as-tiles (listdata displayfunc) 

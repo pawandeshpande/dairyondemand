@@ -17,8 +17,15 @@
     :initarg :username)
    (password
     :accessor password
-    :type (string 30)
+    :type (string 100)
     :initarg :password)
+
+    (salt 
+    :accessor salt
+    :type (string 128)
+    :initarg :salt)
+
+   
    (email
     :accessor email
     :type (string 255)

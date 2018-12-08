@@ -193,8 +193,6 @@
 (defun  attribute-type-dropdown (selectedkey)
   (let ((attrtype (make-hash-table)))
     (setf (gethash "SUBJECT" attrtype) "Subject Attribute")
-    (setf (gethash "ACTION" attrtype) "Action Attribute")
-    (setf (gethash "RESOURCE" attrtype) "Resource Attribute")
     (setf (gethash "ENVIRONMENT" attrtype) "Environment Attribute")
     (with-html-dropdown "attrtype" attrtype selectedkey)))
 

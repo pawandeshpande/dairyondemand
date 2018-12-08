@@ -27,6 +27,9 @@
 
 
 
+(defun update-user (user-instance); This function has side effect of modifying the database record.
+  (clsql:update-records-from-instance user-instance))
+
 (defun delete-dod-users ( list )
   (mapcar (lambda (id)  (let ((doduser (car (clsql:select 'dod-users :where [= [:row-id] id] :flatp t :caching nil))))
 			  (setf (slot-value doduser 'deleted-state) "Y")
@@ -47,10 +50,11 @@
   (setf ( hunchentoot:session-value :login-company) "super")))
 
   
-(defun create-dod-user(name uname passwd email-address tenant-id )
+(defun create-dod-user(name uname passwd salt email-address tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-users
 				    :name name
 				    :username uname
+				    :salt salt
 				    :password passwd
 				    :email email-address
 				    :tenant-id tenant-id

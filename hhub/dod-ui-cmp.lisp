@@ -20,7 +20,9 @@
 	(cl-who:with-html-output (*standard-output* nil)
 	 (:div :class "product-box" 
 	  (:div :class "row"
-		(:div :class "col-xs-9" :align "right" 
+		(:div :class "col-xs-8" 
+		      (:h3 (str (if (> (length comp-name) 20)  (subseq comp-name 0 20) comp-name))))
+		(:div :class "col-xs-1" :align "right" 
 		      (:a  :data-toggle "modal" :data-target (format nil "#editcompany-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
 				(modal-dialog (format nil "editcompany-modal~a" row-id) "Add/Edit Group" (com-hhub-transaction-create-company row-id)))
 		(:div :class "col-xs-2 dropdown" 
@@ -31,9 +33,7 @@
 			   (:li (:a :href "#" "Delete")))))
 		 
 	  (:div :class "row"
-		(:div :class "col-xs-12"  (:h3 (str (if (> (length comp-name) 20)  (subseq comp-name 0 20) comp-name)))))
-	  (:div :class "row"
-		(:div :class "col-xs-12"  (str address)))
+		(:div :class "col-xs-12"  (str (if (> (length address) 20)  (subseq address 0 20) address))))
 	  (:div :class "row"
 		(:div :class "col-xs-12" (str city)))
 	  (:div :class "row"
