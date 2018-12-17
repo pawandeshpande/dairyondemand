@@ -25,3 +25,11 @@
 
 (defun update-user-role (userrole-instance); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance userrole-instance))
+
+
+(defun create-user-role (user-id role-id tenant-id)
+   (clsql:update-records-from-instance (make-instance 'dod-user-roles
+				    :user-id user-id 
+				    :role-id role-id 
+				    :tenant-id tenant-id)))
+

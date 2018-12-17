@@ -19,6 +19,13 @@
 		[= [:row-id] user-id]
 		[<> [:name] "superadmin"]]    :caching nil :flatp t )))
 
+(defun select-user-by-phonenumber (phone tenant-id)
+  (car (clsql:select 'dod-users  :where [and [= [:deleted-state] "N"] 
+		[= [:tenant-id] tenant-id]
+		[= [:phone] phone]
+		[<> [:name] "superadmin"]]    :caching nil :flatp t )))
+
+
 
 (defun delete-dod-user ( id )
   (let ((doduser (car (clsql:select 'dod-users :where [= [:row-id] id] :flatp t :caching nil))))

@@ -5,30 +5,28 @@
 (defvar *logged-in-users* nil)
 (defvar *current-user-session* nil)
 
+
+
+(defun com-hhub-transaction-sadmin-profile ()
+(if (is-dod-session-valid?)
+    (standard-page (:title "welcome to highrisehub")
+       (:h3 "Welcome " (str (format nil "~a" (get-login-user-name))))
+       (:hr)
+       (:div :class "list-group col-sm-6 col-md-6 col-lg-6 col-xs-12"
+	     (:a :class "list-group-item" :href "#" "Reset Password")
+	     (:a :class "list-group-item" :href "https://goo.gl/forms/hI9LIM9ebPSFwOrm1" "Feature Wishlist")
+	     (:a :class "list-group-item" :href "https://goo.gl/forms/3iWb2BczvODhQiWW2" "Report Issues")))
+    (hunchentoot:redirect "/hhub/customer-login.html")))
+
+
+ 
+
 (defun dod-controller-run-daily-orders-batch ()
  :documentation "This controller function is responsible to run the daily orders batch against all the subscriptions customers have made for a particular group/apartment/tenant" 
   (let ((batchresult (run-daily-orders-batch 7)))
     (json:encode-json-to-string batchresult)))
 
 
-(defun dod-controller-products-approval-page ()
-  :documentation "This controller function is used by the System admin and Company Admin to approve products" 
- (if (is-dod-session-valid?)
-   (let ((products (get-products-for-approval (get-login-tenant-id))))
-     (standard-compadmin-page (:title "New products approval") 
-	(:div :class "container"
-	(:div :id "row"
-	      (:div :id "col-xs-6" 
-	(:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
-	(:hr)
-	(:h4 "Pending Product Approvals")
-	(:div :id "row"
-	      (:div :id "col-xs-6"
-		    (:div :id "col-xs-6" :align "right" 
-			  (:span :class "badge" (str (format nil "~A" (length products)))))))
-	(:hr)
-   	(str (display-as-tiles products 'product-card-for-approval )))))
-   (hunchentoot:redirect "/hhub/opr-login.html")))
  
 
 
@@ -47,11 +45,10 @@
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/sadminhome"  (:span :class "glyphicon glyphicon-home")  " Home"))
 			 (:li  (:a :href "/hhub/dasabacsecurity" "ABAC Security"))
-			 (:li  (:a :href "/hhub/adminsettings" "Admin Settings"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     
 		     (:ul :class "nav navbar-nav navbar-right"
-			 (:li :align "center" (:a :href "dodvendprofile"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
+			 (:li :align "center" (:a :href "hhubsadminprofile"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
 			 (:li :align "center" (:a :href "dodlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
 
 
@@ -540,6 +537,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/transtopolicylinkaction" 'dod-controller-trans-to-policy-link-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasproductapprovals" 'dod-controller-products-approval-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasadduseraction" 'dod-controller-add-user-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubsadminprofile" 'com-hhub-transaction-sadmin-profile)
 	
 	;***************** COMPADMIN/COMPANYHELPDESK/COMPANYOPERATOR  RELATED ********************
      

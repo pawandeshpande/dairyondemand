@@ -489,8 +489,27 @@
     
 
 
+(defmacro guestuser-navigation-bar ()
+  :documentation "this macro returns the html text for generating a navigation bar using bootstrap."
+    `(cl-who:with-html-output (*standard-output* nil)
+       (:div :class "navbar navbar-inverse  navbar-static-top"
+	       (:div :class "container-fluid"
+		   (:div :class "navbar-header"
+		       (:button :type "button" :class "navbar-toggle" :data-toggle "collapse" :data-target "#navheadercollapse"
+			      (:span :class "icon-bar")
+			      (:span :class "icon-bar")
+			      (:span :class "icon-bar"))
+		     (:a :class "navbar-brand" :href "#" :title "highrisehub" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" )  ))
+		 (:div :class "collapse navbar-collapse" :id "navheadercollapse"
+		       (:ul :class "nav navbar-nav navbar-left"
+			    (:li :class "active" :align "center" (:a :href "/hhub/dodcustindex" (:span :class "glyphicon glyphicon-home")  " Home"))
+			  (:li :align "center" (:a :href "#" (str (format nil "Group: ~a" (get-login-customer-company-name))))))
+		       (:ul :class "nav navbar-nav navbar-right"
+			    (:li :align "center" (:a :href "dodcustlogout" (:span :class "glyphicon glyphicon-off")  ))))))))
 
-(defmacro standard-customer-page ((&key title) &body body)
+
+
+(defmacro standard-customer-page ((&key title)  &body body)
  `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
 	 (:html :xmlns "http://www.w3.org/1999/xhtml"
 	     :xml\:lang "en" 

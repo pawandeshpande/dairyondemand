@@ -121,7 +121,11 @@
 		     (update-user user)
 		     (update-user-role userrole-instance))
 	      ;else
-	      (create-dod-user fullname username encryptedpass salt  email (get-login-tenant-id))))
+	      (progn 
+		(create-dod-user fullname username encryptedpass salt  email usertenantid)
+		(let ((user-id  (slot-value (select-user-by-phonenumber phone usertenantid) 'phone-mobile))
+		      (role-id (slot-value roletobeupdated 'row-id))) 
+		(create-user-role user-id role-id usertenantid)))))
 	(hunchentoot:redirect  "/hhub/sadminhome"))
       (hunchentoot:redirect "/hhub/opr-login.html")))
 

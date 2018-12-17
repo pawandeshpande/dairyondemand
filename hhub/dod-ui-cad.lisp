@@ -181,3 +181,21 @@
       (hunchentoot:redirect "/hhub/cad-login.html")))
 
 
+(defun dod-controller-products-approval-page ()
+  :documentation "This controller function is used by the System admin and Company Admin to approve products" 
+ (if (is-dod-session-valid?)
+   (let ((products (get-products-for-approval (get-login-tenant-id))))
+     (standard-compadmin-page (:title "New products approval") 
+	(:div :class "container"
+	(:div :id "row"
+	      (:div :id "col-xs-6" 
+	(:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+	(:hr)
+	(:h4 "Pending Product Approvals")
+	(:div :id "row"
+	      (:div :id "col-xs-6"
+		    (:div :id "col-xs-6" :align "right" 
+			  (:span :class "badge" (str (format nil "~A" (length products)))))))
+	(:hr)
+   	(str (display-as-tiles products 'product-card-for-approval )))))
+   (hunchentoot:redirect "/hhub/cad-login.html")))
