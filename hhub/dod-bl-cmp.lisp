@@ -2,7 +2,7 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
-(defun new-dod-company(cname caddress city state country zipcode createdby updatedby)
+(defun new-dod-company(cname caddress city state country zipcode website  createdby updatedby)
   (let  ((company-name cname)(company-address caddress))
 	(clsql:update-records-from-instance (make-instance 'dod-company
 							   :name company-name
@@ -11,6 +11,7 @@
 							   :state state 
 							   :country country
 							   :zipcode zipcode
+							   :website website 
 							   :deleted-state "N"
 							   :created-by createdby
 							   :updated-by updatedby))))

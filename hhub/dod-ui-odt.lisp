@@ -148,7 +148,11 @@
 		      (:h5 "Status: " ) (:h4 (str (slot-value order-instance 'status)))
 		      (:h5 "Order Date:") (:h4 (str (get-date-string (slot-value order-instance 'ord-date))))
 		    (:h5 "Requested On:")(:h4 (str (get-date-string (slot-value order-instance 'req-date))))
-		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date))))))))))
+		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date)))))
+		
+		(:div :class "col-md-4"
+		     (:h5 "Comments") (:h4 (str (slot-value order-instance 'comments))))
+		)))))
 
 (defun display-order-header-for-vendor (order-instance)
     (let ((customer (get-customer order-instance))

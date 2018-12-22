@@ -29,7 +29,9 @@
 	  :accessor zipcode
 	  :type (string 10)
 	  :initarg :zipcode)
-      
+   (website 
+    :type (string 256)
+    :initarg :website)
       
  (created-by
     :TYPE INTEGER

@@ -292,7 +292,7 @@
   
 
   
-(defun persist-order(order-date customer-id request-date ship-date ship-address  context-id order-amt payment-mode  tenant-id )
+(defun persist-order(order-date customer-id request-date ship-date ship-address  context-id order-amt payment-mode comments tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-order
 					 :ord-date order-date
 					 :cust-id customer-id
@@ -303,23 +303,24 @@
 					 :tenant-id tenant-id
 					 :order-fulfilled "N"
 					 :payment-mode payment-mode 
+					 :comments comments
 					 :status "PEN"
 					 :order-amt order-amt
 					 :deleted-state "N")))
 
 
 
-(defun create-order (order-date customer-instance request-date ship-date ship-address context-id order-amt payment-mode company-instance) 
+(defun create-order (order-date customer-instance request-date ship-date ship-address context-id order-amt payment-mode comments company-instance) 
   (let ((customer-id (slot-value  customer-instance 'row-id) )
 	(tenant-id (slot-value company-instance 'row-id)))
-    (persist-order order-date customer-id request-date ship-date ship-address  context-id order-amt payment-mode  tenant-id)))
+    (persist-order order-date customer-id request-date ship-date ship-address  context-id order-amt payment-mode comments  tenant-id)))
 
 
 
 (defun create-order-from-pref (order-pref-list order-date request-date ship-date ship-address order-amt  customer-instance company-instance)
   (let ((uuid (uuid:make-v1-uuid ))
 	(tenant-id (slot-value company-instance 'row-id)))
-      (progn  (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt "PRE" company-instance)
+      (progn  (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt "PRE" nil  company-instance)
 	      (let ((order (get-order-by-context-id (print-object uuid nil) company-instance))
 		    (vendors (get-opref-vendorlist order-pref-list))
 		    (cust-id (slot-value customer-instance 'row-id)))
@@ -350,10 +351,10 @@
 	(if (member day lst) t nil)))
 
 
-(defun create-order-from-shopcart (order-items products  order-date request-date ship-date ship-address order-amt payment-mode  customer-instance company-instance)
+(defun create-order-from-shopcart (order-items products  order-date request-date ship-date ship-address order-amt payment-mode  comments customer-instance company-instance)
   (let ((uuid (uuid:make-v1-uuid )))
     
-    (progn (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt payment-mode  company-instance)
+    (progn (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt payment-mode comments  company-instance)
 	   (let 
 	           ((order (get-order-by-context-id (print-object uuid nil) company-instance))
 		      (cust-id (get-login-customer-id))

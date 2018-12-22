@@ -184,7 +184,8 @@
 	 (cmpname (if company (slot-value company 'name)))
 	 (cmpaddress (if company(slot-value company 'address)))
 	 (cmpcity (if company (slot-value company 'city)))
-	 (cmpstate (if company (slot-value company 'state))) 
+	 (cmpstate (if company (slot-value company 'state)))
+	 (cmpwebsite (if company (slot-value company 'website)))
 	 (cmpzipcode (if company (slot-value company 'zipcode))))
     (with-hhub-transaction "com-hhub-transaction-create-company" nil
     	(cl-who:with-html-output (*standard-output* nil)
@@ -208,6 +209,8 @@
 				  (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
 			    (:div :class "form-group"
 				  (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
+			    (:div :class "form-group"
+				  (:input :class "form-control" :type "text" :maxlength "256" :value cmpwebsite :placeholder "Website" :name "cmpwebsite" ))
 			    
 			    (:div :class "form-group"
 				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
@@ -427,6 +430,7 @@
 	     (cmpaddress (if company(slot-value company 'address)))
 	     (cmpcity (if company (slot-value company 'city)))
 	     (cmpstate (if company (slot-value company 'state))) 
+	     (cmpwebsite (if company (slot-value company 'website))) 
 	     (cmpzipcode (if company (slot-value company 'zipcode))))
 
     (standard-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
@@ -456,6 +460,9 @@
 				  (:input :class "form-control" :type "text" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
 			    
 			    (:div :class "form-group"
+				  (:input :class "form-control" :type "text" :value cmpwebsite :placeholder "Pincode" :name "cmpwebsite" ))
+			    
+			    (:div :class "form-group"
 				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
       (hunchentoot:redirect "/hhub/opr-login.html")))					    
 
@@ -466,15 +473,16 @@
 (defun dod-controller-company-added ()
   (if (is-dod-session-valid?)
       (let*  ((id (hunchentoot:parameter "id"))
-	     (company (if id (select-company-by-id id)))
-	     (cmpname (hunchentoot:parameter "cmpname"))
-	     (cmpaddress (hunchentoot:parameter "cmpaddress"))
-	     (cmpcity (hunchentoot:parameter "cmpcity"))
-	     (cmpstate (hunchentoot:parameter "cmpstate"))
-	     (cmpcountry (hunchentoot:parameter "cmpcountry"))
-	     (cmpzipcode (hunchentoot:parameter "cmpzipcode"))
-	     (loginuser (get-login-userid)))
-	  
+	      (company (if id (select-company-by-id id)))
+	      (cmpname (hunchentoot:parameter "cmpname"))
+	      (cmpaddress (hunchentoot:parameter "cmpaddress"))
+	      (cmpcity (hunchentoot:parameter "cmpcity"))
+	      (cmpstate (hunchentoot:parameter "cmpstate"))
+	      (cmpcountry (hunchentoot:parameter "cmpcountry"))
+	      (cmpzipcode (hunchentoot:parameter "cmpzipcode"))
+	      (cmpwebsite (hunchentoot:parameter "cmpwebsite"))
+	      (loginuser (get-login-userid)))
+	
     
 	(unless(and  ( or (null cmpname) (zerop (length cmpname)))
 		     ( or (null cmpaddress) (zerop (length cmpaddress)))
@@ -485,9 +493,10 @@
 		     (setf (slot-value company 'city) cmpcity)
 		     (setf (slot-value company 'state) cmpstate)
 		     (setf (slot-value company 'zipcode) cmpzipcode)
+		     (setf (slot-value company 'website) cmpwebsite)
 		     (update-company company))
 					;else
-	      (new-dod-company cmpname cmpaddress cmpcity cmpstate cmpcountry cmpzipcode loginuser loginuser)))
+	      (new-dod-company cmpname cmpaddress cmpcity cmpstate cmpcountry cmpzipcode cmpwebsite loginuser loginuser)))
 	(hunchentoot:redirect  "/hhub/sadminhome"))
       (hunchentoot:redirect "/hhub/opr-login.html")))
 
@@ -553,6 +562,7 @@
 	;************CUSTOMER LOGIN RELATED ********************
 	(hunchentoot:create-regex-dispatcher  "^/hhub/customer-login.html" 'dod-controller-customer-loginpage)
 	(hunchentoot:create-regex-dispatcher  "^/hhub/dodcustlogin"  'dod-controller-cust-login)
+	(hunchentoot:create-regex-dispatcher  "^/hhub/dascustloginasguest"  'dod-controller-cust-login-as-guest)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustindex" 'dod-controller-cust-index)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustlogout" 'dod-controller-customer-logout)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorders" 'dod-controller-my-orders)

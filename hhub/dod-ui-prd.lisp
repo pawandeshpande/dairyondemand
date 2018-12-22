@@ -311,13 +311,15 @@
     (let ((prd-name (slot-value product-instance 'prd-name))
 	  (unit-price (slot-value product-instance 'unit-price))
 	  (prd-image-path (slot-value product-instance 'prd-image-path))
+	  (qty-per-unit (slot-value product-instance 'qty-per-unit))
 	  (description (slot-value product-instance 'description))
 	  (prd-id (slot-value product-instance 'row-id))
 	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
       (cl-who:with-html-output (*standard-output* nil)
-	(:div :class "row"
-	      (:div  :class "col-xs-6" (:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
-	      (:div  :class "col-xs-3"	(:div  (:h3 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))))
+	(:div :class "row" 
+	      (:div  :class "col-xs-5" (:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
+	      (:div :class "col-xs-6" 
+		 	(:div  (:h3 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))))
 	(:div :class "row"
 	      (:div :class "col-xs-12" 	(:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) (:h5 :class "product-name"  (str prd-name)))))
 	(:div :class "row"

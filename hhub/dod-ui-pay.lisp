@@ -78,7 +78,11 @@
 
 
 (defun dod-controller-customer-payment-successful-page ()
- (let* ((transaction-id (hunchentoot:parameter "transaction_id"))
+ (let* (
+	(post-params (hunchentoot:post-parameters*))
+	(test (loop for (a . b) in post-params 
+	   do (hunchentoot:log-message* :info  (format nil "~a: ~a" a b))))
+	(transaction-id (hunchentoot:parameter "transaction_id"))
 	(company (get-login-customer-company))
 	(payment-method (hunchentoot:parameter "payment_method"))
 	(payment-datetime (hunchentoot:parameter "payment_datetime"))
@@ -87,7 +91,8 @@
 	(error-desc (hunchentoot:parameter "error_desc"))
 	(order-id (hunchentoot:parameter "order_id"))
 	
-	(amount (parse-integer (hunchentoot:parameter "amount")))
+	
+	(amount (parse-integer (hunchentoot:parameter "amount"))) ;(with-input-from-string (in (hunchentoot:parameter "amount")) (read in)))
 	(currency (hunchentoot:parameter "currency"))
 	(description (hunchentoot:parameter "description"))
 	(customer-name (hunchentoot:parameter "name"))
@@ -97,8 +102,8 @@
 	(customer-state (hunchentoot:parameter "state"))
 	(customer-country (hunchentoot:parameter "country"))
 	(customer-zipcode (hunchentoot:parameter "zip_code"))
-	
-	(udf1 (parse-integer (hunchentoot:parameter "udf1")))
+	(udf1 1)
+	;(udf1 (parse-integer (hunchentoot:parameter "udf1")))
 	(wallet (get-cust-wallet-by-id udf1 company))
 	(vendor (get-vendor wallet))
 	(payment-api-salt (slot-value vendor 'payment-api-salt))
@@ -142,7 +147,7 @@
 			  (:h5 (str (format nil "Amount recharged: ~A.~A" currency amount))))
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
 			  (:h5 (str (format nil "Wallet Balance: ~A" (+ amount (slot-value wallet 'balance)))))))
-		    
+		 
 	      )))
 
 

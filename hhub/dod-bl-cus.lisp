@@ -97,6 +97,7 @@
 						    :state state 
 						    :zipcode zipcode
 						    :tenant-id tenant-id
+						    :cust-type "STANDARD"
 						    :deleted-state "N"))))
  
 

@@ -104,8 +104,12 @@
 
 (defun dod-controller-customer-logout ()
     :documentation "customer logout."
-    (progn (hunchentoot:remove-session *current-customer-session*)
-	(hunchentoot:redirect "/index.html")))
+    (let ((company-website (get-login-customer-company-website)))
+      (progn 
+	(hunchentoot:remove-session *current-customer-session*)
+	(if company-website (hunchentoot:redirect (format nil "http://~A" company-website)) 
+	    ;else
+	    (hunchentoot:redirect (hunchentoot:redirect "/index.html"))))))
 
 (defun dod-controller-list-customers ()
     :documentation "a callback function which prints a list of customers in html format."
@@ -462,7 +466,8 @@
 
 (defmacro customer-navigation-bar ()
     :documentation "this macro returns the html text for generating a navigation bar using bootstrap."
-    `(cl-who:with-html-output (*standard-output* nil)
+    `(let ((customer-type (get-login-customer-type)))
+       (cl-who:with-html-output (*standard-output* nil)
 	 (:div :class "navbar navbar-inverse  navbar-static-top"
 	     (:div :class "container-fluid"
 		 (:div :class "navbar-header"
@@ -474,18 +479,19 @@
 		 (:div :class "collapse navbar-collapse" :id "navheadercollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/dodcustindex" (:span :class "glyphicon glyphicon-home")  " Home"))
-			 (:li :align "center" (:a :href "dodcustorderprefs" "Subscriptions"))
-			 (:li :align "center" (:a :href "dodcustorderscal" "Orders"))
-			 (:li :align "center" (:a :href "dodcustwallet" (:span :class "glyphicon glyphicon-piggy-bank") " Wallets" ))
+			 (if (equal customer-type "STANDARD")
+				    (htm (:li :align "center" (:a :href "dodcustorderprefs" "Subscriptions"))
+				    (:li :align "center" (:a :href "dodcustorderscal" "Orders"))
+				    (:li :align "center" (:a :href "dodcustwallet" (:span :class "glyphicon glyphicon-piggy-bank") " Wallets" ))))
 			 ;(:li :align "center" (:a :href "#" (print-web-session-timeout)))
 			  (:li :align "center" (:a :href "#" (str (format nil "Group: ~a" (get-login-customer-company-name))))))
 		     
 		     (:ul :class "nav navbar-nav navbar-right"
-			 
-			   (:li :align "center" (:a :href "dodcustprofile"   (:span :class "glyphicon glyphicon-user") " Profile" )) 
+			 (if (equal customer-type "STANDARD")
+			   (htm (:li :align "center" (:a :href "dodcustprofile"   (:span :class "glyphicon glyphicon-user") " Profile" )))) 
 			
 	;(:li :align "center" (:a :href "/dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " my cart " (:span :class "badge" (str (format nil " ~a " (length (hunchentoot:session-value :login-shopping-cart)))) )))
-			 (:li :align "center" (:a :href "dodcustlogout" (:span :class "glyphicon glyphicon-off")  ))))))))
+			   (:li :align "center" (:a :href "dodcustlogout" (:span :class "glyphicon glyphicon-off"))))))))))
     
 
 
@@ -893,8 +899,15 @@
 			    (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
 				(:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (date+ (get-date) (make-duration :day 1))))) :type "text" :value (get-date-string (date+ (get-date) (make-duration :day 1)))))
 
-			    ;(:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
-			;	(:textarea :class "form-control" :name "shipaddress" :rows "4"  (str (format nil "~A" (slot-value customer 'address)))  ))
+			    (:div :class "form-group" (:label :for "phone" "Phone" )
+				(:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Phone" ))
+
+			    (:div :class "form-group" (:label :for "email" "Email" )
+				(:input :class "form-control" :type "text" :class "form-control" :name "email" :placeholder "Email" ))
+
+			    (:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
+				(:textarea :class "form-control" :name "shipaddress" :rows "4" ))
+			  			    
 			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
 				    (payment-mode-dropdown))
 			    (:input :type "submit"  :class "btn btn-primary" :value "Confirm")))))
@@ -956,10 +969,11 @@
   
 ;; This is payment-mode dropdown
 (defun  payment-mode-dropdown ()
+(let ((customer-type (get-login-customer-type)))
   (cl-who:with-html-output (*standard-output* nil)
      (htm (:select :class "form-control"  :name "payment-mode"
-		   (:option    :value  "PRE" :selected "true"  (str "Prepaid Wallet"))
-		   (:option :value "COD" (str "Cash On Demand"))))))
+		   (if (equal customer-type "STANDARD") (htm (:option :value  "PRE" :selected "true"  (str "Prepaid Wallet"))))
+		   (:option :value "COD" (str "Cash On Demand")))))))
 
 ;; This is customer/vendor  dropdown
 (defun customer-vendor-dropdown ()
@@ -1020,6 +1034,10 @@
       (hunchentoot:redirect "/hhub/customer-login.html")))
 
 
+(defun dod-controller-cust-login-as-guest ()
+  (let ((tenant-id (hunchentoot:parameter "tenant-id")))
+    (unless  ( or (null tenant-id) (zerop (length tenant-id)))
+      (if (equal (dod-cust-login-as-guest :tenant-id tenant-id) NIL) (hunchentoot:redirect "/hhub/customer-login.html") (hunchentoot:redirect  "/hhub/dodcustindex")))))
 
 (defun dod-controller-cust-login ()
     (let  ( (phone (hunchentoot:parameter "phone"))
@@ -1044,6 +1062,10 @@
 	    (products (hunchentoot:session-value :login-prd-cache))
 	    (payment-mode (hunchentoot:parameter "payment-mode"))
 	    (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
+	    (shipaddress (hunchentoot:parameter "shipaddress"))
+	    (phone (hunchentoot:parameter "phone"))
+	    (email (hunchentoot:parameter "email"))
+	    (comments (concatenate 'string phone "+++" email "+++" shipaddress))
 	    (cust (hunchentoot:session-value :login-customer))
 	    (shopcart-total (get-shop-cart-total))
 	    (custcomp (hunchentoot:session-value :login-customer-company))
@@ -1056,7 +1078,7 @@
 	      (if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
 								 (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts")))
 					;(if (equal payment-mode "COD")  
-	 (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode cust custcomp)
+	 (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode comments cust custcomp)
 	 (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	   (setf (hunchentoot:session-value :login-shopping-cart ) nil)
 	   (hunchentoot:redirect "/hhub/dodcustordsuccess"))))
@@ -1244,23 +1266,76 @@
 		(hunchentoot:redirect  "/hhub/dodcustshopcart")))))
 
 
-(defun dod-cust-login (&key phone password)
-    (handler-case 
+(defun dod-cust-login-as-guest (&key tenant-id)
+   (handler-case 
 	;expression
-
        (let* ((customer (car (clsql:select 'dod-cust-profile :where [and
-			      [= [slot-value 'dod-cust-profile 'phone] phone]
+			      [= [:phone] "9999999999"]
+			      [= [:tenant-id] tenant-id]
 			      [= [:deleted-state] "N"]]
 			      :caching nil :flatp t :database *dod-db-instance* )))
-	   (pwd (if customer (slot-value customer 'password)))
-	   (salt (if customer (slot-value customer 'salt)))
-	   (password-verified (if customer  (check-password password salt pwd)))
-	   (customer-id (if customer (slot-value customer 'row-id)))
-	   (customer-name (if customer (slot-value customer 'name)))
-	   (customer-tenant-id (if customer (slot-value (car  (customer-company customer)) 'row-id)))
-	   (customer-company-name (if customer (slot-value (car (if customer (customer-company customer))) 'name)))
-	   (login-shopping-cart '())
-	   (customer-company (if customer (car (customer-company customer)))))
+	      (customer-id (if customer (slot-value customer 'row-id)))
+	      (customer-name (if customer (slot-value customer 'name)))
+	      (customer-company (if customer (car (customer-company customer))))
+	      (customer-tenant-id (if customer-company (slot-value customer-company 'row-id)))
+	      (customer-company-name (if customer-company (slot-value customer-company 'name)))
+	      (customer-company-website (if customer-company (slot-value customer-company 'website)))
+	      (customer-type (if customer (slot-value customer 'cust-type)))
+	      (login-shopping-cart '()))
+
+	 (when (and customer
+		    (null (hunchentoot:session-value :login-customer-name))) ;; customer should not be logged-in in the first place.
+	(progn
+	  (hunchentoot:log-message* :info "Login successful for customer  ~A" customer-name)
+	  (setf *current-customer-session* (hunchentoot:start-session))
+	  (setf (hunchentoot:session-value :login-customer ) customer)
+	  (setf (hunchentoot:session-value :login-customer-name) customer-name)
+	  (setf (hunchentoot:session-value :login-customer-id) customer-id)
+	  (setf (hunchentoot:session-value :login-customer-type) customer-type)
+	  (setf (hunchentoot:session-value :login-customer-tenant-id) customer-tenant-id)
+	  (setf (hunchentoot:session-value :login-customer-company-name) customer-company-name)
+	  (setf (hunchentoot:session-value :login-customer-company-website) customer-company-website)
+	  (setf (hunchentoot:session-value :login-customer-company) customer-company)
+	  (setf (hunchentoot:session-value :login-shopping-cart) login-shopping-cart)
+					; There is no need for daily order preference, orders since this is a guest user. 
+					;(setf (hunchentoot:session-value :login-cusopf-cache) (get-opreflist-for-customer  customer)) 
+					; (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
+	  (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
+	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
+	 
+	 ))
+      )
+
+        ; Handle this condition
+   
+      (clsql:sql-database-data-error (condition)
+	  (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
+								   (stop-das) 
+								   (start-das)
+;								   (clsql:reconnect :database *dod-db-instance*)
+								   (hunchentoot:redirect "/hhub/customer-login.html"))))))
+ 
+
+(defun dod-cust-login (&key phone password)
+  (handler-case 
+					;expression
+      
+      (let* ((customer (car (clsql:select 'dod-cust-profile :where [and
+					  [= [:phone] phone]
+					  [= [:deleted-state] "N"]]
+					  :caching nil :flatp t :database *dod-db-instance* )))
+	     (pwd (if customer (slot-value customer 'password)))
+	     (salt (if customer (slot-value customer 'salt)))
+	     (password-verified (if customer  (check-password password salt pwd)))
+	     (customer-id (if customer (slot-value customer 'row-id)))
+	     (customer-name (if customer (slot-value customer 'name)))
+	     (customer-company (if customer (car (customer-company customer))))
+	     (customer-tenant-id (if customer-company (slot-value customer-company 'row-id)))
+	     (customer-company-name (if customer-company (slot-value customer-company 'name)))
+	     (customer-company-website (if customer-company (slot-value customer-company 'website)))
+	     (customer-type (if customer (slot-value customer 'cust-type)))
+	     (login-shopping-cart '()))
+
       (when (and customer
 		 password-verified
 		 (null (hunchentoot:session-value :login-customer-name))) ;; customer should not be logged-in in the first place.
@@ -1270,8 +1345,10 @@
 	  (setf (hunchentoot:session-value :login-customer ) customer)
 	  (setf (hunchentoot:session-value :login-customer-name) customer-name)
 	  (setf (hunchentoot:session-value :login-customer-id) customer-id)
+	  (setf (hunchentoot:session-value :login-customer-type) customer-type)
 	  (setf (hunchentoot:session-value :login-customer-tenant-id) customer-tenant-id)
 	  (setf (hunchentoot:session-value :login-customer-company-name) customer-company-name)
+	  (setf (hunchentoot:session-value :login-customer-company-website) customer-company-website)
 	  (setf (hunchentoot:session-value :login-customer-company) customer-company)
 	  (setf (hunchentoot:session-value :login-shopping-cart) login-shopping-cart)
 	  (setf (hunchentoot:session-value :login-cusopf-cache) (get-opreflist-for-customer  customer)) 

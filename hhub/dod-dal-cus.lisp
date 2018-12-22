@@ -82,6 +82,11 @@
     :void-value "N"
     :initarg :deleted-state)
 
+      (cust-type
+    :accessor cust-type
+    :type (string 50)
+    :initarg :cust-type)
+
 
 
     (tenant-id

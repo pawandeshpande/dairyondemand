@@ -96,6 +96,12 @@
 (defun get-login-customer-company-name ()
     ( hunchentoot:session-value :login-customer-company-name))
 
+(defun get-login-customer-type ()
+    ( hunchentoot:session-value :login-customer-type))
+
+(defun get-login-customer-company-website ()
+    ( hunchentoot:session-value :login-customer-company-website))
+
 
 (defun get-login-vendor-company ()
 (hunchentoot:session-value :login-vendor-company))  
