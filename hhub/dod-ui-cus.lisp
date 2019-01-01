@@ -539,6 +539,7 @@
 		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
 		 (:script :src "/js/spin.min.js")
 		 (:script :src "https://www.google.com/recaptcha/api.js")
+		 (:script :src "https://cdnjs.com/libraries/1000hz-bootstrap-validator")
 		 ) ;; header completes here.
 	     (:body
 		 (:div :id "dod-main-container"
@@ -577,7 +578,7 @@
 	 (cmpaddress (slot-value company 'address)))
    
     (standard-customer-page (:title "Welcome to HighriseHub Platform- Your Demand And Supply destination.")
-      	(:form :class "form-custregister" :role "form" :method "POST" :action "dodcustregisteraction"
+      	(:form :class "form-custregister" :role "form" :data-toggle "validator"  :method "POST" :action "dodcustregisteraction"
 	   (:div :class "row"
 			(:img :class "profile-img" :src "/img/logo.png" :alt "")
 				(:h1 :class "text-center login-title"  "New Registration to HighriseHub")
@@ -593,11 +594,11 @@
 				    (customer-vendor-dropdown))
 			   
 		  (:div :class "form-group"
-			(:input :class "form-control" :name "name" :placeholder "Full Name (Required)" :type "text" ))
+			(:input :class "form-control" :name "name" :placeholder "Full Name (Required)" :type "text" :required T ))
 		  (:div :class "form-group"
-			(:input :class "form-control" :id "housenum" :name "housenum" :placeholder "Apt/Flat (Required)" :type "text" ))
+			(:input :class "form-control" :id "housenum" :name "housenum" :placeholder "Apt/Flat (Required)" :type "text" :required T ))
 		  (:div :class "form-group"
-			(:input :class "form-control" :name "email" :placeholder "Email (Required)" :type "text" ))
+			(:input :class "form-control" :name "email" :placeholder "Email (Required)" :type "text" :required T ))
 		  
 		  (:hr))
 	    
@@ -607,12 +608,12 @@
 					; (:label :for "tenant-id" (str "Group/Apartment"))
 					; (company-dropdown "tenant-id" (list-dod-companies)) )
 		  (:div :class "form-group"
-			(:input :class "form-control" :name "phone" :placeholder "Your Mobile Number (Required)" :type "text" ))
+			(:input :class "form-control" :name "phone" :placeholder "Your Mobile Number (Required)" :type "text" :required T))
 		  
 		  (:div :class "form-group"
-			(:input :class "form-control" :name "password" :placeholder "Password" :type "password" ))
+			(:input :class "form-control" :name "password" :id "inputpass"  :placeholder "Password" :type "password" :required T ))
 		  (:div :class "form-group"
-			(:input :class "form-control" :name "confirmpass" :placeholder "Confirm Password" :type "password" ))
+			(:input :class "form-control" :name "confirmpass" :placeholder "Confirm Password" :type "password" :required T :data-match "#inputpass"  :data-match-error "Passwords dont match" ))
 		  (:div :class "form-group"
 			(:div :class "g-recaptcha" :data-sitekey "6LeiXSQUAAAAAO-qh28CcnBFva6cQ68PCfxiMC0V")
 			(:div :class "form-group"
@@ -889,28 +890,28 @@
 
 (defun dod-controller-cust-add-order-page ()
     (if (is-dod-cust-session-valid?)
-	(standard-customer-page (:title "Welcome to HighriseHub- Add Customer Order")
-	    (:div :class "row" 
-		(:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+	(let ((customer-type (get-login-customer-type)))
+	      (standard-customer-page (:title "Welcome to HighriseHub- Add Customer Order")
+		(:div :class "row" 
+		      (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 			(:h1 :class "text-center login-title"  "Customer - Add order ")
-			(:form :class "form-order" :role "form" :method "POST" :action "dodmyorderaddaction"
+			(:form :class "form-order" :role "form" :method "POST" :action "dodmyorderaddaction" :data-toggle "validator"
 			    (:div  :class "form-group" (:label :for "orddate" "Order Date" )
 				(:input :class "form-control" :name "orddate" :value (str (get-date-string (get-date))) :type "text"  :readonly "true"  ))
 			    (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
 				(:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (date+ (get-date) (make-duration :day 1))))) :type "text" :value (get-date-string (date+ (get-date) (make-duration :day 1)))))
-
-			    (:div :class "form-group" (:label :for "phone" "Phone" )
-				(:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Phone" ))
-
-			    (:div :class "form-group" (:label :for "email" "Email" )
-				(:input :class "form-control" :type "text" :class "form-control" :name "email" :placeholder "Email" ))
-
-			    (:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
-				(:textarea :class "form-control" :name "shipaddress" :rows "4" ))
-			  			    
+			    
+			    (if (equal customer-type "GUEST")
+			    (htm 
+			     (:div :class "form-group" (:label :for "phone" "Phone" )
+				   (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Phone" :required "true" ))
+			     (:div :class "form-group" (:label :for "email" "Email" )
+				   (:input :class "form-control" :type "email" :class "form-control" :name "email" :placeholder "Email" :data-error "That email address is invalid"  :required "true" ))
+			     (:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
+				   (:textarea :class "form-control" :name "shipaddress" :rows "4" :required "true" ))))
 			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
 				    (payment-mode-dropdown))
-			    (:input :type "submit"  :class "btn btn-primary" :value "Confirm")))))
+			     (:input :type "submit"  :class "btn btn-primary" :value "Confirm"))))))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
 
@@ -1065,7 +1066,7 @@
 	    (shipaddress (hunchentoot:parameter "shipaddress"))
 	    (phone (hunchentoot:parameter "phone"))
 	    (email (hunchentoot:parameter "email"))
-	    (comments (concatenate 'string phone "+++" email "+++" shipaddress))
+	    (comments (if phone (concatenate 'string phone "+++" email "+++" shipaddress)))
 	    (cust (hunchentoot:session-value :login-customer))
 	    (shopcart-total (get-shop-cart-total))
 	    (custcomp (hunchentoot:session-value :login-customer-company))

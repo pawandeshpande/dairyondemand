@@ -361,12 +361,16 @@
 		         (vendors (get-shopcart-vendorlist order-items))
 		         (tenant-id (slot-value company-instance 'row-id)))
 
-	     ;Create the order-items 
+	     ;Create the order-items and also update the current products in stock. 
 	       (mapcar (lambda (odt)
 			     (let* ((prd (search-prd-in-list (slot-value odt 'prd-id) products))
 				       (unit-price (slot-value odt 'unit-price))
-				       (prd-qty (slot-value odt 'prd-qty)))
-			             (create-order-items order prd   prd-qty unit-price company-instance))) order-items)
+				       (prd-qty (slot-value odt 'prd-qty))
+				    (curr-units-in-stock  (- (slot-value prd 'units-in-stock) prd-qty)))
+			             (create-order-items order prd   prd-qty unit-price company-instance)
+				     (setf (slot-value prd 'units-in-stock) curr-units-in-stock)
+				     (update-prd-details prd))) order-items)
+	       
 
 	         ; Create one row per vendor in the vendor_orders table. 
 		(mapcar (lambda (vendor) 
@@ -374,6 +378,7 @@
 				 (total (get-order-items-total-for-vendor vendor vitems))) 
 			    
 			    (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address payment-mode total )))  vendors)
+		; Update the Product's units-in-stock
 
 	 
 	       ))))

@@ -48,7 +48,7 @@
 
 (comments
     :accessor comments
-    :type (string 70)
+    :type (string 250)
     :initarg :comments)
 
  (context-id

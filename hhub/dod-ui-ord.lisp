@@ -107,8 +107,8 @@
 	       ;(if (>  (length odtlst) 0) 
 		   (progn 
 		     (htm (:div :class "row"
-				     (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
-					   (:h3 (:span :class "label label-primary" (str (format nil "Order: ~A ~A. ~A. " (slot-value ord 'order-id) (slot-value customer 'name) (slot-value customer 'address)))       )))))
+			    (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
+			     (:h4 (str (format nil "Order: ~A ~A. ~A. ~A. " (slot-value ord 'order-id) (slot-value customer 'name) (slot-value customer 'phone)(slot-value customer 'address)))))))
 		     (mapcar (lambda (odt)
 			       (let ((prd (get-odt-product odt)))
 				 (htm (:div :class "row"

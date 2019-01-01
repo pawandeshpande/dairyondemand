@@ -106,13 +106,14 @@
 	 (unit-price (slot-value product 'unit-price))
 	 (subscribe-flag (slot-value product 'subscribe-flag))
 	 (qty-per-unit (slot-value product 'qty-per-unit))
+	 (units-in-stock (slot-value product 'units-in-stock))
 	 (prd-id (slot-value product 'row-id))
 	 (prd-name (slot-value product 'prd-name)))
 
  (cl-who:with-html-output (*standard-output* nil)
    (:div :class "row" 
 	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-	       (:form :id (format nil "form-vendorprod~A" mode)  :role "form" :method "POST" :action "dodvenaddproductaction" :enctype "multipart/form-data" 
+	       (:form :id (format nil "form-vendorprod~A" mode) :data-toggle "validator"  :role "form" :method "POST" :action "dodvenaddproductaction" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
 		(if (and product (equal mode "EDIT")) (htm (:input :class "form-control" :type "hidden" :value prd-id :name "id")))
 		 (:div :align "center"  :class "form-group" 
@@ -126,11 +127,14 @@
 		      (:div :class "form-group" :id "charcount")
 		      (:div :class "form-group"
 			    (:input :class "form-control" :name "prdprice"  :value (format nil "~$" unit-price)  :type "number" :min "0.00" :max "10000.00" :step "0.10"  ))
-		      
+		      		      
 		      (:div :class "form-group"
 			    (:input :class "form-control" :name "qtyperunit" :value qty-per-unit :placeholder "Quantity per unit. Ex - KG, Grams, Nos" :type "text" ))
 					;(:div  :class "form-group" (:label :for "prodcatg" "Select Produt Category:" )
 					;(ui-list-prod-catg-dropdown "prodcatg" catglist))
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "unitsinstock" :placeholder "Units In Stock"  :value units-in-stock  :type "number" :min "1" :max "10000" :step "1"  ))
+
 		      (:br) 
 		      (:div :class "form-group" (:label :for "yesno" "Product/Service Subscription")
 			    (if (equal subscribe-flag "Y") (ui-list-yes-no-dropdown "Y")
@@ -204,7 +208,9 @@
 
 (defun product-card-for-vendor (product-instance)
     (let ((prd-name (slot-value product-instance 'prd-name))
+	  ;(qty-per-unit (slot-value product-instance 'qty-per-unit))
 	  (unit-price (slot-value product-instance 'unit-price))
+	  (units-in-stock (slot-value product-instance 'units-in-stock))
 	  (description (slot-value product-instance 'description))
 	  (prd-image-path (slot-value product-instance 'prd-image-path))
 	  (prd-id (slot-value product-instance 'row-id))
@@ -223,8 +229,6 @@
 		    ;else
 		    (htm (:div :class "col-xs-2" :data-toggle "tooltip" :title "Turn On" 
 		      (:a :href (format nil "dodvendactivateprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-off")))))
-		
-		
 		(:div :class "col-xs-2" 
 		      (:a :data-toggle "modal" :data-target (format nil "#dodvendcopyprod-modal~A" prd-id)  :href "#"  (:span :class "glyphicon glyphicon-copy"))
 		      (modal-dialog (format nil "dodvendcopyprod-modal~A" prd-id) "Copy Product" (modal.vendor-product-edit-html  prd-id "COPY")))
@@ -235,28 +239,27 @@
 		(:div :class "col-xs-4" :align "right" "")
 		(:div :class "col-xs-2" :align "right"
 		      (:a :onclick "return DeleteConfirm();"  :href (format nil "dodvenddelprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-remove"))))
-	 
-	  	
 	  (:div :class "row"
+		(:div :class "col-xs-12" (:h5 (:span :class "badge" (str (format nil "In stock ~A  units"  units-in-stock ))))))
 		      
+	  (:div :class "row"
 		(:div :class "col-xs-5" 
 		      (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
 		(:div :class "col-xs-3" (:h3 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))))))
-		
-		(:div :class "row"
-		      (:div :class "col-xs-6"
-			    (:h5 :class "product-name" (str (if (> (length prd-name) 30)  (subseq prd-name  0 30) prd-name))))
+	
+	  (:div :class "row"
+		(:div :class "col-xs-6"
+		      (:h5 :class "product-name" (str (if (> (length prd-name) 30)  (subseq prd-name  0 30) prd-name))))
 		(:div :class "col-xs-6"
 		      (if (equal subscribe-flag "Y") (htm (:div :class "col-xs-6"  (:h5 (:span :class "label label-default" "Can be Subscribed")))))))
-		(:div :class "row" 
-		      (:div :class "col-xs-12" 
-			    (:h6 (str (if (> (length description) 90)  (subseq description  0 90) description)))))
-		
-		(if (equal active-flag "N") 
-		    (htm (:div :class "stampbox rotated" "INACTIVE" )))
-		(if (equal approved-flag "N")
-		    (htm (:div :class "stampbox rotated" (str (format nil "~A" approval-status)))))
-		))))
+	  (:div :class "row" 
+		(:div :class "col-xs-12" 
+		      (:h6 (str (if (> (length description) 90)  (subseq description  0 90) description)))))
+	  
+	  (if (equal active-flag "N") 
+	      (htm (:div :class "stampbox rotated" "INACTIVE" )))
+	  (if (equal approved-flag "N")
+	      (htm (:div :class "stampbox rotated" (str (format nil "~A" approval-status)))))))))
 
 
 (defun product-card-for-approval (product-instance)
@@ -311,10 +314,12 @@
     (let ((prd-name (slot-value product-instance 'prd-name))
 	  (unit-price (slot-value product-instance 'unit-price))
 	  (prd-image-path (slot-value product-instance 'prd-image-path))
-	  (qty-per-unit (slot-value product-instance 'qty-per-unit))
+	  ;(qty-per-unit (slot-value product-instance 'qty-per-unit))
+	  (units-in-stock (slot-value product-instance 'units-in-stock))
 	  (description (slot-value product-instance 'description))
 	  (prd-id (slot-value product-instance 'row-id))
-	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
+	  (subscribe-flag (slot-value product-instance 'subscribe-flag))
+	  (customer-type (get-login-customer-type)))
       (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "row" 
 	      (:div  :class "col-xs-5" (:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
@@ -327,17 +332,21 @@
 		  (htm 
 					;(:form :class "form-subscribe" :method "POST" :action "dodprodsubscribe"
 					;     (:input :type "hidden" :name "prd-id" :value (format nil "~A" prd-id))
-		   (:div :class "col-xs-6"  
-			 (:button :data-toggle "modal" :data-target (format nil "#productsubscribe-modal~A" prd-id)  :href "#"   :class "btn btn-sm btn-primary" :name "btnsubscribe"  (:span :class "glyphicon glyphicon glyphicon-hand-up") " Subscribe"))
+		   (if (equal customer-type "STANDARD") (htm (:div :class "col-xs-6"  
+		      (:button :data-toggle "modal" :data-target (format nil "#productsubscribe-modal~A" prd-id)  :href "#"   :class "btn btn-sm btn-primary" :name "btnsubscribe"  (:span :class "glyphicon glyphicon glyphicon-hand-up") " Subscribe"))))
 		   (modal-dialog (format nil "productsubscribe-modal~A" prd-id) "Subscribe Product/Service" (product-subscribe-html prd-id))))
 
 			  (if  prdincart-p 
 			       (htm   (:div :class "col-xs-6"  (:a :class "btn btn-sm btn-success" :role "button"  :onclick "return false;" :href (format nil "javascript:void(0);") (:span :class "glyphicon glyphicon-ok"  ))))
 			 ;else 
-			       (htm
-				(:div  :class "col-xs-6"   
+			       (if (and units-in-stock (> units-in-stock 0))
+				(htm (:div  :class "col-xs-6"   
 				       (:button :data-toggle "modal" :data-target (format nil "#producteditqty-modal~A" prd-id)  :href "#"   :class "btn btn-sm btn-primary" :name "btnsubscribe"  (:span :class "glyphicon glyphicon glyphicon-plus") " Add")
-(modal-dialog (format nil "producteditqty-modal~A" prd-id) "Edit Product Quantity" (product-qty-edit-html prd-id)))))) 
+(modal-dialog (format nil "producteditqty-modal~A" prd-id) "Edit Product Quantity" (product-qty-edit-html prd-id))))
+;else
+(htm (:div :class "col-xs-6" 
+	  (:h5 (:span :class "label label-danger" "Out Of Stock")))))))
+
 
 		(:div :class "row" 
 		      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12" 

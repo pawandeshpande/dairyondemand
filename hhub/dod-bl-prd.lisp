@@ -159,7 +159,7 @@
    
 
   
-(defun persist-product(prdname description vendor-id catg-id qtyperunit unitprice img-file-path subscribe-flag tenant-id )
+(defun persist-product(prdname description vendor-id catg-id qtyperunit unitprice units-in-stock img-file-path subscribe-flag tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-prd-master
 				    :prd-name prdname
 				    :description description
@@ -167,6 +167,7 @@
 				    :catg-id catg-id
 				    :qty-per-unit qtyperunit
 				    :unit-price unitprice
+				    :units-in-stock units-in-stock
 				    :prd-image-path img-file-path
 				    :subscribe-flag subscribe-flag
 				    :tenant-id tenant-id
@@ -177,11 +178,11 @@
  
 
 
-(defun create-product (prdname description  vendor-instance category qty-per-unit unit-price img-file-path subscribe-flag company-instance)
+(defun create-product (prdname description  vendor-instance category qty-per-unit unit-price units-in-stock img-file-path subscribe-flag company-instance)
   (let ((vendor-id (slot-value vendor-instance 'row-id))
 	(catg-id (if category (slot-value category 'row-id)))
 	(tenant-id (slot-value company-instance 'row-id)))
-      (persist-product prdname description vendor-id catg-id qty-per-unit unit-price img-file-path subscribe-flag  tenant-id)))
+      (persist-product prdname description vendor-id catg-id qty-per-unit unit-price units-in-stock img-file-path subscribe-flag  tenant-id)))
 
 ;(defun copy-products (src-company dst-company)
 ;    (let ((prdlist (select-products-by-company src-company)))

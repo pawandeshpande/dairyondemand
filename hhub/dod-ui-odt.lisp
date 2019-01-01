@@ -175,5 +175,5 @@
 		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date)))))
 		(:div :class "col-md-4" 
 		      (if (equal (slot-value order-instance 'order-fulfilled) "Y")
-			  (htm (:div :class "stampbox rotated" "FULFILLED"))))
-		)))))
+			  (htm (:div :class "stampbox rotated" "FULFILLED")))
+		     (:h5 "Comments") (:h4 (str (slot-value order-instance 'comments)))))))))

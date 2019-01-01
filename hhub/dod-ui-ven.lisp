@@ -156,7 +156,7 @@
     (standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
 		    (:div :class "row" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
-				(:form :class "form-vendorprodadd" :role "form" :method "POST" :action "dodvenaddproductaction" :enctype "multipart/form-data" 
+				(:form :class "form-vendorprodadd" :role "form" :method "POST" :action "dodvenaddproductaction" :data-toggle "validator" :enctype "multipart/form-data" 
 				       (:div :class "account-wall"
 					     (:img :class "profile-img" :src "/img/logo.png" :alt "")
 					     (:h1 :class "text-center login-title"  "Add new product")
@@ -169,7 +169,8 @@
 					      (:div :class "form-group" :id "charcount")
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "prdprice" :placeholder "Price"  :type "text" :min "0.00" :max "10000.00" :step "0.01" ))
-					    
+					    (:div :class "form-group"
+						   (:input :class "form-control" :name "unitsinstock" :placeholder "Units In Stock"  :type "number" :min "1" :max "10000" :step "1" ))
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "qtyperunit" :placeholder "Quantity per unit. Ex - KG, Grams, Nos" :type "text" ))
 					     ;(:div  :class "form-group" (:label :for "prodcatg" "Select Produt Category:" )
@@ -185,40 +186,41 @@
 
 
 (defun dod-controller-vendor-add-product-action ()
-  (if (is-dod-vend-session-valid?)
-      (let* ((prodname (hunchentoot:parameter "prdname"))
-	 (id (hunchentoot:parameter "id"))
-	 (product (if id (select-product-by-id id (get-login-vendor-company))))
-	 (description (hunchentoot:parameter "description"))
-	 (prodprice (with-input-from-string (in (hunchentoot:parameter "prdprice"))
-		     (read in)))
-	 (qtyperunit (hunchentoot:parameter "qtyperunit"))
-	 (catg-id (hunchentoot:parameter "prodcatg"))
-	 (subscriptionflag (hunchentoot:parameter "yesno"))
-	 (prodimageparams (hunchentoot:post-parameter "prodimage"))
+ (if (is-dod-vend-session-valid?)
+   (let* ((prodname (hunchentoot:parameter "prdname"))
+	  (id (hunchentoot:parameter "id"))
+	  (product (if id (select-product-by-id id (get-login-vendor-company))))
+	  (description (hunchentoot:parameter "description"))
+	  (prodprice (with-input-from-string (in (hunchentoot:parameter "prdprice"))
+		       (read in)))
+	  (qtyperunit (hunchentoot:parameter "qtyperunit"))
+	  (units-in-stock (parse-integer (hunchentoot:parameter "unitsinstock")))
+	  (catg-id (hunchentoot:parameter "prodcatg"))
+	  (subscriptionflag (hunchentoot:parameter "yesno"))
+	  (prodimageparams (hunchentoot:post-parameter "prodimage"))
 					;(destructuring-bind (path file-name content-type) prodimageparams))
-	 (tempfilewithpath (first prodimageparams))
-	 (file-name (format nil "~A-~A" (get-universal-time) (second prodimageparams))))
-	
-	(if tempfilewithpath 
-	    (progn 
-	      (probe-file tempfilewithpath)
-	      (rename-file tempfilewithpath (make-pathname :directory *HHUBRESOURCESDIR*  :name file-name))))
-	
-	(if product 
-	    (progn 
-	      (setf (slot-value product 'description) description)
-	      (setf (slot-value product 'unit-price) prodprice)
-	      (setf (slot-value product 'qty-per-unit) qtyperunit)
-	      (setf (slot-value product 'subscribe-flag) subscriptionflag)
-	      (if tempfilewithpath (setf (slot-value product 'prd-image-path) (format nil "/img/~A"  file-name)))
-	      (update-prd-details product))
+	  (tempfilewithpath (first prodimageparams))
+	  (file-name (format nil "~A-~A" (get-universal-time) (second prodimageparams))))
+     
+     (if tempfilewithpath 
+	 (progn 
+	   (probe-file tempfilewithpath)
+	   (rename-file tempfilewithpath (make-pathname :directory *HHUBRESOURCESDIR*  :name file-name))))
+     (if product 
+	 (progn 
+	   (setf (slot-value product 'description) description)
+	   (setf (slot-value product 'unit-price) prodprice)
+	   (setf (slot-value product 'qty-per-unit) qtyperunit)
+	   (setf (slot-value product 'units-in-stock) units-in-stock)
+	   (setf (slot-value product 'subscribe-flag) subscriptionflag)
+	   (if tempfilewithpath (setf (slot-value product 'prd-image-path) (format nil "/img/~A"  file-name)))
+	   (update-prd-details product))
 					;else
-	    (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice (if tempfilewithpath (format nil "/img/~A" file-name) (format nil "/img/~A"   *HHUBDEFAULTPRDIMG*))  subscriptionflag  (get-login-vendor-company)))
-	(dod-reset-vendor-products-functions (get-login-vendor))
-	(hunchentoot:redirect "/hhub/dodvenproducts"))
+	 (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice units-in-stock (if tempfilewithpath (format nil "/img/~A" file-name) (format nil "/img/~A"   *HHUBDEFAULTPRDIMG*))  subscriptionflag  (get-login-vendor-company)))
+     (dod-reset-vendor-products-functions (get-login-vendor))
+     (hunchentoot:redirect "/hhub/dodvenproducts"))
 					;else
-      (hunchentoot:redirect "/hhub/vendor-login.html")))
+   (hunchentoot:redirect "/hhub/vendor-login.html")))
 
     
 
@@ -690,8 +692,13 @@
 
 (defun dod-controller-vendor-logout ()
     :documentation "Vendor logout."
-    (progn (hunchentoot:remove-session *current-vendor-session*)
-	(hunchentoot:redirect "/index.html")))
+    (let* ((vc (get-login-vendor-company))
+	   (company-website (if vc (slot-value vc 'website))))
+      (progn 
+	(hunchentoot:remove-session *current-vendor-session*)
+	(if company-website (hunchentoot:redirect (format nil "http://~A" company-website)) 
+					;else
+	    (hunchentoot:redirect (hunchentoot:redirect "/index.html"))))))
 
 
 
