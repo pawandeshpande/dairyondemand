@@ -84,7 +84,7 @@
 
 (defun ui-list-shop-cart (data shopcart)
     :documentation "A function used for rendering the shopping cart data in HTML format."
-    (time (cl-who:with-html-output (*standard-output* nil)
+    (cl-who:with-html-output (*standard-output* nil)
 					; Header section.
 	      (:div :class "row"
 		  (:div :class "col-xs-6" 
@@ -98,7 +98,7 @@
 		    (:div :class "row"
 			  (mapcar (lambda (product odt)
 				    (htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-3" 
-					       (:div :class "product-box" (product-card-shopcart product odt)))))      data shopcart ))))))
+					       (:div :class "product-box" (product-card-shopcart product odt)))))      data shopcart )))))
 
 
 (defun ui-list-cust-orderdetails (header data)

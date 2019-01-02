@@ -342,7 +342,7 @@
 			       (if (and units-in-stock (> units-in-stock 0))
 				(htm (:div  :class "col-xs-6"   
 				       (:button :data-toggle "modal" :data-target (format nil "#producteditqty-modal~A" prd-id)  :href "#"   :class "btn btn-sm btn-primary" :name "btnsubscribe"  (:span :class "glyphicon glyphicon glyphicon-plus") " Add")
-(modal-dialog (format nil "producteditqty-modal~A" prd-id) "Edit Product Quantity" (product-qty-edit-html prd-id))))
+(modal-dialog (format nil "producteditqty-modal~A" prd-id) (str (format nil "Edit Product Quantity - Available: ~A" units-in-stock)) (product-qty-edit-html prd-id))))
 ;else
 (htm (:div :class "col-xs-6" 
 	  (:h5 (:span :class "label label-danger" "Out Of Stock")))))))
@@ -357,6 +357,7 @@
 (defun product-card-with-details-for-customer (product-instance prdincart-p)
     (let ((prd-name (slot-value product-instance 'prd-name))
 	  (qty-per-unit (slot-value product-instance 'qty-per-unit))
+	  ;(units-in-stock (slot-value product-instance 'units-in-stock))
 	  (unit-price (slot-value product-instance 'unit-price))
 	  (description (slot-value product-instance 'description))
 	  (prd-image-path (slot-value product-instance 'prd-image-path))
@@ -382,7 +383,7 @@
 			       (htm
 				(:div  :class "col-xs-6"   
 				       (:button :data-toggle "modal" :data-target (format nil "#producteditqty-modal~A" prd-id)  :href "#"   :class "btn btn-sm btn-primary" :name "btnsubscribe"  (:span :class "glyphicon glyphicon glyphicon-plus") " Add")
-				       (modal-dialog (format nil "producteditqty-modal~A" prd-id) "Edit Product Quantity" (product-qty-edit-html prd-id)))))))))))
+				       (modal-dialog (format nil "producteditqty-modal~A" prd-id) "Edit Product Quantity" (product-qty-edit-html prd-id )))))))))))
 
 
 

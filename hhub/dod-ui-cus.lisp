@@ -803,13 +803,15 @@
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
 (defun product-qty-edit-html (prd-id)
- (let* ((productlist (hunchentoot:session-value :login-prd-cache))
+  (let* ((productlist (hunchentoot:session-value :login-prd-cache))
 	 (product (search-prd-in-list prd-id  productlist))
 	 (prd-image-path (slot-value product 'prd-image-path))
-	(description (slot-value product 'description))
-	(unit-price (slot-value product 'unit-price))
+	 (description (slot-value product 'description))
+	 (unit-price (slot-value product 'unit-price))
+	 (qty-per-unit (slot-value product 'qty-per-unit))
+	 (units-in-stock (slot-value product 'units-in-stock))
 	 (prd-name (slot-value product 'prd-name)))
- 
+    
   (cl-who:with-html-output (*standard-output* nil)
    (:div :align "center" :class "row account-wall" 
 	 (:div :class "col-sm-12  col-xs-12 col-md-12 col-lg-12"
@@ -821,7 +823,7 @@
 		     (:div  :class "col-xs-6" 
 			     (:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) 
 				 (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
-		     (:div  :class "col-xs-3"	(:div  (:h3 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price)))))))
+		     (:div  :class "col-xs-3"	(:div  (:h3 (:span :class "label label-default" (str (format nil "Rs. ~$ / ~A"  unit-price qty-per-unit)))))))
 		     
 		      (:div :class "row" 
 		      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12" 
@@ -832,7 +834,7 @@
 	       (:div :class "col-xs-4"
 		     (:a :class "down btn btn-primary" :href "#" (:span :class "glyphicon glyphicon-minus" ""))) 
 	       (:div :class "form-group col-xs-4" 
-		     (:input :class "form-control input-quantity" :readonly "true" :name "prdqty" :placeholder "Enter a number"  :value "1" :min "1" :max "99"  :type "number"))
+		     (:input :class "form-control input-quantity" :readonly "true"  :name "prdqty" :value "1"  :min "1" :max units-in-stock  :type "number"))
 	       (:div :class "col-xs-4"
 		     (:a :class "up btn btn-primary" :href "#" (:span :class "glyphicon glyphicon-plus" ""))))
 	 
