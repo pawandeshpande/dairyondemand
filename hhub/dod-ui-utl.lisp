@@ -62,8 +62,10 @@ individual tiles. It also supports search functionality by including the searchr
     ; searchresult div will be used to store the search result. 
     (:div :id "searchresult" 
     (:div :class "row-fluid"  (mapcar (lambda (item)
-					(htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
+					(htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-4" 
 						    (funcall displayfunc item))))  listdata)))))
+
+
 
 
 (defmacro with-html-search-form (search-form-action search-placeholder &body body) 

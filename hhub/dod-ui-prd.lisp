@@ -240,7 +240,10 @@
 		(:div :class "col-xs-2" :align "right"
 		      (:a :onclick "return DeleteConfirm();"  :href (format nil "dodvenddelprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-remove"))))
 	  (:div :class "row"
-		(:div :class "col-xs-12" (:h5 (:span :class "badge" (str (format nil "In stock ~A  units"  units-in-stock ))))))
+		(if (<= units-in-stock 0) 
+		    (htm (:div :class "stampbox rotated" "NO STOCK" ))
+		    ;else
+		    (htm (:div :class "col-xs-12" (:h5 (:span :class "badge" (str (format nil "In stock ~A  units"  units-in-stock ))))))))
 		      
 	  (:div :class "row"
 		(:div :class "col-xs-5" 

@@ -430,14 +430,11 @@
 		   (header (list "status" "action" "name" "qty"   "sub-total" ))
 		   (odtlst (get-order-items dodorder))
 		   (total (reduce #'+ (mapcar (lambda (odt) (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))) odtlst)))) 
-    
-		(display-order-header-for-customer  dodorder) 
+	      (display-order-header-for-customer  dodorder) 
 		(if odtlst (ui-list-cust-orderdetails header odtlst) "no order details")
 		 (htm (:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
-				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))			    
-		
-		))
+				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))))			    
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
 
@@ -526,7 +523,7 @@
 		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
 		 (:meta :name "description" :content "")
 		 (:meta :name "author" :content "")
-		 (:link :rel "icon" :href "favicon.ico")
+		 (:link :rel "icon" :href "/favicon.ico")
 		 (:title ,title )
 		 (:link :href "/css/style.css" :rel "stylesheet")
 		 (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
@@ -1237,7 +1234,7 @@
 					    (let ((prd-id (slot-value odt 'prd-id)))
 					      (search-prd-in-list prd-id prd-cache ))) lstshopcart))) ; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
 					; This function is responsible for displaying the shopping cart. 
-		    (htm(:div :class "row"
+		    (htm(:div :class "rowfluid"
 			      (:div :class "col-xs-12" 
 				    (ui-list-shop-cart products lstshopcart))))
 		    (htm
@@ -1247,8 +1244,8 @@
 				 (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))
 			   
 			   (:div :class "col-xs-12" :align "right"
-				 (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage") "Checkout"))
-			   )
+				 (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage") "Checkout")))
+			   
 		     (:hr)
 		     ))
 					;If condition ends here. 

@@ -103,12 +103,18 @@
 	     (let*  ((odtlst (dod-get-cached-order-items-by-order-id (slot-value ord 'order-id) ))
 		     (total   (reduce #'+  (mapcar (lambda (odt)
 						     (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
-		     (customer (get-customer ord)))
+		     (customer (get-customer ord))
+		     (cust-order (get-order ord)))
 	       ;(if (>  (length odtlst) 0) 
 		   (progn 
+		     (if (equal (slot-value customer 'cust-type) "GUEST")
+			 (htm (:div :class "row"
+			    (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
+			     (:h5 (str (format nil "Order: ~A ~A. " (slot-value ord 'order-id) (slot-value cust-order 'comments)))))))
+			 ;else
 		     (htm (:div :class "row"
 			    (:div :class "col-sm-12 col-xs-12 col-md-4 col-lg-2"
-			     (:h4 (str (format nil "Order: ~A ~A. ~A. ~A. " (slot-value ord 'order-id) (slot-value customer 'name) (slot-value customer 'phone)(slot-value customer 'address)))))))
+			     (:h5 (str (format nil "Order: ~A ~A. ~A. ~A. " (slot-value ord 'order-id) (slot-value customer 'name) (slot-value customer 'phone)(slot-value customer 'address))))))))
 		     (mapcar (lambda (odt)
 			       (let ((prd (get-odt-product odt)))
 				 (htm (:div :class "row"
@@ -122,12 +128,9 @@
 						  (:h5 (str (format nil "Rs ~$ Each" (slot-value odt 'unit-price))) )))))) odtlst)
 					; Display the total for an order
 			  
-		     (htm (:hr) (:div :class "row"
+		     (htm (:div :class "row"
 				      (:div :class "col-sm-12" 
-					    (:h4 (:span :class "label label-default" (str (format nil "Total ~$" total))))))
-			  			  
-			       (:hr))
-		     
+					    (:h4 (:span :class "label label-default" (str (format nil "Total ~$" total)))))))
 		     ))) ordlist)))
 
 
