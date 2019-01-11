@@ -68,7 +68,7 @@
   (handler-case 
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
 	      (if (is-dod-session-valid?)
-		  (hunchentoot:redirect "/hhub/dodcadindex")
+		  (hunchentoot:redirect "/hhub/hhubcadindex")
 		  ;else
 		  (standard-compadmin-page (:title "Welcome to HighriseHub Company Administrator")
 		    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
@@ -90,9 +90,10 @@
 
 
 
-(defun dod-controller-compadmin-index () 
+(defun com-hhub-transaction-compadmin-home () 
   (if (is-dod-session-valid?)
       (let ((products (get-products-for-approval (get-login-tenant-id))))
+	(with-hhub-transaction "com-hhub-transaction-compadmin-home" nil 
 	(standard-compadmin-page (:title "Welcome to Highrisehub.")
 	  (:div :class "container"
 		(:div :id "row"
@@ -105,7 +106,7 @@
 			    (:div :id "col-xs-6" :align "right" 
 				  (:span :class "badge" (str (format nil "~A" (length products)))))))
 		(:hr)
-		(str (display-as-tiles products 'product-card-for-approval )))))
+		(str (display-as-tiles products 'product-card-for-approval ))))))
 	
 					;else
       (hunchentoot:redirect "/hhub/cad-login.html")))

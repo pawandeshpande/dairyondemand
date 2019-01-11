@@ -34,7 +34,12 @@
 (defvar *HHUBDEFAULTPRDIMG* "HHubDefaultPrdImg.png")
 (defvar *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* NIL)
 (defvar *HHUBGLOBALROLES* NIL) 
-
+(defvar *HHUBFEATURESWISHLISTURL* "https://goo.gl/forms/hI9LIM9ebPSFwOrm1")
+(defvar *HHUBBUGSURL* "https://goo.gl/forms/3iWb2BczvODhQiWW2") 
+(defvar *HHUBCUSTLOGINPAGEURL* "/hhub/customer-login.html")
+(defvar *HHUBVENDLOGINPAGEURL* "/hhub/vendor-login.html")
+(defvar *HHUBOPRLOGINPAGEURL* "/hhub/opr-login.html")
+(defvar *HHUBCADLOGINPAGEURL* "/hhub/cad-login.html")
 
 
 

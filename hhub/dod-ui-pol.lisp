@@ -1,7 +1,13 @@
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
-(defun com-hhub-transaction-sadmin-profile (&optional transaction params)
+
+(defun com-hhub-policy-compadmin-home (&optional transaction params)
+:documentation "Only company administrator can approve a product for that company/group/apartment"
+(let ((rolename (com-hhub-attribute-role-name)))
+  (if (equal rolename "COMPADMIN") T NIL)))
+
+(defun com-hhub-policy-sadmin-profile (&optional transaction params)
 :documentation "Super Administrator Profile Policy"
 (let ((username (assoc "username" params :test 'equal)))
   (if (equal (cdr username)  "superadmin") T NIL)))

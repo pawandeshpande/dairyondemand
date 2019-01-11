@@ -23,8 +23,16 @@
 
 
 
+(defun com-hhub-attribute-role-instance ()
+  (let* ((user-id (get-login-userid))
+	(tenant-id (get-login-tenant-id))
+	(userrole-instance (select-user-role-by-userid user-id tenant-id))
+	(role-id (slot-value userrole-instance 'role-id)))
+ (select-role-by-id role-id)))
+    
+
 (defun com-hhub-attribute-role-name ()
 :documentation "Role name is described. The attribute function will get the role name of the currently logged in user"
-(let* ((userid (get-login-userid))
-      (userrole (select-user-role-by-userid userid (get-login-tenant-id))))
-      (slot-value (get-user-roles.role userrole) 'name)))
+(let ((role (com-hhub-attribute-role-instance)))
+       (slot-value role 'name)))
+

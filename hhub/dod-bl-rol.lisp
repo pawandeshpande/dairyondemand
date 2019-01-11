@@ -9,6 +9,12 @@
 	      [<> [:name] "SUPERADMIN"]]
 	      :caching nil :flatp t ))
 
+(defun select-role-by-id (id )
+  (car (clsql:select 'dod-roles :where 
+		     [= [:row-id] id]
+		     :caching nil :flatp t)))
+
+
 (defun select-role-by-name (name )
   (car (clsql:select 'dod-roles :where 
 		     [= [:name] name]

@@ -12,6 +12,26 @@
 	(decode-universal-time (+ (get-universal-time) hunchentoot:*session-max-time*))
 	(list hour minute second)))
 
+2
+(defmacro with-cust-session-check (&body body)
+   `(if hunchentoot:*session* ,@body 
+	;else 
+  (hunchentoot:redirect *HHUBCUSTLOGINPAGEURL*)))
+
+(defmacro with-vend-session-check (&body body)
+   `(if hunchentoot:*session* ,@body 
+	;else 
+  (hunchentoot:redirect *HHUBVENDLOGINPAGEURL*)))
+
+(defmacro with-opr-session-check (&body body)
+    `(if hunchentoot:*session* ,@body 
+	;else 
+  (hunchentoot:redirect *HHUBOPRLOGINPAGEURL*)))
+
+(defmacro with-cad-session-check (&body body)
+ `(if hunchentoot:*session* ,@body 
+	;else 
+  (hunchentoot:redirect *HHUBCADLOGINPAGEURL*)))
 
 (defmacro with-hhub-transaction (name &optional params &body body)
 `(let ((transaction (select-bus-trans-by-trans-func ,name)))

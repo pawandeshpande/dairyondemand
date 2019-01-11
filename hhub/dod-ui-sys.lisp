@@ -8,29 +8,21 @@
 
 
 (defun com-hhub-transaction-sadmin-profile ()
-(if (is-dod-session-valid?)
-    (standard-page (:title "welcome to highrisehub")
+ (with-opr-session-check 
+    (with-standard-page (:title "welcome to highrisehub")
        (:h3 "Welcome " (str (format nil "~a" (get-login-user-name))))
        (:hr)
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6 col-xs-12"
 	     (:a :class "list-group-item" :href "#" "Reset Password")
-	     (:a :class "list-group-item" :href "https://goo.gl/forms/hI9LIM9ebPSFwOrm1" "Feature Wishlist")
-	     (:a :class "list-group-item" :href "https://goo.gl/forms/3iWb2BczvODhQiWW2" "Report Issues")))
-    (hunchentoot:redirect "/hhub/customer-login.html")))
-
-
- 
+	     (:a :class "list-group-item" :href *HHUBFEATURESWISHLISTURL* "Feature Wishlist")
+	     (:a :class "list-group-item" :href *HHUBBUGSURL* "Report Issues")))))
 
 (defun dod-controller-run-daily-orders-batch ()
  :documentation "This controller function is responsible to run the daily orders batch against all the subscriptions customers have made for a particular group/apartment/tenant" 
   (let ((batchresult (run-daily-orders-batch 7)))
     (json:encode-json-to-string batchresult)))
 
-
- 
-
-
-(defmacro navigation-bar ()
+(defmacro with-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
     `(cl-who:with-html-output (*standard-output* nil)
 	 (:div :class "navbar navbar-default navbar-inverse navbar-static-top"
@@ -52,7 +44,7 @@
 			 (:li :align "center" (:a :href "dodlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
 
 
-(defmacro standard-page ( (&key title) &body body)
+(defmacro with-standard-page ( (&key title) &body body)
   `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
 	 (:html :xmlns "http://www.w3.org/1999/xhtml"
 	     :xml\:lang "en" 
@@ -63,7 +55,7 @@
 		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
 		 (:meta :name "description" :content "")
 		 (:meta :name "author" :content "")
-		 (:link :rel "icon" :href "favicon.ico")
+		 (:link :rel "icon" :href "/favicon.ico")
 		 (:title ,title )
 		 (:link :href "/css/style.css" :rel "stylesheet")
 		 (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
@@ -73,6 +65,7 @@
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
 		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
 		 (:script :src "/js/spin.min.js")
+		  (:script :src "https://cdnjs.com/libraries/1000hz-bootstrap-validator")
 		 ) ;; Header completes here.
 	     (:body
 	      (:div :id "dod-main-container"
@@ -82,7 +75,7 @@
 		 (:div :id "busy-indicator")
 		 (:script :src "/js/hhubbusy.js")
 		
-		 (if (is-dod-session-valid?) (navigation-bar))
+		 (if (is-dod-session-valid?) (with-navigation-bar))
 		 (:div :class "container theme-showcase" :role "main" 
 		     (:div :id "header"	; DOD System header
 			 ,@body))	;container div close
@@ -141,7 +134,7 @@
 
 (defun dod-controller-dbreset-page () 
   :documentation "No longer used now" 
-(standard-page (:title "Restart Higirisehub.com")
+(with-standard-page (:title "Restart Higirisehub.com")
   (:div :class "row"
 	(:div :class "col-sm-12 col-md-12 col-lg-12"
 	      (:form :id "restartsiteform" :method "POST" :action "dbresetaction"
@@ -159,7 +152,7 @@
     (if (equal (encrypt  pass "highrisehub.com") *sitepass*)
        (progn  (stop-das) 
 	      (start-das) 
-	      (standard-page (:title "Restart Highrisehub.com")
+	      (with-standard-page (:title "Restart Highrisehub.com")
 		(:h3 "DB Reset successful"))))))
 
 
@@ -222,94 +215,84 @@
     (display-as-tiles company-list 'company-card )))
 
 (defun dod-controller-abac-security ()
-  (if (is-dod-session-valid?) 
-      (let ((policies (get-auth-policies (get-login-tenant-id))))
-	(standard-page (:title "Welcome to Highrisehub")
-	  (:div :class "row" 
-		(:div :class "col-xs-6" 
-		      (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")
-		      (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Attributes  ")
-		      (:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objects  ")
-		      (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Transactions  ")))
-	  (:hr)
-	    (:div :class "row"
+  (with-opr-session-check 
+    (let ((policies (get-auth-policies (get-login-tenant-id))))
+      (with-standard-page (:title "Welcome to Highrisehub")
+	(:div :class "row" 
+	      (:div :class "col-xs-6" 
+		    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")
+		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Attributes  ")
+		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objects  ")
+		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Transactions  ")))
+	(:hr)
+	(:div :class "row"
 	      (:div :class "col-md-12" (:h4 "Business Policies")))
-	  (str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
-	  (modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create))))
-      (hunchentoot:redirect "/hhub/opr-login.html")))
+	(str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
+	(modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create))))))
+
 
 
 (defun com-hhub-transaction-sadmin-home () 
- (if (is-dod-session-valid?)
-  (with-hhub-transaction "com-hhub-transaction-sadmin-home" nil 
+  (with-opr-session-check
+    (with-hhub-transaction "com-hhub-transaction-sadmin-home" nil 
       (let (( companies (list-dod-companies)))
-      (standard-page (:title "Welcome to Highrisehub.")
-	(:div :class "container"
-	(:div :id "row"
-	      (:div :id "col-xs-6" 
-	(:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
-	  (company-search-html)
-	(:div :id "row"
-	      (:div :id "col-xs-6"
-		  ;  (:a :class "btn btn-primary" :role "button" :href "new-company" :data-toggle "modal" :data-target "#editcompany-modal" (:span :class "glyphicon glyphicon-shopping-plus") " Add New Group  ")
+	(with-standard-page (:title "Welcome to Highrisehub.")
+	  (:div :class "container"
+		(:div :id "row"
+		      (:div :id "col-xs-6" 
+			    (:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+		(company-search-html)
+		(:div :id "row"
+		      (:div :id "col-xs-6"
+					;  (:a :class "btn btn-primary" :role "button" :href "new-company" :data-toggle "modal" :data-target "#editcompany-modal" (:span :class "glyphicon glyphicon-shopping-plus") " Add New Group  ")
 	       (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group"))
-	      (:div :id "col-xs-6" :align "right" 
-		    (:span :class "badge" (str (format nil "~A" (length companies))))))
-	(:hr)
-	(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
-   	(str (display-as-tiles companies 'company-card ))))))
-  ;else
-   (hunchentoot:redirect "/hhub/opr-login.html")))
-  
+		      (:div :id "col-xs-6" :align "right" 
+			    (:span :class "badge" (str (format nil "~A" (length companies))))))
+		(:hr)
+		(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
+		(str (display-as-tiles companies 'company-card ))))))))
+
+
 (setq *logged-in-users* (make-hash-table :test 'equal))
 
 (defun dod-controller-list-busobjs () 
 :documentation "List all the business objects"
-(if (is-dod-session-valid?)
-(let ((busobjs (select-bus-object-by-company (get-login-company))))
-(standard-page (:title "Business Objects ...")
-	(:div :class "row"
-	      (:div :class "col-md-12" (:h4 "Business Objects")))
-  (str (display-as-table (list "Name")  busobjs 'busobj-card))
-    (:h4 "Note: To add new business objects to the system, follow these steps.")
-    (:h4 "In the Lisp REPL call the function, (create-bus-object)")))
-(hunchentoot:redirect "/hhub/opr-login.html")))
+(with-opr-session-check 
+  (let ((busobjs (select-bus-object-by-company (get-login-company))))
+    (with-standard-page (:title "Business Objects ...")
+      (:div :class "row"
+	    (:div :class "col-md-12" (:h4 "Business Objects")))
+      (str (display-as-table (list "Name")  busobjs 'busobj-card))
+      (:h4 "Note: To add new business objects to the system, follow these steps.")
+      (:h4 "In the Lisp REPL call the function, (create-bus-object)")))))
 
 
 (defun dod-controller-list-bustrans ()
 :documentation "List all the business transactions" 
-(if (is-dod-session-valid?)
-    (let ((bustrans (select-bus-trans-by-company (get-login-company))))
-      (standard-page (:title "Business Transactions...")
-	(:div :class "row"
-	 (:div :class "col-md-12" 
-	  (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addtransaction-modal" "New Transaction"))
-	   (:div :class "col-md-12" 
-	    (:div :class "col-md-12" (:h4 "Business Transactions"))))
-	(str (display-as-table (list "Name" "URI" "Function" "Action")  bustrans 'bustrans-card))
-	(modal-dialog "addtransaction-modal" "Add/Edit Transaction" (new-transaction-html))))
-(hunchentoot:redirect "/hhub/opr-login.html")))
-
+(with-opr-session-check 
+  (let ((bustrans (select-bus-trans-by-company (get-login-company))))
+    (with-standard-page (:title "Business Transactions...")
+      (:div :class "row"
+	    (:div :class "col-md-12" 
+		  (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addtransaction-modal" "New Transaction"))
+	    (:div :class "col-md-12" 
+		  (:div :class "col-md-12" (:h4 "Business Transactions"))))
+      (str (display-as-table (list "Name" "URI" "Function" "Action")  bustrans 'bustrans-card))
+      (modal-dialog "addtransaction-modal" "Add/Edit Transaction" (new-transaction-html))))))
 
 (defun dod-controller-list-attrs ()
 :documentation "This function lists the attributes used in policy making"
-    (if (is-dod-session-valid?)
-	(let ((lstattributes (select-auth-attrs-by-company (get-login-company))))
-(standard-page (:title "attributes ...")
-  (:div :class "row"
-	(:div :class "col-md-12" (:h4 "Attributes"))
-	(:div :class "col-md-12" 
-	      (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addattribute-modal" "Add New Attribute")))
-  
-  (:hr)		       
-  
-  (str (display-as-table (list "Name" "Description" "Function" "Type" )  lstattributes 'attribute-card))
-;  (ui-list-attributes lstattributes)
-  (modal-dialog "addattribute-modal" "Add/Edit Attribute" (com-hhub-transaction-create-attribute))))
-(hunchentoot:redirect "/hhub/opr-login.html")))
-
-    
-
+ (with-opr-session-check 
+   (let ((lstattributes (select-auth-attrs-by-company (get-login-company))))
+     (with-standard-page (:title "attributes ...")
+       (:div :class "row"
+	     (:div :class "col-md-12" (:h4 "Attributes"))
+	     (:div :class "col-md-12" 
+		   (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addattribute-modal" "Add New Attribute")))
+       (:hr)		       
+       (str (display-as-table (list "Name" "Description" "Function" "Type" )  lstattributes 'attribute-card))
+					;  (ui-list-attributes lstattributes)
+       (modal-dialog "addattribute-modal" "Add/Edit Attribute" (com-hhub-transaction-create-attribute))))))
 
 (defun dod-controller-loginpage ()
   (handler-case 
@@ -317,7 +300,7 @@
 	      (if (is-dod-session-valid?)
 		  (hunchentoot:redirect "/hhub/sadminhome")
 		  ;else
-		  (standard-page (:title "Welcome to HighriseHub")
+		  (with-standard-page (:title "Welcome to HighriseHub")
 		    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
@@ -362,8 +345,9 @@
 	    (hunchentoot:redirect "/hhub/opr-login.html")))
 
 (defun is-dod-session-valid? ()
- (if  (null (get-login-user-name)) NIL T))
-
+ ;(if  (null (get-login-user-name)) NIL T))
+ (if hunchentoot:*session* T))
+ ; (if (get-login-user-name) T))
 
 (defun dod-login (&key company-name username password)
   (let* ((login-user (car (clsql:select 'dod-users :where [and
@@ -433,7 +417,7 @@
 	     (cmpwebsite (if company (slot-value company 'website))) 
 	     (cmpzipcode (if company (slot-value company 'zipcode))))
 
-    (standard-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+    (with-standard-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
       (:div :class "row" 
 	 (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 	       (:form :class "form-addcompany" :role "form" :method "POST" :action "company-added" 
@@ -512,10 +496,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/editcompany" 'dod-controller-new-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/opr-login.html" 'dod-controller-loginpage)
 	(hunchentoot:create-regex-dispatcher "^/hhub/sadminlogin" 'com-hhub-transaction-sadmin-login)
-	(hunchentoot:create-regex-dispatcher "^/hhub/new-customer" 'dod-controller-new-customer)
-	(hunchentoot:create-regex-dispatcher "^/hhub/delcustomer" 'dod-controller-delete-customer)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-customers" 'dod-controller-list-customers)
-	(hunchentoot:create-regex-dispatcher "^/hhub/list-orders" 'dod-controller-list-orders)
 	(hunchentoot:create-regex-dispatcher "^/hhub/orderdetails" 'dod-controller-list-order-details)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-vendors" 'dod-controller-list-vendors)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-orderprefs" 'dod-controller-list-orderprefs)
@@ -550,7 +531,7 @@
 	
 	;***************** COMPADMIN/COMPANYHELPDESK/COMPANYOPERATOR  RELATED ********************
      
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadindex" 'dod-controller-compadmin-index)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadindex" 'com-hhub-transaction-compadmin-home)
 	(hunchentoot:create-regex-dispatcher "^/hhub/cad-login.html" 'dod-controller-compadmin-loginpage)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadlogin" 'dod-controller-cadlogin)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadlogout" 'dod-controller-cadlogout)

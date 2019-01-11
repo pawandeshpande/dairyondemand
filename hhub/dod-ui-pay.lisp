@@ -91,8 +91,8 @@
 	(error-desc (hunchentoot:parameter "error_desc"))
 	(order-id (hunchentoot:parameter "order_id"))
 	
-	
-	(amount (parse-integer (hunchentoot:parameter "amount"))) ;(with-input-from-string (in (hunchentoot:parameter "amount")) (read in)))
+	(amount (with-input-from-string (in (hunchentoot:parameter "amount")) (read in)))
+	;(amount (parse-integer (hunchentoot:parameter "amount"))) ;
 	(currency (hunchentoot:parameter "currency"))
 	(description (hunchentoot:parameter "description"))
 	(customer-name (hunchentoot:parameter "name"))

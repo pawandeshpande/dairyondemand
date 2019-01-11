@@ -22,7 +22,7 @@
 (defun select-user-by-phonenumber (phone tenant-id)
   (car (clsql:select 'dod-users  :where [and [= [:deleted-state] "N"] 
 		[= [:tenant-id] tenant-id]
-		[= [:phone] phone]
+		[= [:phone-mobile] phone]
 		[<> [:name] "superadmin"]]    :caching nil :flatp t )))
 
 
@@ -49,21 +49,15 @@
     (clsql:update-record-from-slot doduser 'deleted-state))) list ))
 
 
-(defun verify-superadmin ();;"Verifies whether username is superadmin" 
-  (if (equal (get-current-login-username) "superadmin") T NIL ))
-
-(defun superadmin-login ()
-(if (verify-superadmin )
-  (setf ( hunchentoot:session-value :login-company) "super")))
-
   
-(defun create-dod-user(name uname passwd salt email-address tenant-id )
+(defun create-dod-user(name uname passwd salt email-address phone tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-users
 				    :name name
 				    :username uname
 				    :salt salt
 				    :password passwd
 				    :email email-address
+				    :phone-mobile phone
 				    :tenant-id tenant-id
 				    :deleted-state "N"
 				    :created-by tenant-id
