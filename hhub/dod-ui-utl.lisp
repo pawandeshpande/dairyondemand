@@ -12,7 +12,7 @@
 	(decode-universal-time (+ (get-universal-time) hunchentoot:*session-max-time*))
 	(list hour minute second)))
 
-2
+
 (defmacro with-cust-session-check (&body body)
    `(if hunchentoot:*session* ,@body 
 	;else 

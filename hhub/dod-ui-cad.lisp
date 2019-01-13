@@ -26,45 +26,48 @@
 			 (:li :align "center" (:a :href "/hhub/hhubcadlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
 
 
-(defmacro standard-compadmin-page ( (&key title) &body body)
+
+(defmacro standard-compadmin-page ((&key title)  &body body)
   `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
-	 (:html :xmlns "http://www.w3.org/1999/xhtml"
-	     :xml\:lang "en" 
-	     :lang "en"
-	     (:head 
-		 (:meta :http-equiv "Content-Type" 
-		     :content    "text/html;charset=utf-8")
-		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
-		 (:meta :name "description" :content "")
-		 (:meta :name "author" :content "")
-		 (:link :rel "icon" :href "favicon.ico")
-		 (:title ,title )
-		 (:link :href "/css/style.css" :rel "stylesheet")
-		 (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
-		 (:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")
- 		 (:link :href "/css/theme.css" :rel "stylesheet")
-		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
-		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
-		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
-		 (:script :src "/js/spin.min.js")
-		 ) ;; Header completes here.
-	     (:body
-	      (:div :id "dod-main-container"
-		    (:a :href "#" :class "scrollup" :style "display: none;") 
-		    (:div :id "dod-error" (:h2 "Error..."))
-		 (:div :id "busy-indicator")
-		 (if (is-dod-session-valid?) (compadmin-navigation-bar))
-		 (:div :class "container theme-showcase" :role "main" 
-		     (:div :id "header"	; DOD System header
-			 ,@body))	;container div close
-		 
-		 ;; bootstrap core javascript
-		 (:script :src "/js/bootstrap.min.js")
-		 (:script :src "/js/dod.js"))))))
-   
+     (:html :xmlns "http://www.w3.org/1999/xhtml"
+	    :xml\:lang "en" 
+	    :lang "en"
+	    (:head 
+	     (:meta :http-equiv "Content-Type" 
+		    :content    "text/html;charset=utf-8")
+	     (:meta :name "viewport" :content "width=device-width,user-scalable=no")
+	     (:meta :name "description" :content "")
+	     (:meta :name "author" :content "")
+	     (:link :rel "icon" :href "favicon.ico")
+	     (:title ,title )
+	     (:link :href "/css/style.css" :rel "stylesheet")
+	     (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
+	     (:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")
+	     (:link :href "/css/theme.css" :rel "stylesheet")
+	     (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
+	     (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
+	     (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
+	     (:script :src "/js/spin.min.js")
+	     ) ;; Header completes here.
+	    (:body
+	     (:div :id "dod-main-container"
+		   (:a :href "#" :class "scrollup" :style "display: none;") 
+		   (:div :id "dod-error" (:h2 "Error..."))
+		   (:div :id "busy-indicator")
+		   (if (is-dod-session-valid?) (compadmin-navigation-bar))
+		   (:div :class "container theme-showcase" :role "main" 
+			 (:div :id "header"	; DOD System header
+			       ,@body))	;container div close
+		   
+		   ;; bootstrap core javascript
+		   (:script :src "/js/bootstrap.min.js")
+		   (:script :src "/js/dod.js"))))))
 
 
-(defun dod-controller-compadmin-loginpage ()
+
+
+
+(defun com-hhub-transaction-cad-login-page ()
   (handler-case 
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
 	      (if (is-dod-session-valid?)
@@ -75,7 +78,7 @@
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
 				      (:h1 :class "text-center login-title"  "Login to HighriseHub")
-				      (:form :class "form-signin" :role "form" :method "POST" :action "hhubcadlogin"
+				      (:form :class "form-signin" :role "form" :method "POST" :action "hhubcadloginaction"
 					     
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text"))
@@ -91,37 +94,33 @@
 
 
 (defun com-hhub-transaction-compadmin-home () 
-  (if (is-dod-session-valid?)
-      (let ((products (get-products-for-approval (get-login-tenant-id))))
-	(with-hhub-transaction "com-hhub-transaction-compadmin-home" nil 
-	(standard-compadmin-page (:title "Welcome to Highrisehub.")
-	  (:div :class "container"
-		(:div :id "row"
-		      (:div :id "col-xs-6" 
-			    (:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
-		(:hr)
-		(:h4 "Pending Product Approvals")
-		(:div :id "row"
-		      (:div :id "col-xs-6"
-			    (:div :id "col-xs-6" :align "right" 
+  (with-cad-session-check 
+    (with-hhub-transaction "com-hhub-transaction-compadmin-home"  nil
+	(let ((products (get-products-for-approval (get-login-tenant-id))))
+	  (standard-compadmin-page (:title "Welcome to Highrisehub.")
+	    (:div :class "container"
+		  (:div :id "row"
+			(:div :id "col-xs-6" 
+			      (:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+		  (:hr)
+		  (:h4 "Pending Product Approvals")
+		  (:div :id "row"
+			(:div :id "col-xs-6"
+			      (:div :id "col-xs-6" :align "right" 
 				  (:span :class "badge" (str (format nil "~A" (length products)))))))
-		(:hr)
-		(str (display-as-tiles products 'product-card-for-approval ))))))
-	
-					;else
-      (hunchentoot:redirect "/hhub/cad-login.html")))
+		  (:hr)
+		  (str (display-as-tiles products 'product-card-for-approval ))))))))
+  
+  
+(defun com-hhub-transaction-cad-login-action ()
+  (with-hhub-transaction "com-hhub-transaction-cad-login-action" nil 
+    (let  ((phone (hunchentoot:parameter "phone"))
+	   (passwd (hunchentoot:parameter "password")))
+      (unless(and
+	      ( or (null phone) (zerop (length phone)))
+	      ( or (null passwd) (zerop (length passwd))))
+	(if (equal (dod-cad-login :phone phone :password passwd) NIL) (hunchentoot:redirect "/hhub/cad-login.html") (hunchentoot:redirect  "/hhub/hhubcadindex"))))))
 
-
-
-(defun dod-controller-cadlogin ()
-  (let  ((phone (hunchentoot:parameter "phone"))
-	 (passwd (hunchentoot:parameter "password")))
-    	    
-    (unless(and
-	    ( or (null phone) (zerop (length phone)))
-	    ( or (null passwd) (zerop (length passwd))))
-      (if (equal (dod-cad-login :phone phone :password passwd) NIL) (hunchentoot:redirect "/hhub/cad-login.html") (hunchentoot:redirect  "/hhub/hhubcadindex")))))
-   
 
 (defun dod-cad-login (&key phone  password)
   (let* ((login-user (car (clsql:select 'dod-users :where [and
@@ -147,44 +146,42 @@
 				      (setf (hunchentoot:session-value :login-attribute-cart) login-attribute-cart)
 				      (setf (hunchentoot:session-value :login-tenant-id) login-tenant-id)
 				      (setf (hunchentoot:session-value :login-company-name) company-name)
-				      (setf (hunchentoot:session-value :login-company) login-company))
-		 
-       	 )))
+				      (setf (hunchentoot:session-value :login-company) login-company)))))
 
 
   
-   (defun dod-controller-cadlogout ()
+(defun com-hhub-transaction-cad-logout ()
+ (with-cad-session-check   
+     (with-hhub-transaction "com-hhub-transaction-cad-logout" nil 
      (progn (dod-logout (get-login-user-name))
 	    (hunchentoot:remove-session *current-user-session*)
-	    (hunchentoot:redirect "/hhub/cad-login.html")))
+	    (hunchentoot:redirect "/hhub/cad-login.html")))))
 
 
 
-(defun dod-controller-vendor-reject-product-action ()
-  (if (is-dod-session-valid?)
-      (let ((id (hunchentoot:parameter "id"))
+(defun com-hhub-transaction-cad-product-reject-action ()
+  (with-cad-session-check
+   (with-hhub-transaction "com-hhub-transaction-cad-product-reject-action" nil 
+    (let ((id (hunchentoot:parameter "id"))
 	    (description (hunchentoot:parameter "description")))
 	(reject-product id description (get-login-company))
-	(hunchentoot:redirect "/hhub/hhubcadindex"))
-      					;else
-  (hunchentoot:redirect "/hhub/cad-login.html")))
+	(hunchentoot:redirect "/hhub/hhubcadindex")))))
+     
 
 
 
-(defun dod-controller-vendor-accept-product-action ()
-  (if (is-dod-session-valid?)
+(defun com-hhub-transaction-cad-product-approve-action ()
+ (with-cad-session-check
+   (with-hhub-transaction "com-hhub-transaction-cad-product-approve-action" nil 
       (let ((id (hunchentoot:parameter "id"))
 	    (description (hunchentoot:parameter "description")))
-
 	(approve-product id description (get-login-company))
-	(hunchentoot:redirect "/hhub/hhubcadindex"))
-      					;else
-      (hunchentoot:redirect "/hhub/cad-login.html")))
+	(hunchentoot:redirect "/hhub/hhubcadindex")))))
 
 
 (defun dod-controller-products-approval-page ()
   :documentation "This controller function is used by the System admin and Company Admin to approve products" 
- (if (is-dod-session-valid?)
+ (with-cad-session-check
    (let ((products (get-products-for-approval (get-login-tenant-id))))
      (standard-compadmin-page (:title "New products approval") 
 	(:div :class "container"
@@ -198,5 +195,5 @@
 		    (:div :id "col-xs-6" :align "right" 
 			  (:span :class "badge" (str (format nil "~A" (length products)))))))
 	(:hr)
-   	(str (display-as-tiles products 'product-card-for-approval )))))
-   (hunchentoot:redirect "/hhub/cad-login.html")))
+   	(str (display-as-tiles products 'product-card-for-approval )))))))
+   

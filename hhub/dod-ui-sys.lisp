@@ -532,11 +532,11 @@
 	;***************** COMPADMIN/COMPANYHELPDESK/COMPANYOPERATOR  RELATED ********************
      
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadindex" 'com-hhub-transaction-compadmin-home)
-	(hunchentoot:create-regex-dispatcher "^/hhub/cad-login.html" 'dod-controller-compadmin-loginpage)
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadlogin" 'dod-controller-cadlogin)
+	(hunchentoot:create-regex-dispatcher "^/hhub/cad-login.html" 'com-hhub-transaction-cad-login-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadloginaction" 'com-hhub-transaction-cad-login-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadlogout" 'dod-controller-cadlogout)
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendrejectproductaction" 'dod-controller-vendor-reject-product-action)
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendacceptproductaction" 'dod-controller-vendor-accept-product-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadprdrejectaction" 'com-hhub-transaction-cad-product-reject-action )
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadprdapproveaction" 'com-hhub-transaction-cad-product-approve-action)
 	
 	
 	

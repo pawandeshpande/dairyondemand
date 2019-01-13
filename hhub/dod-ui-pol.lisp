@@ -1,11 +1,39 @@
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
+(defun com-hhub-policy-cad-login-page (&optional transaction params)
+:documentation "Company Administrator login page is open to all. This policy is dummy as the request is initiated by the Browser."
+T)
 
-(defun com-hhub-policy-compadmin-home (&optional transaction params)
-:documentation "Only company administrator can approve a product for that company/group/apartment"
-(let ((rolename (com-hhub-attribute-role-name)))
-  (if (equal rolename "COMPADMIN") T NIL)))
+(defun com-hhub-policy-cad-login-action (&optional transaction params)
+  :documentation "Company Administrator login action is open to all. This policy is dummy as the request is initiated by the Browser."
+T)
+
+(defun com-hhub-policy-cad-logout (&optional transaction params)
+  :documentation "Company Administrator logout action is open to all. This policy is dummy as the request is initiated by the Browser."
+T)
+
+(defun com-hhub-policy-cad-product-approve-action (&optional transaction params)
+  :documentation "only a Company Administrator can Approve a product. "
+(let ((rolename (com-hhub-attribute-role-name))
+      (transbo (get-bus-tran-busobject transaction)))
+  (if (and 
+       (string-equal (slot-value transbo 'name) "Products")
+       (equal rolename "COMPADMIN")) T NIL)))
+
+(defun com-hhub-policy-cad-product-reject-action (&optional transaction params)
+  :documentation "only a Company Administrator can Reject a product. "
+ (com-hhub-policy-cad-product-approve-action transaction params))
+
+(defun com-hhub-policy-compadmin-home (&optional transaction params) T)
+
+(defun com-hhub-policy-compadmin-home1 (&optional transaction params)
+:documentation "Only company administrator can see the homepage for that role "
+(let ((rolename (com-hhub-attribute-role-name))
+      (transbo (get-bus-tran-busobject transaction)))
+  (if (and 
+       (string-equal (slot-value transbo 'name) "USER")
+       (equal rolename "COMPADMIN")) T NIL)))
 
 (defun com-hhub-policy-sadmin-profile (&optional transaction params)
 :documentation "Super Administrator Profile Policy"
@@ -21,7 +49,7 @@
 (defun com-hhub-policy-cust-edit-order (&optional transaction params)
   (let ((transbo (get-bus-tran-busobject transaction)))
     ; Match the Resource attribute and Action attribute for Edit Order.
-    (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
+    (if  (and (string-equal (slot-value transbo 'name )(com-hhub-attribute-order)) 
 	      (if (equal (com-hhub-attribute-cust-edit-order) (slot-value transaction 'name))  T NIL)
 	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
 

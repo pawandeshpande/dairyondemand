@@ -154,12 +154,10 @@
 	 (description (slot-value product 'description))
 	 (prd-name (slot-value product 'prd-name))
 	 (prd-id (slot-value product 'row-id)))
-	 
-
  (cl-who:with-html-output (*standard-output* nil)
    (:div :class "row" 
 	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "hhubvendrejectproductaction" :enctype "multipart/form-data" 
+	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "hhubcadprdrejectaction" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
 		      (:input :class "form-control" :type "hidden" :value prd-id :name "id")
 		 (:div :align "center"  :class "form-group" 
@@ -183,12 +181,10 @@
 	 (description (slot-value product 'description))
 	 (prd-name (slot-value product 'prd-name))
 	 (prd-id (slot-value product 'row-id)))
-	 
-
  (cl-who:with-html-output (*standard-output* nil)
    (:div :class "row" 
 	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "hhubvendacceptproductaction" :enctype "multipart/form-data" 
+	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "hhubcadprdapproveaction" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
 		      (:input :class "form-control" :type "hidden" :value prd-id :name "id")
 		 (:div :align "center"  :class "form-group" 
