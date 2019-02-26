@@ -13,6 +13,7 @@
 	 (order-id (format nil "hhub~A" (get-universal-time)))
 	 (mode "TEST")
 	 (currency "INR")
+	 (customer-type (slot-value customer 'cust-type))
 	 (customer-name (slot-value customer 'name))
 	 (customer-email (slot-value customer 'email))
 	 (customer-phone (slot-value customer 'phone))
@@ -27,9 +28,9 @@
 	 (udf4 "not used")
 	 (udf5 "not used")
 	 (show-convenience-fee "Y")
-	 (return-url "http://highrisehub.com/hhub/custpaymentsuccess")
-	 (return-url-cancel "http://highrisehub.com/hhub/custpaymentcancel")
-	 (return-url-failure "http://highrisehub.com/hhub/custpaymentfailure")
+	 (return-url *PAYGATEWAYRETURNURL*) 
+	 (return-url-cancel *PAYGATEWAYCANCELURL*) 
+	 (return-url-failure *PAYGATEWAYFAILUREURL*) 
 	 (param-names (list "amount" "api_key" "city" "country" "currency" "description" "email" "mode"  "name" "order_id" "phone" "return_url" "show_convenience_fee" "return_url_cancel" "return_url_failure" "udf1" "udf2" "udf3" "udf4" "udf5"  "zip_code"))
 	 (param-values (list amount payment-api-key customer-city customer-country currency description customer-email mode  customer-name order-id  customer-phone return-url show-convenience-fee return-url-cancel return-url-failure udf1 udf2 udf3 udf4 udf5  customer-zipcode))
 	 (params-alist (pairlis param-names param-values))
@@ -76,12 +77,8 @@
 
 
 
-
 (defun dod-controller-customer-payment-successful-page ()
  (let* (
-	(post-params (hunchentoot:post-parameters*))
-	(test (loop for (a . b) in post-params 
-	   do (hunchentoot:log-message* :info  (format nil "~a: ~a" a b))))
 	(transaction-id (hunchentoot:parameter "transaction_id"))
 	(company (get-login-customer-company))
 	(payment-method (hunchentoot:parameter "payment_method"))
@@ -90,9 +87,7 @@
 	(response-message (hunchentoot:parameter "response_message"))
 	(error-desc (hunchentoot:parameter "error_desc"))
 	(order-id (hunchentoot:parameter "order_id"))
-	
-	(amount (with-input-from-string (in (hunchentoot:parameter "amount")) (read in)))
-	;(amount (parse-integer (hunchentoot:parameter "amount"))) ;
+        (amount (with-input-from-string (in (hunchentoot:parameter "amount")) (read in)))
 	(currency (hunchentoot:parameter "currency"))
 	(description (hunchentoot:parameter "description"))
 	(customer-name (hunchentoot:parameter "name"))
@@ -102,8 +97,7 @@
 	(customer-state (hunchentoot:parameter "state"))
 	(customer-country (hunchentoot:parameter "country"))
 	(customer-zipcode (hunchentoot:parameter "zip_code"))
-	(udf1 1)
-	;(udf1 (parse-integer (hunchentoot:parameter "udf1")))
+	(udf1 (parse-integer (hunchentoot:parameter "udf1")))
 	(wallet (get-cust-wallet-by-id udf1 company))
 	(vendor (get-vendor wallet))
 	(payment-api-salt (slot-value vendor 'payment-api-salt))
@@ -111,23 +105,31 @@
 	;(udf3 (hunchentoot:parameter "udf3"))
 	;(udf4 (hunchentoot:parameter "udf4"))
 	;(udf5 (hunchentoot:parameter "udf5"))
-	;(show-convenience-fee "Y")
-	;(return-url "http://highrisehub.com/hhub/custpaymentsuccess")
-	;(return-url-cancel "http://highrisehub.com/hhub/custpaymentcancel")
-	;(return-url-failure "http://highrisehub.com/hhub/custpaymentfailure")
-	;(cardmasked (hunchentoot:parameter "cardmasked"))
+	(tdr-amount (hunchentoot:parameter "tdr_amount"))
+	(tax-on-tdr-amount (hunchentoot:parameter "tax_on_tdr_amount"))
+	(amount-orig (hunchentoot:parameter "amount_orig"))
+	(show-convenience-fee (hunchentoot:parameter "show_convenience_fee"))
+	(cardmasked (hunchentoot:parameter "cardmasked"))
 	(received-hash (hunchentoot:parameter "hash"))
 	(postparams (hunchentoot:post-parameters*))
 	(params-alist  (remove (find "hash" postparams :test #'equal :key #'car) postparams))
-	(calculated-hash (generatehashkey   params-alist  payment-api-salt  :sha512)))
+	(calculated-hash (hashcalculate   params-alist  payment-api-salt  :sha512)))
 	
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;DEBUGGING PURPOSES ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+					; Print all the post params. 
 					;Update customer's wallet first
-       (when (and (equal response-code "0")
-		  (responsehashcheck postparams  payment-api-salt :sha512))
-	 (create-payment-trans order-id amount currency description (get-login-customer) vendor payment-method transaction-id (parse-integer response-code) response-message error-desc company) 
-	 (update-cust-wallet-balance amount udf1))
-       ; Display a success page. 
-       (standard-customer-page (:title "Payment Successful" ) 
+  ; (hunchentoot:log-message* :info  (format nil "params count =  ~A" (length params-alist)))
+   (loop for (a . b) in params-alist 
+	   do (hunchentoot:log-message* :info  (format nil "param is ~a: ~a" a b)))
+ ; (hunchentoot:log-message* :info  (format nil "rec-hash is ~A" received-hash))
+ ; (hunchentoot:log-message* :info  (format nil "cal-hash is ~A" calculated-hash ))
+  (when (and (equal (parse-integer response-code) 0)
+	 (equal received-hash calculated-hash)) ; (responsehashcheck postparams  payment-api-salt :sha512)
+	 (progn 
+	   (create-payment-trans order-id amount currency description (get-login-customer) vendor payment-method transaction-id (parse-integer response-code) response-message error-desc company) 
+	   (update-cust-wallet-balance amount udf1))
+					; Display a success page. 
+	 (standard-customer-page (:title "Payment Successful" ) 
 	      (:div :class "row" 
 		    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 			  (:h4 (str (format nil "Payment Successful for vendor: ~A" (slot-value vendor 'name))))))
@@ -146,11 +148,8 @@
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
 			  (:h5 (str (format nil "Amount recharged: ~A.~A" currency amount))))
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
-			  (:h5 (str (format nil "Wallet Balance: ~A" (+ amount (slot-value wallet 'balance)))))))
-		 
-	      )))
-
-
+			  (:h5 (str (format nil "Wallet Balance: ~A" (+ amount (slot-value wallet 'balance)))))))))))
+	
 (defun update-cust-wallet-balance (amount wallet-id)
   (let* ((wallet (get-cust-wallet-by-id wallet-id (get-login-customer-company)))
 	 (current-balance (slot-value wallet 'balance))

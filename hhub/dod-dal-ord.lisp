@@ -188,6 +188,11 @@
     :void-value "N"
     :initarg :deleted-state)
 
+(comments
+    :accessor comments
+    :type (string 250)
+    :initarg :comments)
+
 
     (tenant-id
     :type integer

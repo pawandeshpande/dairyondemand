@@ -123,11 +123,28 @@ corresponding universal time."
       hashmethod
       (ironclad:ascii-string-to-byte-array msg))))))
 
+(defun hashcalculate (params-alist salt hashmethod)
+  (let* ((msg salt)
+	 (param-names (mapcar (lambda (param) 
+				(car param)) params-alist)))
+    (setf param-names (sort param-names  #'string-lessp))
+    (loop for item in param-names do 
+	 (let* ((key (find item params-alist :test #'equal :key #'car))
+	       (value (cdr key)))
+	   (if (and value (> (length value) 0))
+	   (setf msg (concatenate 'string msg "|" (string-trim " " value))))))
+    (string-upcase (ironclad:byte-array-to-hex-string 
+     (ironclad:digest-sequence
+      hashmethod
+      (ironclad:ascii-string-to-byte-array msg))))))
+  
+
+
 
 (defun responsehashcheck (params-alist salt hashmethod)
   (let* ((received-hash (cdr (find "hash" params-alist :test #'equal :key #'car)))
-	 (params-alist (remove (find "hash" params-alist :test #'equal :key #'car) params-alist))
-	 (newhash (generatehashkey params-alist salt hashmethod)))
+	 (new-params-alist (remove (find "hash" params-alist :test #'equal :key #'car) params-alist))
+	 (newhash (hashcalculate new-params-alist salt hashmethod)))
     (equal newhash received-hash)))
     
 	

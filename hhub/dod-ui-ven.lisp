@@ -3,22 +3,28 @@
 
 (defvar *current-vendor-session* nil)
 
+
+
+(defun dod-controller-vendor-customer-list ()
+  (with-vend-session-check 
+    (let* ((wallets (get-cust-wallets-for-vendor (get-login-vendor) (get-login-vendor-company))))
+      (mapcar (lambda (wallet) 
+			   (get-customer wallet)) wallets))))
+ 
+
   
 
 (defun dod-controller-vendor-order-cancel ()
-(if (is-dod-vend-session-valid?)
+ (with-vend-session-check
   (let* ((id (hunchentoot:parameter "id"))
 	(order (get-order-by-id id (get-login-vendor-company)))
 	(order-id (slot-value order 'row-id)))
     (cancel-order-by-vendor order)
-    (cancel-order-by-vendor (get-vendor-order-instance order-id (get-login-vendor))))
-  ;else
-    (hunchentoot:redirect "/hhub/vendor-login.html")))
- 
+    (cancel-order-by-vendor (get-vendor-order-instance order-id (get-login-vendor))))))
 
 
 (defun dod-controller-vendor-revenue ()
-(if (is-dod-vend-session-valid?)
+(with-vend-session-check
     ;list all the completed orders for Today. 
     (let* ((todaysorders (dod-get-cached-completed-orders-today))
 	  (total (if todaysorders (reduce #'+ (mapcar (lambda (ord) (slot-value ord 'order-amt)) todaysorders)))))
@@ -31,10 +37,9 @@
       (:div :class  "col-xs-12 col-sm-4 col-md-4 col-lg-4"  :align "right" 
 	    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))))
       (:hr)
-      (str (display-as-tiles todaysorders 'vendor-order-card))))
+      (str (display-as-tiles todaysorders 'vendor-order-card))))))
 
-;else
-    (hunchentoot:redirect "/hhub/vendor-login.html")))
+
  
 (defun dod-controller-refresh-pending-orders ()
   (if (is-dod-vend-session-valid?)

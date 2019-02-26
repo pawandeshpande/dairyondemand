@@ -198,7 +198,7 @@
 				      (htm (:td :height "12px" (str (format nil "Rs. ~$ " balance)))))
 				 
 				  (:td :height "12px" 
-				       (:a  :class "btn btn-primary" :role "button" :data-toggle "modal" :href (format nil "/hhub/dasmakepaymentrequest?amount=500&wallet-id=~A" wallet-id)  "500")
+				       (:a  :class "btn btn-primary" :role "button" :data-toggle "modal" :href (format nil "/hhub/dasmakepaymentrequest?amount=20&wallet-id=~A" wallet-id)  "20")
 				   
 					; Recharge 1500 
 				        
@@ -889,7 +889,8 @@
 
 (defun dod-controller-cust-add-order-page ()
     (if (is-dod-cust-session-valid?)
-	(let ((customer-type (get-login-customer-type)))
+	(let ((customer-type (get-login-customer-type))
+	      (paymentmode (hunchentoot:parameter "paymentmode")))
 	      (with-standard-customer-page (:title "Welcome to HighriseHub- Add Customer Order")
 		(:div :class "row" 
 		      (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
@@ -907,9 +908,11 @@
 			     (:div :class "form-group" (:label :for "email" "Email" )
 				   (:input :class "form-control" :type "email" :class "form-control" :name "email" :placeholder "Email" :data-error "That email address is invalid"  :required "true" ))
 			     (:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
-				   (:textarea :class "form-control" :name "shipaddress" :rows "4" :required "true" ))))
+				   (:textarea :class "form-control" :name "shipaddress" :rows "4" :required "true" ))
 			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
-				    (payment-mode-dropdown))
+				    (guest-payment-mode-dropdown paymentmode )))
+			    (htm (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
+				    (payment-mode-dropdown))))
 			     (:input :type "submit"  :class "btn btn-primary" :value "Confirm"))))))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
 
@@ -973,7 +976,19 @@
   (cl-who:with-html-output (*standard-output* nil)
      (htm (:select :class "form-control"  :name "payment-mode"
 		   (if (equal customer-type "STANDARD") (htm (:option :value  "PRE" :selected "true"  (str "Prepaid Wallet"))))
+		  ; (:option :value "OPY" (str "Online Payment"))
 		   (:option :value "COD" (str "Cash On Demand")))))))
+
+
+;; This is payment-mode dropdown
+(defun  guest-payment-mode-dropdown (paymentmode)
+  (cl-who:with-html-output (*standard-output* nil)
+    (:select :class "form-control"  :name "payment-mode"
+	     (if (equal paymentmode "OPY") 
+		 (htm (:option :value "OPY" (str "Online Payment")))
+		 (htm (:option :value "COD" (str "Cash On Demand")))))))
+
+
 
 ;; This is customer/vendor  dropdown
 (defun customer-vendor-dropdown ()
@@ -1056,7 +1071,7 @@
 
 
 (defun com-hhub-transaction-create-order ()
- (if (is-dod-cust-session-valid?)
+ (with-cust-session-check 
    (with-hhub-transaction "com-hhub-transaction-create-order" 
      (let* ((odts (hunchentoot:session-value :login-shopping-cart))
 	    (products (hunchentoot:session-value :login-prd-cache))
@@ -1080,9 +1095,9 @@
 					;(if (equal payment-mode "COD")  
 	 (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode comments cust custcomp)
 	 (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
-	   (setf (hunchentoot:session-value :login-shopping-cart ) nil)
-	   (hunchentoot:redirect "/hhub/dodcustordsuccess"))))
-   (hunchentoot:redirect "/hhub/customer-login.html")))
+	 (setf (hunchentoot:session-value :login-shopping-cart ) nil)
+	 (hunchentoot:redirect "/hhub/dodcustordsuccess"))))))
+  
 
 
 
@@ -1223,7 +1238,7 @@
 
 (defun dod-controller-cust-show-shopcart ()
     :documentation "This is a function to display the shopping cart."
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check 
 	(with-standard-customer-page (:title "My Shopping Cart")
 	    (let* ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
 		   (prd-cache (hunchentoot:session-value :login-prd-cache))
@@ -1241,18 +1256,26 @@
 		     (:hr)
 		     (:div :class "row" 
 			   (:div :class "col-xs-12" :align "right" 
-				 (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))
-			   
-			   (:div :class "col-xs-12" :align "right"
-				 (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage") "Checkout")))
-			   
+				 (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))))
 		     (:hr)
-		     ))
+		     (:div :class "row"
+			   (:div :class "col-xs-12" :align "right"
+				 (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage?paymentmode=OPY") "Online Payment")))
+		     (:div :class "row"
+			   (:div :class "col-xs-12" :align "right" 
+				 (:h5 "OR")))
+		     (:div :class "row"
+			   (:div :class "col-xs-12" :align "right"
+				 (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage?paymentmode=COD") "Cash On Delivery")))
+			   
+			   
+		     (:hr))
+		     )
 					;If condition ends here. 
 		  (htm(:div :class "row" 
 			    (:div :class "col-xs-12" (:span :class "label label-info"  (str (format nil " ~A Items in cart.   " lstcount)))
-				  (:a :class "btn btn-primary" :role "button" :href "dodcustindex" "Shop Now"  )))))))
-	(hunchentoot:redirect  "/hhub/customer-login.html")))
+				  (:a :class "btn btn-primary" :role "button" :href "dodcustindex" "Shop Now"  )))))))))
+
 
 
 

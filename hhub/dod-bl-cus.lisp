@@ -140,6 +140,16 @@
  (progn  (setf (slot-value customer-wallet 'balance) amount)
 	 (clsql:update-record-from-slot customer-wallet 'balance)))
 
+(defun get-cust-wallets-for-vendor (vendor company)
+  (let ((tenant-id (slot-value company 'row-id))
+	(vendor-id (slot-value vendor 'row-id)))
+  (clsql:select 'dod-cust-wallet :where [and
+		[= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[=  [:vendor-id] vendor-id]]
+		:caching *dod-database-caching* :flatp t)))
+
+
 (defun get-cust-wallet-by-vendor (customer vendor company) 
   (let ((tenant-id (slot-value company 'row-id))
 	(cust-id (slot-value customer 'row-id))

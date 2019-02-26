@@ -123,6 +123,15 @@
                           :FOREIGN-KEY row-id
                           :SET nil))
 
+   (all-customers
+    :ACCESSOR get-all-customers
+    :DB-KIND :JOIN
+    :DB-INFO (:JOIN-CLASS dod-cust-profile
+	                  :HOME-KEY cust-id
+                          :FOREIGN-KEY row-id
+                          :SET T))
+
+
  (vendor-id
     :type integer
     :initarg :vendor-id)
