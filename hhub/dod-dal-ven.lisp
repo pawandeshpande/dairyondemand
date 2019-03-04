@@ -7,7 +7,7 @@
     :type integer
     :initarg :row-id)
    (name
-    :accessor vendor-name
+    :accessor name
     :DB-CONSTRAINTS :NOT-NULL
     :TYPE (string 70)
     :INITARG :name)

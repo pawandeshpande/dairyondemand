@@ -1,5 +1,8 @@
 (in-package :dairyondemand)
 
+
+
+
 (defun print-web-session-timeout ()
     (let ((weseti ( get-web-session-timeout)))
 	(if weseti (format t "Session will end at  ~2,'0d:~2,'0d:~2,'0d"
@@ -11,6 +14,10 @@
 	(second minute hour)
 	(decode-universal-time (+ (get-universal-time) hunchentoot:*session-max-time*))
 	(list hour minute second)))
+
+
+
+
 
 
 (defmacro with-cust-session-check (&body body)
@@ -101,6 +108,14 @@ individual tiles. It also supports search functionality by including the searchr
     (:div :id "searchresult")))
 
      
+(defmacro with-html-form ( form-name form-action  &body body) 
+:documentation "Arguments: form-action - the form's action, body - any additional hidden form input elements"  
+`(cl-who:with-html-output (*standard-output* nil) 
+    (:form :id "theForm" :name ,form-name  :method "POST" :action ,form-action :data-toggle "validator" 
+,@body)))
+
+
+
  
 
 (defun copy-hash-table (hash-table)

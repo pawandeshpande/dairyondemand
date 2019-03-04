@@ -8,8 +8,8 @@
 	 (company (get-login-customer-company))
 	 (amount (hunchentoot:parameter "amount"))
 	 (wallet-id (hunchentoot:parameter "wallet-id"))
-	 (wallet (get-cust-wallet-by-id wallet-id company))
-	 (vendor (get-vendor wallet))
+	 (wallet (if wallet-id (get-cust-wallet-by-id wallet-id company)))
+	 (vendor (if wallet (get-vendor wallet)))
 	 (order-id (format nil "hhub~A" (get-universal-time)))
 	 (mode "TEST")
 	 (currency "INR")
@@ -23,7 +23,7 @@
 	 (customer-country "India")
 	 (customer-zipcode (slot-value customer 'zipcode))
 	 (udf1 wallet-id)
-	 (udf2 "not used")
+	 (udf2 customer-type)
 	 (udf3 "not used")
 	 (udf4 "not used")
 	 (udf5 "not used")
@@ -44,7 +44,7 @@
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		  (:h5 (str (format nil "For Vendor: ~A" (slot-value vendor 'name))))
-		  (:h5 (str (format nil "Recharge Amount  ~A. ~A" currency amount))))
+		  (:h5 (str (format nil "Amount  ~A. ~A" currency amount))))
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		  (:div :class "form-group" 
 			  (:input :class "form-control" :type "hidden" :value amount :name "amount") 
@@ -77,6 +77,9 @@
 
 
 
+
+
+
 (defun dod-controller-customer-payment-successful-page ()
  (let* (
 	(transaction-id (hunchentoot:parameter "transaction_id"))
@@ -101,7 +104,7 @@
 	(wallet (get-cust-wallet-by-id udf1 company))
 	(vendor (get-vendor wallet))
 	(payment-api-salt (slot-value vendor 'payment-api-salt))
-	;(udf2 (hunchentoot:parameter "udf2"))
+	(udf2 (hunchentoot:parameter "udf2"))
 	;(udf3 (hunchentoot:parameter "udf3"))
 	;(udf4 (hunchentoot:parameter "udf4"))
 	;(udf5 (hunchentoot:parameter "udf5"))
@@ -125,9 +128,10 @@
  ; (hunchentoot:log-message* :info  (format nil "cal-hash is ~A" calculated-hash ))
   (when (and (equal (parse-integer response-code) 0)
 	 (equal received-hash calculated-hash)) ; (responsehashcheck postparams  payment-api-salt :sha512)
-	 (progn 
+  	
+    (progn 
 	   (create-payment-trans order-id amount currency description (get-login-customer) vendor payment-method transaction-id (parse-integer response-code) response-message error-desc company) 
-	   (update-cust-wallet-balance amount udf1))
+	   (if (equal udf2 "STANDARD") (update-cust-wallet-balance amount udf1)))
 					; Display a success page. 
 	 (standard-customer-page (:title "Payment Successful" ) 
 	      (:div :class "row" 
@@ -144,12 +148,16 @@
 			  (:h5 (str (format nil "Response Message: ~A" response-message))))
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
 			  (:h5 (str (format nil "Payment Date: ~A" payment-datetime)))))
-	      (:div :class "row" 
+	      (if (equal udf2 "STANDARD") (htm (:div :class "row" 
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
 			  (:h5 (str (format nil "Amount recharged: ~A.~A" currency amount))))
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
-			  (:h5 (str (format nil "Wallet Balance: ~A" (+ amount (slot-value wallet 'balance)))))))))))
+			  (:h5 (str (format nil "Wallet Balance: ~A" (+ amount (slot-value wallet 'balance)))))))))))))
 	
+
+ 
+
+
 (defun update-cust-wallet-balance (amount wallet-id)
   (let* ((wallet (get-cust-wallet-by-id wallet-id (get-login-customer-company)))
 	 (current-balance (slot-value wallet 'balance))

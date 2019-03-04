@@ -5,11 +5,135 @@
 
 
 
+(defun modal.vendor-update-details ()
+  (let* ((vendor (get-login-vendor))
+	 (name (name vendor))
+	 (address (address vendor))
+	 (phone  (phone vendor))
+	 (email (email vendor)))
+
+ (cl-who:with-html-output (*standard-output* nil)
+   (:div :class "row" 
+	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+	       (:form :id (format nil "form-customerupdate")  :role "form" :method "POST" :action "hhubvendupdateaction" :enctype "multipart/form-data" 
+					;(:div :class "account-wall"
+		 
+		 (:h1 :class "text-center login-title"  "Update Vendor Details")
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "name" :value name :placeholder "Customer Name" :type "text"))
+		      (:div :class "form-group"
+			    (:label :for "address")
+			    (:textarea :class "form-control" :name "address"  :placeholder "Enter Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str (format nil "~A" address))))
+		      (:div :class "form-group" :id "charcount")
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "phone"  :value phone :placeholder "Phone"  :type "text" ))
+		      
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "email" :value email :placeholder "Email" :type "text"))
+			
+		      (:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+
+(defun dod-controller-vendor-update-action ()
+  (with-vend-session-check 
+    (let* ((name (hunchentoot:parameter "name"))
+	   (address (hunchentoot:parameter "address"))
+	   (phone (hunchentoot:parameter "phone"))
+	   (email (hunchentoot:parameter "email"))
+	   (vendor (get-login-vendor)))
+      (setf (slot-value vendor 'name) name)
+      (setf (slot-value vendor 'address) address)
+      (setf (slot-value vendor 'phone) phone)
+      (setf (slot-value vendor 'email) email)
+      (update-vendor-details vendor)
+      (hunchentoot:redirect "/hhub/dodvendprofile"))))
+
+(defun modal.vendor-update-settings ()
+  (let* ((vendor (get-login-vendor))
+	 (payment-api-key (payment-api-key vendor))
+	 (payment-api-salt (payment-api-salt vendor)))
+	
+    (cl-who:with-html-output (*standard-output* nil)
+      (:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (:form :id (format nil "form-customerupdate")  :role "form" :method "POST" :action "hhubvendupdateaction" :enctype "multipart/form-data" 
+					;(:div :class "account-wall"
+			 
+			 (:h1 :class "text-center login-title"  "Update Vendor Settings")
+			 (:div :class "form-group"
+			       (:label :for "payment-api-key" "Payment API Key")
+			       (:input :class "form-control" :name "payment-api-key" :value payment-api-key :placeholder "Payment API Key" :type "text"))
+			 (:div :class "form-group"
+			       (:label :for "payment-api-salt" "Payment API Salt")
+			       (:input :class "form-control" :name "payment-api-salt"  :value payment-api-salt :placeholder "Payment API Salt"  :type "text" ))
+			 (:div :class "form-group"
+			       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+
+
+(defun dod-controller-vendor-update-settings ()
+  (with-vend-session-check 
+    (let* ((payment-api-key (hunchentoot:parameter "payment-api-key"))
+	   (payment-api-salt (hunchentoot:parameter "payment-api-salt"))
+	   (vendor (get-login-vendor)))
+      (setf (slot-value vendor 'payment-api-key) payment-api-key)
+      (setf (slot-value vendor 'payment-api-salt) payment-api-salt)
+      (update-vendor-details vendor)
+      (hunchentoot:redirect "/hhub/dodvendprofile"))))
+
+
+(defun modal.vendor-change-pin ()
+  (cl-who:with-html-output (*standard-output* nil)
+      (:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (with-html-form "form-vendorchangepin" "hhubvendorchangepin"  
+					;(:div :class "account-wall"
+			 (:h1 :class "text-center login-title"  "Change Password")
+			 (:div :class "form-group"
+			       (:label :for "password" "Password")
+			       (:input :class "form-control" :name "password" :value "" :placeholder "Old Password" :type "password" :required T))
+			 (:div :class "form-group"
+			       (:label :for "newpassword" "New Password")
+			       (:input :class "form-control" :id "newpassword" :data-minlength "8" :name "newpassword" :value "" :placeholder "New Password" :type "password" :required T))
+			 (:div :class "form-group"
+			       (:label :for "confirmpassword" "Confirm New Password")
+			       (:input :class "form-control" :name "confirmpassword" :value "" :data-minlength "8" :placeholder "Confirm New Password" :type "password" :required T :data-match "#newpassword"  :data-match-error "Passwords dont match"  ))
+			 (:div :class "form-group"
+			       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
+
+
+
+
+(defun dod-controller-vendor-change-pin ()
+  (with-vend-session-check 
+    (let* ((password (hunchentoot:parameter "password"))
+	   (newpassword (hunchentoot:parameter "newpassword"))
+	   (confirmpassword (hunchentoot:parameter "confirmpassword"))
+	   (salt-octet (secure-random:bytes 56 secure-random:*generator*))
+	   (salt (flexi-streams:octets-to-string  salt-octet))
+	   (encryptedpass (check&encrypt newpassword confirmpassword salt))
+	   (vendor (get-login-vendor))
+	   (present-salt (if vendor (slot-value vendor 'salt)))
+	   (present-pwd (if vendor (slot-value vendor 'password)))
+	   (password-verified (if vendor  (check-password password present-salt present-pwd))))
+     (cond 
+       ((or
+	 (not password-verified) 
+	 (null encryptedpass)) (dod-response-passwords-do-not-match-error)) 
+       ((and password-verified encryptedpass) (progn 
+       (setf (slot-value vendor 'password) encryptedpass)
+       (setf (slot-value vendor 'salt) salt) 
+       (update-vendor-details vendor)
+       (hunchentoot:redirect "/hhub/dodvendprofile")))))))
+
+
+
 (defun dod-controller-vendor-customer-list ()
   (with-vend-session-check 
-    (let* ((wallets (get-cust-wallets-for-vendor (get-login-vendor) (get-login-vendor-company))))
-      (mapcar (lambda (wallet) 
-			   (get-customer wallet)) wallets))))
+    (let* ((wallets (get-cust-wallets-for-vendor (get-login-vendor) (get-login-vendor-company)))
+	   (customers (mapcar (lambda (wallet) 
+			   (get-customer wallet)) wallets)))
+      (standard-vendor-page (:title "Customers list for vendor") 
+	(str (display-as-table (list "Name" "Mobile" "Email" "Actions") customers 'vendor-customers-card))))))
  
 
   
@@ -328,9 +452,13 @@
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6"
 		    (:a :class "list-group-item" :href "dodsearchcustwalletpage" "My Customers")
 		    (:a :class "list-group-item" :href "dodvendortenants" "My Groups")
-		    (:a :class "list-group-item" :href "#" "Contact Information")
-		    (:a :class "list-group-item" :href "#" "Change PIN")
-		    (:a :class "list-group-item" :href "#" "Settings")))
+		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendupdate-modal")  :href "#"  "Contact Information")
+		    (modal-dialog (format nil "dodvendupdate-modal") "Update Vendor" (modal.vendor-update-details)) 
+		    
+		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendchangepin-modal")  :href "#"  "Change Password")
+		    (modal-dialog (format nil "dodvendchangepin-modal") "Change Password" (modal.change-pin))
+		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendsettings-modal")  :href "#"  "Update Settings")
+		    (modal-dialog (format nil "dodvendsettings-modal") "Update Settings" (modal.vendor-update-settings))))
     (hunchentoot:redirect "/hhub/vendor-login.html")))
 
 

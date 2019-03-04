@@ -3,7 +3,6 @@
 
 
 
-
 (defun modal.customer-update-details ()
   (let* ((customer (get-login-customer))
 	 (name (name customer))
@@ -49,6 +48,49 @@
 
       
 
+(defun modal.customer-change-pin ()
+  (cl-who:with-html-output (*standard-output* nil)
+      (:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (with-html-form "form-customerchangepin" "hhubcustomerchangepin"  
+					;(:div :class "account-wall"
+			 (:h1 :class "text-center login-title"  "Change Password")
+			 (:div :class "form-group"
+			       (:label :for "password" "Password")
+			       (:input :class "form-control" :name "password" :value "" :placeholder "Old Password" :type "password" :required T))
+			 (:div :class "form-group"
+			       (:label :for "newpassword" "New Password")
+			       (:input :class "form-control" :id "newpassword" :data-minlength "8" :name "newpassword" :value "" :placeholder "New Password" :type "password" :required T))
+			 (:div :class "form-group"
+			       (:label :for "confirmpassword" "Confirm New Password")
+			       (:input :class "form-control" :name "confirmpassword" :value "" :data-minlength "8" :placeholder "Confirm New Password" :type "password" :required T :data-match "#newpassword"  :data-match-error "Passwords dont match"  ))
+			 (:div :class "form-group"
+			       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
+
+
+
+(defun dod-controller-customer-change-pin ()
+  (with-vend-session-check 
+    (let* ((password (hunchentoot:parameter "password"))
+	   (newpassword (hunchentoot:parameter "newpassword"))
+	   (confirmpassword (hunchentoot:parameter "confirmpassword"))
+	   (salt-octet (secure-random:bytes 56 secure-random:*generator*))
+	   (salt (flexi-streams:octets-to-string  salt-octet))
+	   (encryptedpass (check&encrypt newpassword confirmpassword salt))
+	   (customer (get-login-customer))
+	   (present-salt (if customer (slot-value customer 'salt)))
+	   (present-pwd (if customer (slot-value customer 'password)))
+	   (password-verified (if customer  (check-password password present-salt present-pwd))))
+     (cond 
+       ((or
+	 (not password-verified) 
+	 (null encryptedpass)) (dod-response-passwords-do-not-match-error)) 
+       ((and password-verified encryptedpass) (progn 
+       (setf (slot-value customer 'password) encryptedpass)
+       (setf (slot-value customer 'salt) salt) 
+       (update-customer customer)
+       (hunchentoot:redirect "/hhub/dodcustprofile")))))))
+
   
 
 (defun dod-controller-customer-profile ()
@@ -59,6 +101,8 @@
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6 col-xs-12"
 	     (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodcustupdate-modal")  :href "#"  "Contact Info")
 	     (modal-dialog (format nil "dodcustupdate-modal") "Update Customer" (modal.customer-update-details)) 
+	     (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodcustchangepin-modal")  :href "#"  "Change Password")
+	     (modal-dialog (format nil "dodcustchangepin-modal") "Change Password" (modal.customer-change-pin)) 
 	     (:a :class "list-group-item" :href "#" "Settings")
 	     (:a :class "list-group-item" :href "https://goo.gl/forms/hI9LIM9ebPSFwOrm1" "Feature Wishlist")
 	     (:a :class "list-group-item" :href "https://goo.gl/forms/3iWb2BczvODhQiWW2" "Report Issues")))
@@ -911,7 +955,9 @@
 				   (:textarea :class "form-control" :name "shipaddress" :rows "4" :required "true" ))
 			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
 				    (guest-payment-mode-dropdown paymentmode )))
-			    (htm (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
+			    ;else
+			    (htm 
+			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
 				    (payment-mode-dropdown))))
 			     (:input :type "submit"  :class "btn btn-primary" :value "Confirm"))))))
 	(hunchentoot:redirect "/hhub/customer-login.html")))
@@ -1092,7 +1138,10 @@
 					; at least one vendor wallet has low balance 
 	      (if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
 								 (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts")))
-					;(if (equal payment-mode "COD")  
+	 (if (equal payment-mode "OPY") 
+	     (let ((wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id))) 
+	       (hunchentoot:redirect (format nil "/hhub/dasmakepaymentrequest?amount=~A&wallet-id=~A" shopcart-total wallet-id)))
+	     )
 	 (create-order-from-shopcart  odts products odate reqdate nil  shipaddr shopcart-total payment-mode comments cust custcomp)
 	 (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	 (setf (hunchentoot:session-value :login-shopping-cart ) nil)

@@ -107,7 +107,7 @@
 					       (:div :class "product-box" (product-card-shopcart product odt)))))      data shopcart ))))
 
 
-(defun ui-list-cust-orderdetails (header data)
+(defun ui-list-cust-orderdetails  (header data)
  (cl-who:with-html-output (*standard-output* nil)
   (:div :class  "panel panel-default"
    (:div :class "panel-heading" "Order Items")
@@ -117,10 +117,12 @@
       (mapcar (lambda (item) (htm (:th (str item)))) header))) 
      (:tbody
       (mapcar (lambda (odt)
-	(let ((odt-product  (get-odt-product odt))
+	(let* ((odt-product  (get-odt-product odt))
 	      (item-id (slot-value odt 'row-id))
 					;(unit-price (slot-value odt 'unit-price))
 	      (ordid (slot-value odt 'order-id))
+	      (order (odt-orderobject odt))
+	      (payment-mode (slot-value order 'payment-mode))
 	      (fulfilled (slot-value odt 'fulfilled))
 	      (status (slot-value odt 'status))
 	      (prd-qty (slot-value odt 'prd-qty)))
@@ -128,7 +130,7 @@
 			    (htm (:td  :height "12px" (str (format nil "Pending")))
 				 (:td  :height "12px" 
 				       (:a  :data-toggle "modal" :data-target (format nil "#orditemedit-modal~A" item-id)  :href "#" (:span :class "glyphicon glyphicon-pencil")) "&nbsp;&nbsp;"
-				       (modal-dialog (format nil "orditemedit-modal~A" item-id) "Order Item Edit" (order-item-edit-popup item-id))
+				       (if (not (equal payment-mode "OPY")) (modal-dialog (format nil "orditemedit-modal~A" item-id) "Order Item Edit" (order-item-edit-popup item-id)))
 				       (:a :onclick "return CancelConfirm();" :href  (format nil "/hhub/doddelcustorditem?id=~A&ord=~A" (slot-value odt 'row-id) ordid) :onclick "return false" (:span :class "glyphicon glyphicon-remove")))))
 			   ((and (equal status "CMP") (equal fulfilled "Y"))  (htm (:td  :height "12px" (str (format nil "Fulfilled"))))))
 		     
