@@ -1,5 +1,7 @@
 (defun compile-hhub-files ()
   (let ((filelist (list 
+"dod-bl-utl.lisp"
+"dod-ui-utl.lisp"
 "dod-bl-bo.lisp" 
 "dod-bl-cmp.lisp"
 "dod-bl-cus.lisp" 
@@ -8,9 +10,9 @@
 "dod-bl-ord.lisp"
 "dod-bl-pay.lisp"
 "dod-bl-pol.lisp"
+"dod-bl-rol.lisp"
 "dod-bl-prd.lisp"
 "dod-bl-usr.lisp"
-"dod-bl-utl.lisp"
 "dod-bl-ven.lisp"
 "dod-bo.lisp"
 "dod-dal-act.lisp"
@@ -45,9 +47,8 @@
 "dod-ui-rol.lisp"
 "dod-ui-sys.lisp"
 "dod-ui-usr.lisp"
-"dod-ui-utl.lisp"
 "dod-ui-ven.lisp"))
 (path "~/dairyondemand/hhub/"))
 
 (mapcar (lambda (file)
-	  (compile-file (concatenate 'string path file))) filelist)))
+	  (load (concatenate 'string path file))) filelist)))

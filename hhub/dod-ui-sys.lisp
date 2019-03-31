@@ -9,7 +9,7 @@
 
 (defun com-hhub-transaction-sadmin-profile ()
  (with-opr-session-check 
-    (with-standard-page (:title "welcome to highrisehub")
+    (with-standard-admin-page (:title "welcome to highrisehub")
        (:h3 "Welcome " (str (format nil "~a" (get-login-user-name))))
        (:hr)
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6 col-xs-12"
@@ -22,7 +22,7 @@
   (let ((batchresult (run-daily-orders-batch 7)))
     (json:encode-json-to-string batchresult)))
 
-(defmacro with-navigation-bar ()
+(defmacro with-admin-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
     `(cl-who:with-html-output (*standard-output* nil)
 	 (:div :class "navbar navbar-default navbar-inverse navbar-static-top"
@@ -44,97 +44,9 @@
 			 (:li :align "center" (:a :href "dodlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
 
 
-(defmacro with-standard-page ( (&key title) &body body)
-  `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
-	 (:html :xmlns "http://www.w3.org/1999/xhtml"
-	     :xml\:lang "en" 
-	     :lang "en"
-	     (:head 
-		 (:meta :http-equiv "Content-Type" 
-		     :content    "text/html;charset=utf-8")
-		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
-		 (:meta :name "description" :content "")
-		 (:meta :name "author" :content "")
-		 (:link :rel "icon" :href "/favicon.ico")
-		 (:title ,title )
-		 (:link :href "/css/style.css" :rel "stylesheet")
-		 (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
-		 (:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")
- 		 (:link :href "/css/theme.css" :rel "stylesheet")
-		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
-		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
-		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
-		 (:script :src "/js/spin.min.js")
-		  (:script :src "https://cdnjs.com/libraries/1000hz-bootstrap-validator")
-		 ) ;; Header completes here.
-	     (:body
-	      (:div :id "dod-main-container"
-		    (:a :href "#" :class "scrollup" :style "display: none;") 
-		    (:div :id "dod-error" (:h2 "Error..."))
-		
-		 (:div :id "busy-indicator")
-		 (:script :src "/js/hhubbusy.js")
-		
-		 (if (is-dod-session-valid?) (with-navigation-bar))
-		 (:div :class "container theme-showcase" :role "main" 
-		     (:div :id "header"	; DOD System header
-			 ,@body))	;container div close
-		 
-		 ;; bootstrap core javascript
-		 (:script :src "/js/bootstrap.min.js")
-		 (:script :src "/js/dod.js"))))))
-   
-
-
-
-
-
-
-
-
-(defmacro test-standard-page ((&key title) &body body)
-  `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
-     (:html :xmlns "http://www.w3.org/1999/xhtml"
-	    :xml\:lang "en" 
-	    :lang "en"
-	    (:head 
-	     (:meta :http-equiv "Content-Type" 
-		    :content    "text/html;charset=utf-8")
-	     (:meta :name "viewport" :content "width=device-width, initial-scale=1")
-	     (:meta :name "description" :content "")
-	     (:meta :name "author" :content "")
-	     (:link :rel "icon" :href "favicon.ico")
-	     (:title ,title )
-	  
-	     (:link :href "css/style.css" :rel "stylesheet")
-	     (:link :href "css/bootstrap.min.css" :rel "stylesheet")
-	     (:link :href "css/bootstrap-theme.min.css" :rel "stylesheet")
-	     
-	     );; Header completes here.
-	    (:body 
-		   (navigation-bar)
-		   (:div :class "container theme-showcase" :role "main" 
-
-			 (:div :id "header"	 ; DOD System header
-			      
-	 
-			       (:table :class "table" 
-				       (:tr (:th "Tenant") (:th "Company") (:th "User"))
-				       (:tr (:td  :height "12px" "000")
-					    (:td  :height "12px" "test comapny")
-					    (:td  :height "12px" "test username")))
-		   
-
-			    					 
-			       ,@body))	;container div close
-		   ;; bootstrap core javascript
-		   (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js")
-	
-		   (:script :src "js/bootstrap.min.js")))))
-
 (defun dod-controller-dbreset-page () 
   :documentation "No longer used now" 
-(with-standard-page (:title "Restart Higirisehub.com")
+(with-standard-admin-page (:title "Restart Higirisehub.com")
   (:div :class "row"
 	(:div :class "col-sm-12 col-md-12 col-lg-12"
 	      (:form :id "restartsiteform" :method "POST" :action "dbresetaction"
@@ -152,7 +64,7 @@
     (if (equal (encrypt  pass "highrisehub.com") *sitepass*)
        (progn  (stop-das) 
 	      (start-das) 
-	      (with-standard-page (:title "Restart Highrisehub.com")
+	      (with-standard-admin-page (:title "Restart Highrisehub.com")
 		(:h3 "DB Reset successful"))))))
 
 
@@ -217,7 +129,7 @@
 (defun dod-controller-abac-security ()
   (with-opr-session-check 
     (let ((policies (get-auth-policies (get-login-tenant-id))))
-      (with-standard-page (:title "Welcome to Highrisehub")
+      (with-standard-admin-page (:title "Welcome to Highrisehub")
 	(:div :class "row" 
 	      (:div :class "col-xs-6" 
 		    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")
@@ -236,7 +148,7 @@
   (with-opr-session-check
     (with-hhub-transaction "com-hhub-transaction-sadmin-home" nil 
       (let (( companies (list-dod-companies)))
-	(with-standard-page (:title "Welcome to Highrisehub.")
+	(with-standard-admin-page (:title "Welcome to Highrisehub.")
 	  (:div :class "container"
 		(:div :id "row"
 		      (:div :id "col-xs-6" 
@@ -259,7 +171,7 @@
 :documentation "List all the business objects"
 (with-opr-session-check 
   (let ((busobjs (select-bus-object-by-company (get-login-company))))
-    (with-standard-page (:title "Business Objects ...")
+    (with-standard-admin-page (:title "Business Objects ...")
       (:div :class "row"
 	    (:div :class "col-md-12" (:h4 "Business Objects")))
       (str (display-as-table (list "Name")  busobjs 'busobj-card))
@@ -271,7 +183,7 @@
 :documentation "List all the business transactions" 
 (with-opr-session-check 
   (let ((bustrans (select-bus-trans-by-company (get-login-company))))
-    (with-standard-page (:title "Business Transactions...")
+    (with-standard-admin-page (:title "Business Transactions...")
       (:div :class "row"
 	    (:div :class "col-md-12" 
 		  (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addtransaction-modal" "New Transaction"))
@@ -284,7 +196,7 @@
 :documentation "This function lists the attributes used in policy making"
  (with-opr-session-check 
    (let ((lstattributes (select-auth-attrs-by-company (get-login-company))))
-     (with-standard-page (:title "attributes ...")
+     (with-standard-admin-page (:title "attributes ...")
        (:div :class "row"
 	     (:div :class "col-md-12" (:h4 "Attributes"))
 	     (:div :class "col-md-12" 
@@ -300,7 +212,7 @@
 	      (if (is-dod-session-valid?)
 		  (hunchentoot:redirect "/hhub/sadminhome")
 		  ;else
-		  (with-standard-page (:title "Welcome to HighriseHub")
+		  (with-standard-admin-page (:title "Welcome to HighriseHub")
 		    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
@@ -417,7 +329,7 @@
 	     (cmpwebsite (if company (slot-value company 'website))) 
 	     (cmpzipcode (if company (slot-value company 'zipcode))))
 
-    (with-standard-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+    (with-standard-admin-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
       (:div :class "row" 
 	 (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 	       (:form :class "form-addcompany" :role "form" :method "POST" :action "company-added" 
@@ -534,7 +446,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadindex" 'com-hhub-transaction-compadmin-home)
 	(hunchentoot:create-regex-dispatcher "^/hhub/cad-login.html" 'com-hhub-transaction-cad-login-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadloginaction" 'com-hhub-transaction-cad-login-action)
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadlogout" 'dod-controller-cadlogout)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadlogout" 'com-hhub-transaction-cad-logout) 
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadprdrejectaction" 'com-hhub-transaction-cad-product-reject-action )
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcadprdapproveaction" 'com-hhub-transaction-cad-product-approve-action)
 	

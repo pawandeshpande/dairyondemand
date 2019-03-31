@@ -47,8 +47,9 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
   :components ((:file "packages")
 	       
 	       	; Util 
+	       (:file "dod-bl-utl" :depends-on ("packages"))
 	       (:file "dod-ui-utl" :depends-on ("packages") )
-	       (:file "dod-bl-utl")
+	  
 	       ; Initial System
 	       (:file "dod-ini-sys" :depends-on ("packages"))
 				
@@ -88,8 +89,10 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
 	       (:file "dod-dal-bo" :depends-on ("packages"))
 	       (:file "dod-bl-bo" :depends-on ("packages"))
 	    
-	      
-	       
+	      ; Role
+	       (:file "dod-ui-rol" :depends-on ("packages"))
+	       (:file "dod-bl-rol" :depends-on ("packages"))
+	       (:file "dod-dal-rol" :depends-on ("packages"))
 					; Vendor
 	       (:file "dod-ui-ven" :depends-on ("packages"))
 	       (:file "dod-bl-ven" :depends-on ("packages"))
@@ -100,5 +103,10 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
 	       (:file "dod-bl-cus" :depends-on ("packages") )
 	       (:file "dod-dal-cus" :depends-on ("packages"))
 	      
+	       ; Payment Transactions 
+	       (:file "dod-ui-pay" :depends-on ("packages"))
+	       (:file "dod-bl-pay" :depends-on ("packages"))
+	       (:file "dod-dal-pay" :depends-on ("packages"))
+	       
 	       ))
 

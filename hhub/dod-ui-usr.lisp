@@ -6,7 +6,7 @@
 (if (is-dod-session-valid?)
    (let* ((tenant-id (hunchentoot:parameter "tenant-id"))
 	 (users (get-users-for-company tenant-id)))
-     (standard-page (:title "List HHUB Users")
+     (with-standard-admin-page (:title "List HHUB Users")
        (:h3 "Users")
        (:a  :data-toggle "modal" :data-target (format nil "#adduser-modal")  :href "#"  (:span :class "glyphicon glyphicon-plus") " Add User")
 	(modal-dialog (format nil "adduser-modal") "Add/Edit Policy" (com-hhub-transaction-edit-user tenant-id "NEW"))

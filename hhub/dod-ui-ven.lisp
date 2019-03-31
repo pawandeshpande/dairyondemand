@@ -10,9 +10,14 @@
 	 (name (name vendor))
 	 (address (address vendor))
 	 (phone  (phone vendor))
-	 (email (email vendor)))
+	 (email (email vendor))
+	 (picture-path (picture-path vendor)))
+
 
  (cl-who:with-html-output (*standard-output* nil)
+   (:div :class "row" :style "align: center"
+   (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-6 image-responsive"
+			  (:img :src  (format nil "~A" picture-path) :height "300" :width "400" :alt name " ")))
    (:div :class "row" 
 	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 	       (:form :id (format nil "form-customerupdate")  :role "form" :method "POST" :action "hhubvendupdateaction" :enctype "multipart/form-data" 
@@ -31,6 +36,9 @@
 		      (:div :class "form-group"
 			    (:input :class "form-control" :name "email" :value email :placeholder "Email" :type "text"))
 			
+		      (:div :class "form-group" (:label :for "prodimage" "Select Picture:")
+			    (:input :class "form-control" :name "picturepath" :placeholder "Picture" :type "file" ))
+		      
 		      (:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
 
@@ -40,13 +48,24 @@
 	   (address (hunchentoot:parameter "address"))
 	   (phone (hunchentoot:parameter "phone"))
 	   (email (hunchentoot:parameter "email"))
-	   (vendor (get-login-vendor)))
+	   (vendor (get-login-vendor))
+	   (prodimageparams (hunchentoot:post-parameter "picturepath"))
+	   (tempfilewithpath (first prodimageparams))
+	   (file-name (format nil "~A-~A" (get-universal-time) (second prodimageparams))))
+     
+      (process-image prodimageparams)
+    
       (setf (slot-value vendor 'name) name)
       (setf (slot-value vendor 'address) address)
       (setf (slot-value vendor 'phone) phone)
       (setf (slot-value vendor 'email) email)
+      (if tempfilewithpath (setf (slot-value vendor 'picture-path) (format nil "/img/~A"  file-name)))
       (update-vendor-details vendor)
       (hunchentoot:redirect "/hhub/dodvendprofile"))))
+
+
+    
+
 
 (defun modal.vendor-update-settings ()
   (let* ((vendor (get-login-vendor))
@@ -261,23 +280,6 @@
 
 
 
-
-(defun ui-list-vendors (header data)
-    (standard-page (:title "List DOD Vendors")
-    (:h3 "Vendors") 
-      (:table :class "table table-striped"  (:thead (:tr
- (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
-								  (mapcar (lambda (vendor)
-									     (htm (:tr (:td  :height "12px" (str (slot-value vendor 'name)))
-										      (:td  :height "12px" (str (slot-value vendor 'address)))
-										      (:td  :height "12px" (str (slot-value vendor 'phone)))
-		    (:td :height "12px" (:a :href  (format nil  "delvendor?id=~A" (slot-value vendor 'row-id)) "Delete"))))) data)))))
-									  
-
-
-
-
-
 (defun dod-controller-vendor-add-product-page ()
   (if (is-dod-vend-session-valid?)
       ;(let ((catglist (get-prod-cat (get-login-vendor-tenant-id))))
@@ -456,7 +458,7 @@
 		    (modal-dialog (format nil "dodvendupdate-modal") "Update Vendor" (modal.vendor-update-details)) 
 		    
 		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendchangepin-modal")  :href "#"  "Change Password")
-		    (modal-dialog (format nil "dodvendchangepin-modal") "Change Password" (modal.change-pin))
+		    (modal-dialog (format nil "dodvendchangepin-modal") "Change Password" (modal.vendor-change-pin))
 		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendsettings-modal")  :href "#"  "Update Settings")
 		    (modal-dialog (format nil "dodvendsettings-modal") "Update Settings" (modal.vendor-update-settings))))
     (hunchentoot:redirect "/hhub/vendor-login.html")))
@@ -839,11 +841,14 @@
 (defun vendor-details-card (vendor-instance)
     (let ((vend-name (slot-value vendor-instance 'name))
 	     (vend-address  (slot-value vendor-instance 'address))
-	     (phone (slot-value vendor-instance 'phone)))
+	     (phone (slot-value vendor-instance 'phone))
+	  (picture-path (slot-value vendor-instance 'picture-path)))
 	(cl-who:with-html-output (*standard-output* nil)
 		(:h4 (str vend-name) )
 	    (:div (str vend-address))
-		(:div  (str phone)))))
+		(:div  (str phone))
+		(:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-6 image-responsive"
+			  (:img :src  (format nil "~A" picture-path) :height "300" :width "400" :alt vend-name " ")))))
 		  
 
 

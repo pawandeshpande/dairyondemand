@@ -70,7 +70,7 @@
 
 
 (defun dod-controller-customer-change-pin ()
-  (with-vend-session-check 
+  (with-cust-session-check 
     (let* ((password (hunchentoot:parameter "password"))
 	   (newpassword (hunchentoot:parameter "newpassword"))
 	   (confirmpassword (hunchentoot:parameter "confirmpassword"))
@@ -94,7 +94,7 @@
   
 
 (defun dod-controller-customer-profile ()
-(if (is-dod-cust-session-valid?)
+(with-cust-session-check
     (with-standard-customer-page (:title "welcome to highrisehub - customer")
        (:h3 "Welcome " (str (format nil "~a" (get-login-cust-name))))
        (:hr)
@@ -106,7 +106,7 @@
 	     (:a :class "list-group-item" :href "#" "Settings")
 	     (:a :class "list-group-item" :href "https://goo.gl/forms/hI9LIM9ebPSFwOrm1" "Feature Wishlist")
 	     (:a :class "list-group-item" :href "https://goo.gl/forms/3iWb2BczvODhQiWW2" "Report Issues")))
-    (hunchentoot:redirect "/hhub/customer-login.html")))
+    ))
 
 
 
@@ -155,13 +155,6 @@
 	    ;else
 	    (hunchentoot:redirect (hunchentoot:redirect "/index.html"))))))
 
-(defun dod-controller-list-customers ()
-    :documentation "a callback function which prints a list of customers in html format."
-    (if (is-dod-session-valid?)
-	(let (( dodcustomers (list-cust-profiles (get-login-company)))
-		 (header (list "name" "address" "phone"  "action")))
-	    (if dodcustomers (ui-list-customers header dodcustomers) "no customers"))
-	(hunchentoot:redirect "/hhub/opr-login.html")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -169,10 +162,10 @@
 
 (defun das-cust-page-with-tiles (displayfunc pagetitle &rest args)
 :documentation "this is a standard higher order function which takes the display function as argument and displays the information"
-(if (is-dod-cust-session-valid?)
+(with-cust-session-check
     (with-standard-customer-page (:title pagetitle) 
     (apply displayfunc args))
-(hunchentoot:redirect "/hhub/customer-login.html")))
+))
 
 
 (defun dod-controller-my-orderprefs ()
@@ -299,7 +292,7 @@
 
 (defun dod-controller-del-opref ()
     :documentation "delete order preference"
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	(let ((ordpref-id (parse-integer (hunchentoot:parameter "id")))
 		     (cust (hunchentoot:session-value :login-customer))
 		 (company (hunchentoot:session-value :login-customer-company)))
@@ -307,14 +300,14 @@
 	    (setf (hunchentoot:session-value :login-cusopf-cache) (get-opreflist-for-customer cust))
 	(hunchentoot:redirect "/hhub/dodcustorderprefs"))
 					;else
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
 
 
 
 
 (defun dod-controller-my-orders ()
     :documentation "a callback function which prints orders for a logged in customer in html format."
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	(with-standard-customer-page (:title "list dod customer orders")   
 	  (:ul :class "nav nav-pills" 
 	       (:li :role "presentation" :class "active" (:a :href "dodmyorders" (:span :class "glyphicon glyphicon-th-list")))
@@ -324,11 +317,11 @@
 	  (let (( dodorders (hunchentoot:session-value :login-cusord-cache))
 		     (header (list  "order no" "order date" "request date"  "actions")))
 	    (if dodorders (ui-list-customer-orders header dodorders) "no orders")))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
 
 
 (defun dod-controller-cust-order-data-json ()
- (if (is-dod-cust-session-valid?)
+ (with-cust-session-check
   (let ((templist '())
 	(appendlist '())
 	(mylist '())
@@ -360,11 +353,11 @@
     (setf mylist (acons "success" 1 mylist))
     (json:encode-json-to-string mylist))
   ;else
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
     
 
 (defun dod-controller-cust-orders-calendar ()
-  (if (is-dod-cust-session-valid?)
+  (with-cust-session-check
   (with-standard-customer-page (:title "list dod customer orders")   
      (:link :href "/css/calendar.css" :rel "stylesheet")
  (:ul :class "nav nav-pills" 
@@ -390,7 +383,7 @@
      (:script :type "text/javascript" :src "/js/calendar.js")
      (:script :type "text/javascript" :src "/js/app.js"))
 ;else
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
 
 
 (defun dod-controller-my-orders1 ()
@@ -406,7 +399,7 @@
 
 
 (defun dod-controller-del-order()
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	    (let* ((order-id (parse-integer (hunchentoot:parameter "id")))
 		  (cust (hunchentoot:session-value :login-customer))
 		  (company (hunchentoot:session-value :login-customer-company))
@@ -416,20 +409,17 @@
 		(setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 		(hunchentoot:redirect "/hhub/dodmyorders"))
 					;else
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
 
 
-(defun dod-controller-vendor-details ()
-    (if (is-dod-cust-session-valid?)
-	(with-standard-customer-page (:title "vendor details")
-	    (let ((vendor (select-vendor-by-id  (hunchentoot:parameter "id") )))
-		(vendor-details-card vendor)))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+(defun modal.vendor-details (id) 
+(let ((vendor (select-vendor-by-id id)))  
+  (vendor-details-card vendor)))
 
 
 
 (defun dod-controller-del-cust-ord-item ()
-  (if (is-dod-cust-session-valid?)
+  (with-cust-session-check
       (let* ((order-id (parse-integer (hunchentoot:parameter "ord")))
 	     (redirect-url (format nil "/hhub/dodmyorderdetails?id=~a" order-id))
 	     (item-id (parse-integer (hunchentoot:parameter "id")))
@@ -461,13 +451,13 @@
 	     
       (hunchentoot:redirect redirect-url))
       ;else
-      (hunchentoot:redirect "/hhub/customer-login.html")))
+      ))
 	    
 
 	    
 
 (defun dod-controller-my-orderdetails ()
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	(with-standard-customer-page (:title "list dod customer orders")   
 	    (let* ((order-id (parse-integer (hunchentoot:parameter "id")))
 		   ( dodorder (get-order-by-id order-id (get-login-cust-company)))
@@ -478,20 +468,9 @@
 		(if odtlst (ui-list-cust-orderdetails header odtlst) "no order details")
 		 (htm (:div :class "row" 
 				(:div :class "col-md-12" :align "right" 
-				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))))			    
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))))))
 
 
-(defun ui-list-customers (header data)
-    (standard-page (:title "list dod customers")
-	(:h3 "customers") 
-	(:table :class "table table-striped"  (:thead (:tr
-							  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
-														       (mapcar (lambda (customer)
-																   (htm (:tr (:td  :height "12px" (str (slot-value customer 'name)))
-																	    (:td  :height "12px" (str (slot-value customer 'address)))
-																	    (:td  :height "12px" (str (slot-value customer 'phone)))
-																    (:td :height "12px" (:a :href  (format nil  "delcustomer?id=~a" (slot-value customer 'row-id)):onclick "return false"  "delete"))))) data)))))
 									  
 
 
@@ -554,47 +533,6 @@
 		       (:ul :class "nav navbar-nav navbar-right"
 			    (:li :align "center" (:a :href "dodcustlogout" (:span :class "glyphicon glyphicon-off")  ))))))))
 
-
-
-(defmacro with-standard-customer-page ((&key title)  &body body)
- `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
-	 (:html :xmlns "http://www.w3.org/1999/xhtml"
-	     :xml\:lang "en" 
-	     :lang "en"
-	     (:head 
-		 (:meta :http-equiv "content-type" 
-		     :content    "text/html;charset=utf-8")
-		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
-		 (:meta :name "description" :content "")
-		 (:meta :name "author" :content "")
-		 (:link :rel "icon" :href "/favicon.ico")
-		 (:title ,title )
-		 (:link :href "/css/style.css" :rel "stylesheet")
-		 (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
-		 (:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")
-		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
-		 (:link :href "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" :rel "stylesheet")
-		 (:link :href "/css/theme.css" :rel "stylesheet")
-		 ;; js files
-		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
-		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
-		 (:script :src "/js/spin.min.js")
-		 (:script :src "https://www.google.com/recaptcha/api.js")
-		 (:script :src "https://cdnjs.com/libraries/1000hz-bootstrap-validator")
-		 ) ;; header completes here.
-	     (:body
-		 (:div :id "dod-main-container"
-		     (:a :href "#" :class "scrollup" :style "display: none;") 
-		 (:div :id "dod-error" (:h2 "error..."))
-		 (:div :id "busy-indicator")
-		 (:script :src "/js/hhubbusy.js")
-		 (if (is-dod-cust-session-valid?) (customer-navigation-bar))
-		 (:div :class "container theme-showcase" :role "main" 
-		   (:div :id "header"  ,@body))
-		       		 ;; rangeslider
-		 ;; bootstrap core javascript
-		 (:script :src "/js/bootstrap.min.js")
-		  (:script :src "/js/dod.js"))))))
 
 ;**********************************************************************************
 ;***************** customer login related functions ******************************
@@ -773,7 +711,7 @@
       (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
 							       (stop-das) 
 							       (start-das)
-							       (hunchentoot:redirect "/hhub/customer-login.html"))))))
+							       )))))
 
  
 			   
@@ -782,24 +720,26 @@
  
 
 
+
 (defun dod-controller-customer-loginpage ()
   (handler-case 
-      (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
-	      (if (is-dod-cust-session-valid?)
-		  (hunchentoot:redirect "/hhub/dodcustindex")
-		  (with-standard-customer-page (:title "Welcome to HighriseHub Platform- Your Demand And Supply destination.")
-		    (:div :class "row" 
-			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
-				(:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin"
-				       (:div :class "account-wall"
-					     (:img :class "profile-img" :src "/img/logo.png" :alt "")
-					     (:h1 :class "text-center login-title"  "Customer - Login to HighriseHub")
-					     (:div :class "form-group"
-						   (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text" ))
-					     (:div :class "form-group"
-						   (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
-					     (:div :class "form-group"
-						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+      (progn  
+	(if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)      
+	(if (is-dod-cust-session-valid?)
+	    (hunchentoot:redirect "/hhub/dodcustindex")
+	    (with-standard-customer-page 
+	      (:div :class "row" 
+		    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
+			  (:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin"
+				 (:div :class "account-wall"
+				       (:img :class "profile-img" :src "/img/logo.png" :alt "")
+				       (:h1 :class "text-center login-title"  "Customer - Login to HighriseHub")
+				       (:div :class "form-group"
+					     (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text" ))
+				       (:div :class "form-group"
+					     (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
+				       (:div :class "form-group"
+					     (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
     (clsql:sql-database-data-error (condition)
       (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
 							       (stop-das) 
@@ -812,8 +752,10 @@
 
 
 
+
+
 (defun dod-controller-cust-add-orderpref-page ()
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	(let* ((prd-id (hunchentoot:parameter "prd-id"))
 	  (productlist (hunchentoot:session-value :login-prd-cache))
 	  (product (search-prd-in-list (parse-integer prd-id) productlist)))
@@ -841,7 +783,7 @@
 			    (:div :class "form-group" 
 			    (:input :type "submit"  :class "btn btn-primary" :value "Add      "))
 			    )))))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
 
 (defun product-qty-edit-html (prd-id)
   (let* ((productlist (hunchentoot:session-value :login-prd-cache))
@@ -932,7 +874,7 @@
 
 
 (defun dod-controller-cust-add-order-page ()
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	(let ((customer-type (get-login-customer-type))
 	      (paymentmode (hunchentoot:parameter "paymentmode")))
 	      (with-standard-customer-page (:title "Welcome to HighriseHub- Add Customer Order")
@@ -941,9 +883,9 @@
 			(:h1 :class "text-center login-title"  "Customer - Add order ")
 			(:form :class "form-order" :role "form" :method "POST" :action "dodmyorderaddaction" :data-toggle "validator"
 			    (:div  :class "form-group" (:label :for "orddate" "Order Date" )
-				(:input :class "form-control" :name "orddate" :value (str (get-date-string (get-date))) :type "text"  :readonly "true"  ))
+				(:input :class "form-control" :name "orddate" :value (str (get-date-string (clsql::get-date))) :type "text"  :readonly "true"  ))
 			    (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
-				(:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (date+ (get-date) (make-duration :day 1))))) :type "text" :value (get-date-string (date+ (get-date) (make-duration :day 1)))))
+				(:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1))))) :type "text" :value (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1)))))
 			    
 			    (if (equal customer-type "GUEST")
 			    (htm 
@@ -960,13 +902,13 @@
 			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
 				    (payment-mode-dropdown))))
 			     (:input :type "submit"  :class "btn btn-primary" :value "Confirm"))))))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
 
 
 
 
 (defun dod-controller-cust-add-order-detail-page ()
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	(with-standard-customer-page (:title "Welcome to HighriseHub- Add Customer Order")
 	    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
 		(:div :class "col-sm-6 col-md-4 col-md-offset-4"
@@ -983,12 +925,12 @@
 			(:div :class "form-group" (:label :for "prdqty" "Product Quantity")
 			    (:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :type "text"))
 			(:input :type "submit"  :class "btn btn-primary" :value "Add      ")))))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
 
 
 
 (defun dod-controller-cust-add-orderpref-action ()
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	(let ((product-id (hunchentoot:parameter "product-id"))
 		 (login-cust (hunchentoot:session-value :login-customer))
 		 (login-cust-comp (hunchentoot:session-value :login-customer-company  ))
@@ -1005,7 +947,7 @@
 		(create-opref login-cust  (select-product-by-id product-id login-cust-comp )  prd-qty  (list subs-mon subs-tue subs-wed subs-thu subs-fri subs-sat subs-sun)  login-cust-comp))
 		(setf (hunchentoot:session-value :login-cusopf-cache) (get-opreflist-for-customer login-cust))
 		(hunchentoot:redirect "/hhub/dodcustorderprefs"))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
 
   
 ;; This is products dropdown
@@ -1053,7 +995,7 @@
 	     do ( htm (:option :value (slot-value company 'row-id) (str (slot-value company 'name)))))))))
 
 (defun dod-controller-low-wallet-balance-for-shopcart ()
-  (if (is-dod-cust-session-valid?)
+  (with-cust-session-check
       (let* ((odts (hunchentoot:session-value :login-shopping-cart))
 	     (vendor-list (get-shopcart-vendorlist odts))
 	     (company (get-login-customer-company)) 
@@ -1070,11 +1012,11 @@
 	(list-customer-low-wallet-balance   wallets order-items-totals)
 	(:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " Modify Cart  ")))
 	
-      (hunchentoot:redirect "/hhub/customer-login.html")))
+      ))
 
 
 (defun dod-controller-low-wallet-balance-for-orderitems ()
-  (if (is-dod-cust-session-valid?)
+  (with-cust-session-check
       (let* ((item-id (hunchentoot:parameter "item-id"))
 	     (prd-qty (parse-integer (hunchentoot:parameter "prd-qty")))
 	     (odts  (list (get-order-item-by-id item-id)))
@@ -1092,13 +1034,13 @@
 	      (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
 		    (:h3 (:span :class "label label-danger" "Low Wallet Balance."))))
 	(list-customer-low-wallet-balance   wallets order-items-totals)))
-      (hunchentoot:redirect "/hhub/customer-login.html")))
+      ))
 
 
 (defun dod-controller-cust-login-as-guest ()
   (let ((tenant-id (hunchentoot:parameter "tenant-id")))
     (unless  ( or (null tenant-id) (zerop (length tenant-id)))
-      (if (equal (dod-cust-login-as-guest :tenant-id tenant-id) NIL) (hunchentoot:redirect "/hhub/customer-login.html") (hunchentoot:redirect  "/hhub/dodcustindex")))))
+      (if (equal (dod-cust-login-as-guest :tenant-id tenant-id) NIL)  (hunchentoot:redirect  "/hhub/dodcustindex")))))
 
 (defun dod-controller-cust-login ()
     (let  ( (phone (hunchentoot:parameter "phone"))
@@ -1108,12 +1050,12 @@
 	    (if (equal (dod-cust-login  :phone phone :password password) NIL) (hunchentoot:redirect "/hhub/customer-login.html") (hunchentoot:redirect  "/hhub/dodcustindex")))))
 
 (defun dod-controller-cust-ordersuccess ()
-    (if (is-dod-cust-session-valid?)
-	(with-standard-customer-page (:title "Welcome to HighriseHub- Add Customer Order")
-	    (:div :class "row"
-		(:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
-		    (htm (:h1 "Your order has been successfully placed"))
-    		    (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorders") " My Orders Page"))))))
+(with-cust-session-check 
+  (with-standard-customer-page (:title "Welcome to HighriseHub- Add Customer Order")
+    (:div :class "row"
+	  (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
+		(htm (:h1 "Your order has been successfully placed"))
+		(:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorders") " My Orders Page"))))))
 
 
 (defun com-hhub-transaction-create-order ()
@@ -1199,7 +1141,7 @@
 
 (defun dod-controller-cust-update-cart ()
     :documentation "update the shopping cart by modifying the product quantity"
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	(let* ((prd-id (hunchentoot:parameter "prd-id"))
 		 (prd-qty (hunchentoot:parameter "nprdqty"))
 		 (myshopcart (hunchentoot:session-value :login-shopping-cart))
@@ -1208,7 +1150,7 @@
 		(setf (slot-value odt 'prd-qty) (parse-integer prd-qty))
 		;(setf (hunchentoot:session-value :login-shopping-cart) (append (list odt)  myshopcart  ))
 		(hunchentoot:redirect "/hhub/dodcustshopcart")))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
 		 
 (defun dod-controller-create-cust-wallet ()
   :documentation "If the customer wallet is not defined, then define it now"
@@ -1218,7 +1160,7 @@
 
 (defun dod-controller-cust-add-to-cart ()
     :documentation "This function is responsible for adding the product and product quantity to the shopping cart."
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	(let* ((prd-id (hunchentoot:parameter "prd-id"))
 	       (prdqty (parse-integer (hunchentoot:parameter "prdqty")))
 	       (productlist (hunchentoot:session-value :login-prd-cache))
@@ -1233,21 +1175,21 @@
 		     (if (length (hunchentoot:session-value :login-shopping-cart)) (hunchentoot:redirect (format nil "/hhub/dodcustindex"))))
 	      ;else 
 	      (hunchentoot:redirect (format nil "/hhub/createcustwallet?vendor-id=~A" vendor-id))))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+	))
 
 
 (defun dod-controller-prd-details-for-customer ()
-    (if (is-dod-cust-session-valid?)
+   (with-cust-session-check 
 	(with-standard-customer-page (:title "Product Details")
 	    (let* ((company (hunchentoot:session-value :login-customer-company))
 		      (lstshopcart (hunchentoot:session-value :login-shopping-cart))
 		      (product (select-product-by-id (parse-integer (hunchentoot:parameter "id")) company)))
-		(product-card-with-details-for-customer product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))
-	(hunchentoot:redirect "/hhub/customer-login.html")))
+		(product-card-with-details-for-customer product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))))
 
 (defun dod-controller-cust-index () 
-  (if (is-dod-cust-session-valid?)
-   (let ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
+ (with-cust-session-check
+   (let* ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
+	 (lstcount (length lstshopcart))
 	 (lstproducts (hunchentoot:session-value :login-prd-cache)))
 					;(sleep 5)
      (with-standard-customer-page (:title "Welcome to HighriseHub - customer")
@@ -1259,78 +1201,81 @@
 				(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Go!" ))))
 					; Display the My Cart button. 
 		    (:div :class "col-lg-6 col-md-6 col-sm-6" :align "right"
-			  (:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))))))))
+			  (:a :class "btn btn-primary" :role "button" :href "dodcustshopcart"  (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (str (format nil " ~A " lstcount)))))))
        (:hr)       
-       
-       (str(ui-list-customer-products lstproducts lstshopcart))))
-   (hunchentoot:redirect "/hhub/customer-login.html")))
+       (str(ui-list-customer-products lstproducts lstshopcart))))))
+
 
 
 (defun dod-controller-customer-products ()
 :documentation "This function lists the customer products by category"
-    (if (is-dod-cust-session-valid?)
+ (with-cust-session-check
 	(with-standard-customer-page (:title "Products ...")
     (let* ((catg-id (hunchentoot:parameter "id"))
       (company (hunchentoot:session-value :login-customer-company))
       (lstshopcart (hunchentoot:session-value :login-shopping-cart))
       (lstproducts (select-products-by-category catg-id company)))
-
-(htm (:div :class "row"
-	   (:div :class "col-md-12" :align "right"
-		 (:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))) ))))
-		    (:hr))		       
-(ui-list-customer-products lstproducts lstshopcart)))
-(hunchentoot:redirect "/hhub/customer-login.html")))
-
- 
+      (htm (:div :class "row"
+		 (:div :class "col-md-12" :align "right"
+		       (:a :class "btn btn-primary" :role "button" :href "dodcustshopcart" (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (str (format nil " ~A " (length lstshopcart))) ))))
+	   (:hr))		       
+      (ui-list-customer-products lstproducts lstshopcart)))))
     
 
 (defun dod-controller-cust-show-shopcart ()
     :documentation "This is a function to display the shopping cart."
     (with-cust-session-check 
-	(with-standard-customer-page (:title "My Shopping Cart")
-	    (let* ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
-		   (prd-cache (hunchentoot:session-value :login-prd-cache))
-		   (lstcount (length lstshopcart))
-		   (total  (get-shop-cart-total) ))
-	      (if (> lstcount 0)
-		  (let ((products (mapcar (lambda (odt)
-					    (let ((prd-id (slot-value odt 'prd-id)))
-					      (search-prd-in-list prd-id prd-cache ))) lstshopcart))) ; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
+	(let* ((lstshopcart (hunchentoot:session-value :login-shopping-cart))
+	       (lstcount (length lstshopcart))
+	       (prd-cache (hunchentoot:session-value :login-prd-cache))
+	       (cust-type (get-login-customer-type)) 
+	       (total  (get-shop-cart-total))
+	       (products (mapcar (lambda (odt)
+				   (let ((prd-id (slot-value odt 'prd-id)))
+				     (search-prd-in-list prd-id prd-cache ))) lstshopcart)))
+	  (if (> lstcount 0)
+	      (with-standard-customer-page (:title "My Shopping Cart")
+	    				; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
 					; This function is responsible for displaying the shopping cart. 
-		    (htm(:div :class "rowfluid"
+	   (:div :class "rowfluid"
 			      (:div :class "col-xs-12" 
-				    (ui-list-shop-cart products lstshopcart))))
-		    (htm
-		     (:hr)
-		     (:div :class "row" 
-			   (:div :class "col-xs-12" :align "right" 
+				    (str (ui-list-shop-cart products lstshopcart))))
+	  (:hr)
+	  (:div :class "row" 
+		(:div :class "col-xs-12" :align "right" 
 				 (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))))
-		     (:hr)
-		     (:div :class "row"
-			   (:div :class "col-xs-12" :align "right"
-				 (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage?paymentmode=OPY") "Online Payment")))
-		     (:div :class "row"
-			   (:div :class "col-xs-12" :align "right" 
-				 (:h5 "OR")))
-		     (:div :class "row"
-			   (:div :class "col-xs-12" :align "right"
-				 (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage?paymentmode=COD") "Cash On Delivery")))
-			   
-			   
-		     (:hr))
-		     )
-					;If condition ends here. 
-		  (htm(:div :class "row" 
-			    (:div :class "col-xs-12" (:span :class "label label-info"  (str (format nil " ~A Items in cart.   " lstcount)))
-				  (:a :class "btn btn-primary" :role "button" :href "dodcustindex" "Shop Now"  )))))))))
+	  (:hr)
+	  (if (equal cust-type "STANDARD") 
+	      (htm 
+	       (:div :class "row"
+		     (:div :class "col-xs-12" :align "right"
+			   (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage?paymentmode=PRE") "Checkout"))))
+			 ;else
+	      (htm 
+	       (:div :class "row"
+		     (:div :class "col-xs-12" :align "right"
+			   (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage?paymentmode=OPY") "Online Payment")))
+	       (:div :class "row"
+		     (:div :class "col-xs-12" :align "right" 
+			   (:h5 "OR")))
+	       (:div :class "row"
+		     (:div :class "col-xs-12" :align "right"
+			   (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage?paymentmode=COD") "Cash On Delivery")))))
+	  (:hr))
+	      (with-standard-customer-page (:title "My Shopping Cart")
+		(:div :class "row"
+		      (:div :class "col-xs-12"
+			    (:h4 (str (format nil "~A items in shopping cart" lstcount))) 
+			    (:a :class "btn btn-primary" :onclick "window.history.back();"  :role "button" :href "#"  (:span :class "glyphicon glyphicon-arrow-left")  )))))
+			    )))
 
+   
 
 
 
 (defun dod-controller-remove-shopcart-item ()
     :documentation "This is a function to remove an item from shopping cart."
-    (if (is-dod-cust-session-valid?)
+    (with-cust-session-check
 	(let ((action (hunchentoot:parameter "action"))
 		 (prd-id (parse-integer (hunchentoot:parameter "id")))
 		 (myshopcart (hunchentoot:session-value :login-shopping-cart)))

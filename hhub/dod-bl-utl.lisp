@@ -1,7 +1,15 @@
 ;; -*- mode: common-lisp; coding: utf-8 -*-
-(in-package :dairyondemand)
+(in-package :hhub)
 
  
+(defun process-image (image)
+ (let* ((tempfilewithpath (first image))
+       (file-name (format nil "~A-~A" (get-universal-time) (second image))))
+   (if tempfilewithpath 
+	(progn 
+	  (probe-file tempfilewithpath)
+	  (rename-file tempfilewithpath (make-pathname :directory *HHUBRESOURCESDIR*  :name file-name))))
+file-name))
 
 
 (defun get-ht-val (key hash-table)
@@ -76,36 +84,6 @@ corresponding universal time."
 
 (defun get-unix-time ()
   (universal-to-unix-time (get-universal-time)))
-
-
-(defun test-alist ( amount salt )
-  (let* (
-	 (description "This is test description")
-	 (order-id "testorder1234")
-	 (mode "TEST")
-	 (currency "INR")
-	 (customer-name "Test customer")
-	 (customer-email "pawan.deshpande@gmail.com")
-	 (customer-phone "+919972022281")
-	 (customer-city "Bangalore")
-	 (customer-country "India")
-	 (customer-zipcode "560096")
-	 (return-url "http://www.highrisehub.com/hhub/paymentsuccessful")
-	 (msg (concatenate 'string  salt ""))
-	 (param-names (list "amount" "api_key" "city" "country" "currency" "description" "email" "mode" "name" "order_id" "phone" "return_url" "zip_code"))
-	 (param-values (list amount *PAYMENTAPIKEY* customer-city customer-country currency description customer-email mode customer-name order-id  customer-phone return-url customer-zipcode))
-	 (params-alist (pairlis param-names param-values)))
-	
-    
-
-
-
-    (setf param-names (sort param-names  #'string-lessp))
-    
-    (loop for item in param-names do 
-	 (let ((str (find item params-alist :test #'equal :key #'car )))
-	   (setf msg (concatenate 'string msg  "|" (cdr str)))))
-    msg))
 
     
 

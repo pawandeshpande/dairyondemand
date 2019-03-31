@@ -1,6 +1,11 @@
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
+(defmacro with-hhub-policy (&optional transaction params &body body) 
+  `(let ((rolename (com-hhub-attribute-role-name)) 
+	 (transbo (get-bus-tran-busobject transaction) ))))
+
+
 (defun com-hhub-policy-cad-login-page (&optional transaction params)
 :documentation "Company Administrator login page is open to all. This policy is dummy as the request is initiated by the Browser."
 T)
@@ -270,7 +275,7 @@ T)
   (let* ((trans-id (hunchentoot:parameter "trans-id"))
 	 (transaction (get-bus-transaction trans-id))
 	 (policy (get-bus-tran-policy transaction)))
-  (standard-page (:title "Link Transaction To Policy")  
+  (with-standard-admin-page (:title "Link Transaction To Policy")  
     (:div :class "row" 
 	  (:div :class "col-xs-12" 
 		(:h4 (str (format nil "Transaction:   ~A" (slot-value transaction 'name))))))

@@ -2,35 +2,6 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
-;(defun dod-controller-list-products ()
- ;   (if (is-dod-session-valid?)
-;	(let ((prd-ini (initialize-products (get-login-company))) ; This will initialize all the; functions required for products
-;		 ( dodproducts (select-products-by-company))
-;		 (header (list  "Name" "Vendor" "Quantity Per Unit" "Unit Price")))
-;	    (if dodproducts (ui-list-products header dodproducts) "No Products"))
-;	(hunchentoot:redirect "/login")))
-
-
-
-
-(defun ui-list-products (header data)
-    (standard-page (:title "List DOD Products")
-	(:h3 "Products") 
-	(:table :class "table table-striped"  (:thead (:tr
-							  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
-														       (mapcar (lambda (product)
-																   (let ((prd-vendor  (product-vendor product)))
-																       (htm (:tr 
-																		(:td  :height "12px" (str (slot-value product 'prd-name)))
-																		(:td  :height "12px" (str (slot-value prd-vendor 'name)))
-																		(:td  :height "12px" (str (slot-value product  'qty-per-unit)))
-																		(:td  :height "12px" (str (slot-value product 'unit-price)))
-	     
-																		(:td :height "12px" (:a :href  (format nil  "delproduct?id=~A" (slot-value product 'row-id)):onclick "return false" "Delete")
-																		    (:a :href (format nil  "editproduct?id=~A" (slot-value product 'row-id)) :onclick "return false"  "Edit")
-		 
-																		    ))))) data)))))
-
 (defun ui-list-prod-catg-dropdown (name catglist)
   (cl-who:with-html-output (*standard-output* nil)
     (htm (:select :class "form-control"  :name name  
@@ -75,8 +46,8 @@
 	   (prd-vendor (product-vendor product-instance)))
 
       (cl-who:with-html-output (*standard-output* nil)
-	    (:form :class "form-shopcart"  :method "POST" :action "dodcustupdatecart" 
-		   (:div :class "row"
+	(with-html-form "form-shopcart" "dodcustupdatecart"    
+	  (:div :class "row"
 			 (:div  :class "col-xs-6" (:a :href "#" (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
 		    			;Remove button.
 			 (:div :class "col-xs-6" :align "right"
@@ -85,7 +56,7 @@
 		   (:div :class "row"
 			 (:div :class "col-xs-12"
 			       (:h5 :class "product-name"  (str prd-name) )
-			       (:p  (str (format nil "  ~A. Fulfilled By: ~A" qty-per-unit (vendor-name prd-vendor)))))
+			       (:p  (str (format nil "  ~A. Fulfilled By: ~A" qty-per-unit (name prd-vendor)))))
 			 (:div :class "row"
 			 (:div :class "col-sm-12"
 			       (:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$ X ~A = Rs. ~$"  unit-price prdqty subtotal))))))))))))
@@ -354,14 +325,15 @@
 )))
 
 (defun product-card-with-details-for-customer (product-instance prdincart-p)
-    (let ((prd-name (slot-value product-instance 'prd-name))
+    (let* ((prd-name (slot-value product-instance 'prd-name))
 	  (qty-per-unit (slot-value product-instance 'qty-per-unit))
 	  ;(units-in-stock (slot-value product-instance 'units-in-stock))
 	  (unit-price (slot-value product-instance 'unit-price))
 	  (description (slot-value product-instance 'description))
 	  (prd-image-path (slot-value product-instance 'prd-image-path))
 	  (prd-id (slot-value product-instance 'row-id))
-	  (prd-vendor (product-vendor product-instance)))
+	  (prd-vendor (product-vendor product-instance))
+	  (vendor-id (slot-value prd-vendor 'row-id)))
       (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "container"
 	      (:div :class "row"
@@ -371,7 +343,9 @@
 		    (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-6"
 			  (:h1  (str prd-name))
 			  (:div (str qty-per-unit))
-			  (:div (str (format nil "Supplier - "))  (:a :href (format nil  "dodvendordetails?id=~A" (slot-value prd-vendor 'row-id)) (str (vendor-name prd-vendor))))
+			  (:button :data-toggle "modal" :data-target (format nil "#vendordetails-modal~A" vendor-id)  :href "#"   :class "btn btn-sm btn-primary" :name "btnvendormodal" (str (name prd-vendor)))  
+			  (modal-dialog (format nil "vendordetails-modal~A" vendor-id) (str (format nil "Vendor Details")) (modal.vendor-details vendor-id))
+			 ; (:div (str (format nil "Supplier - "))  (:a :href (format nil  "dodvendordetails?id=~A" (slot-value prd-vendor 'row-id)) (str (name prd-vendor))))
 			  (:hr)
 			  (:div  (:h2 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))) ))
 			  (:hr)
@@ -393,22 +367,20 @@
 	  (unit-price (slot-value product-instance 'unit-price))
 	  (description (slot-value product-instance 'description))   
 	  (prd-image-path (slot-value product-instance 'prd-image-path)))
-	     
-
-	(cl-who:with-html-output (*standard-output* nil)
-	    (:div :class "container"
-		(:div :class "row"
-		    ; Product image only here
+      (cl-who:with-html-output (*standard-output* nil)
+	(:div :class "container"
+	      (:div :class "row"
+					; Product image only here
 		    (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-6 image-responsive"
-(:img :src  (format nil "~A" prd-image-path) :height "300" :width "400" :alt prd-name " "))
-(:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-6"
-    	    (:form :class "form-product" :method "POST" :action "dodcustaddtocart" 
-		(:h1  (str prd-name))
-		(:div (str qty-per-unit))
+			  (:img :src  (format nil "~A" prd-image-path) :height "300" :width "400" :alt prd-name " "))
+		    (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-6"
+			  (:form :class "form-product" :method "POST" :action "dodcustaddtocart" 
+				 (:h1  (str prd-name))
+				 (:div (str qty-per-unit))
 		
-		(:hr)
-		(:div  (:h2 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))) ))
-		(:hr)
-				(:div (:h4 (str description)))
+				 (:hr)
+				 (:div  (:h2 (:span :class "label label-default" (str (format nil "Rs. ~$"  unit-price))) ))
+				 (:hr)
+				 (:div (:h4 (str description)))
 		)))))))
 

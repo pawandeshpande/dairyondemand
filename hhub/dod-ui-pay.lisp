@@ -39,7 +39,7 @@
 	 
     (setf (hunchentoot:session-value :payment-hash ) hash)
     					;do something
-    (standard-customer-page (:title "Payment Request")
+    (with-standard-customer-page (:title "Payment Request")
       (:form :class "form-makepaymentrequest" :role "form" :method "POST" :action "https://biz.traknpay.in/v2/paymentrequest"
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
@@ -133,7 +133,7 @@
 	   (create-payment-trans order-id amount currency description (get-login-customer) vendor payment-method transaction-id (parse-integer response-code) response-message error-desc company) 
 	   (if (equal udf2 "STANDARD") (update-cust-wallet-balance amount udf1)))
 					; Display a success page. 
-	 (standard-customer-page (:title "Payment Successful" ) 
+	 (with-standard-customer-page (:title "Payment Successful" ) 
 	      (:div :class "row" 
 		    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 			  (:h4 (str (format nil "Payment Successful for vendor: ~A" (slot-value vendor 'name))))))
@@ -167,7 +167,7 @@
 
 (defun dod-controller-customer-payment-failure-page ()
   (if (is-dod-cust-session-valid?)
-      (standard-customer-page (:title "Payment Failure! " ) 
+      (with-standard-customer-page (:title "Payment Failure! " ) 
 	(:div :class "row" 
 	      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		    (:h4 "Payment Failure! Please contact your System Administrator or try after some time."))))
@@ -177,7 +177,7 @@
 
 (defun dod-controller-customer-payment-cancel-page ()
   (if (is-dod-cust-session-valid?)
-      (standard-customer-page (:title "Payment Cancelled! " ) 
+      (with-standard-customer-page (:title "Payment Cancelled! " ) 
 	(:div :class "row" 
 	      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		    (:h4 "Payment Cancelled."))))

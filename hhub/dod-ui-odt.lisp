@@ -92,7 +92,7 @@
 
 (defun ui-list-shop-cart (data shopcart)
     :documentation "A function used for rendering the shopping cart data in HTML format."
-    (cl-who:with-html-output (*standard-output* nil)
+    (cl-who:with-html-output-to-string (*standard-output* nil)
 					; Header section.
 	      (:div :class "row"
 		  (:div :class "col-xs-6" 

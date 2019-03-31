@@ -14,7 +14,9 @@
 (defvar *crm-database-password* "TESTCRMCORE"
   "The password if required")
 (defvar *dod-dbconn-spec* (list *crm-database-server* *crm-database-name* *crm-database-user* *crm-database-password*))
-(setf *DB-POOL-MAX-FREE-CONNECTIONS* NIL) 
+
+
+
 (defvar *dod-db-instance*)
 (defvar *sitepass* (encrypt "P@ssword1" "highrisehub.com"))
 (defvar *current-customer-session* nil) 
@@ -44,6 +46,19 @@
 (defvar *HHUBOPRLOGINPAGEURL* "/hhub/opr-login.html")
 (defvar *HHUBCADLOGINPAGEURL* "/hhub/cad-login.html")
 
+;;;;;;;;;; AWS SMTP SETTINGS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defvar *HHUBSMTPSENDER*  "no-reply@highrisehub.com") 
+(defvar *HHUBSMTPFROMNAME*  "HighriseHub Sender")
+(defvar *HHUBSMTPUSERNAME* "AKIAI4YZOOXBMYZHZKXA")
+(defvar *HHUBSMTPPASSWORD*  "BPeNDvQUy81CZ78B08B35lECx+Ku43lVYqHRopXNlSPh")
+(defvar *HHUBSMTPSERVER* "email-smtp.us-east-1.amazonaws.com")
+(defvar *HHUBSMTPTESTSENDER*  "Testuser@highrisehub.com")
+(defvar *HHUBSMTPTESTFROMNAME*  "HighriseHub Test Sender")
+(defvar *HHUBSMTPPORT*  25)
+(defvar *HHUBAWSACCESSKEY* "AKIAJAUPAEVV6S7DS33Q")
+(defvar *HHUBAWSACCESSSECRET* "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")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (defun set-customer-page-title (name)
