@@ -3,7 +3,7 @@
 
 (defmacro with-hhub-policy (&optional transaction params &body body) 
   `(let ((rolename (com-hhub-attribute-role-name)) 
-	 (transbo (get-bus-tran-busobject transaction) ))))
+	 (transbo (get-bus-tran-busobject transaction)))))
 
 
 (defun com-hhub-policy-cad-login-page (&optional transaction params)

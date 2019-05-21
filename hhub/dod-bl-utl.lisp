@@ -1,6 +1,20 @@
 ;; -*- mode: common-lisp; coding: utf-8 -*-
 (in-package :hhub)
 
+(defun hhub-read-file (filename)
+ :documentation "Reads a file and returns a string"
+  (with-open-file (stream filename)
+    (let ((contents (make-string (file-length stream))))
+      (read-sequence contents stream)
+      contents)))
+
+(defun hhub-write-file-for-css-inlining (contents) 
+  (with-open-file (str "/data/www/highrisehub.com/public/emailtemplate.html"
+                     :direction :output
+                     :if-exists :supersede
+                     :if-does-not-exist :create)
+  (format str "~A" contents)))
+
  
 (defun process-image (image)
  (let* ((tempfilewithpath (first image))

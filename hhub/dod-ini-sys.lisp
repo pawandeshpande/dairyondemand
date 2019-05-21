@@ -16,6 +16,10 @@
 (defvar *dod-dbconn-spec* (list *crm-database-server* *crm-database-name* *crm-database-user* *crm-database-password*))
 
 
+(defvar *HHUB-EMAIL-CSS-FILE* "/data/www/highrisehub.com/public/css")
+(defvar *HHUB-EMAIL-CSS-CONTENTS* NIL)
+(defvar *HHUB-EMAIL-TEMPLATES-FOLDER* "~/dairyondemand/hhub/email/templates")
+(defvar *HHUB-CUST-REG-TEMPLATE-FILE* "cust-reg.html")
 
 (defvar *dod-db-instance*)
 (defvar *sitepass* (encrypt "P@ssword1" "highrisehub.com"))

@@ -98,6 +98,7 @@
 						    :zipcode zipcode
 						    :tenant-id tenant-id
 						    :cust-type "STANDARD"
+						    :active-flag "N"
 						    :deleted-state "N"))))
  
 

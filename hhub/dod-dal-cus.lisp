@@ -87,6 +87,12 @@
     :type (string 50)
     :initarg :cust-type)
 
+   
+   (active-flag
+    :type (string 1)
+    :void-value "N"
+       :initarg :active-flag)
+
 
 
     (tenant-id

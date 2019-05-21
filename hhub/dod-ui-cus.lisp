@@ -702,7 +702,7 @@
 			    (:div :class "input-group col-md-12"
 				  (:form :id "theForm" :action "companysearchaction" :OnSubmit "return false;" 
 					 (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Search for an Apartment/Group"))
-				  (:span :class "input-group-btn" (:<button :class "btn btn-danger" :type "button" 
+				  (:span :class "input-group-btn" (:button :class "btn btn-danger" :type "button" 
 									    (:span :class " glyphicon glyphicon-search"))))))
 
 		(:div :id "searchresult")))
@@ -717,8 +717,16 @@
 			   
 
 
- 
-
+(defun modal.customer-forgot-password() 
+  (cl-who:with-html-output (*standard-output* nil)
+    (:div :class "row" 
+	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		(:form :id (format nil "form-customerforgotpass")  :role "form" :method "POST" :action "hhubcustforgotpassaction" :enctype "multipart/form-data" 
+		      (:h1 :class "text-center login-title"  "Forgot Password")
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "text"))
+		      (:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Send Email")))))))
 
 
 (defun dod-controller-customer-loginpage ()
@@ -730,16 +738,22 @@
 	    (with-standard-customer-page 
 	      (:div :class "row" 
 		    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
-			  (:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin"
-				 (:div :class "account-wall"
-				       (:img :class "profile-img" :src "/img/logo.png" :alt "")
+			   (:div :class "account-wall"
+				 (:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin"
+					(:img :class "profile-img" :src "/img/logo.png" :alt "")
 				       (:h1 :class "text-center login-title"  "Customer - Login to HighriseHub")
 				       (:div :class "form-group"
 					     (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text" ))
 				       (:div :class "form-group"
 					     (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
 				       (:div :class "form-group"
-					     (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+					     (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))
+				       
+				       (:div :class "form-group"
+					     (:a :data-toggle "modal" :data-target (format nil "#dascustforgotpass-modal")  :href "#"  "Forgot Password?"))
+				       (modal-dialog (format nil "dascustforgotpass-modal") "Forgot Password?" (modal.customer-forgot-password))
+
+				       ))))))  
     (clsql:sql-database-data-error (condition)
       (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
 							       (stop-das) 

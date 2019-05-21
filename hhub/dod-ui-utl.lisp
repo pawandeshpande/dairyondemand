@@ -1,46 +1,44 @@
 (in-package :hhub)
 
 (defun hhubsendmail (to subject body &optional attachments-list)
-  (cl-smtp:send-email *HHUBSMTPSERVER*
+(let ((username *HHUBSMTPUSERNAME*) 
+      (password  *HHUBSMTPPASSWORD*))  
+
+ (cl-smtp:send-email *HHUBSMTPSERVER*
   *HHUBSMTPSENDER* to 
-  subject body 
-  :authentication '(*HHUBSMTPUSERNAME* *HHUBSMTPPASSWORD*) 
-  :ssl 
+  subject "Ok, the HTML version of this email is totally impressive. Just trust me on this." 
+  :authentication (list :login username password) 
+  :ssl
   :tls
-  :attachments attachments-list))
+  :html-message body
+  :display-name subject
+  :attachments attachments-list)))
+
+
 
 (defun hhubsendmail-test (to subject body &optional attachments-list)
 (let ((username *HHUBSMTPUSERNAME*) 
       (password  *HHUBSMTPPASSWORD*)) 
   (cl-smtp:send-email *HHUBSMTPSERVER*
 		      *HHUBSMTPTESTSENDER* to 
-		      subject body 
+		      subject "Ok, the HTML version of this email is totally impressive. Just trust me on this." 
 		      :authentication (list :login username password) 
 		      :ssl
 		      :tls
-		      ;:html-message (with-html-email (:title subject) body) 
+		      :html-message body
 		      :display-name subject
 		      :attachments attachments-list)))
 
 
 
 
-(defmacro with-html-email ((&key title) &body body)
+(defmacro with-html-email ( &body body)
  `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
-	 (:html  :xmlns "http://www.w3.org/1999/xhtml"
-	     :xml\:lang "en" 
-	     :lang "en"
-	     (:head 
-		 (:meta :http-equiv "content-type" 
-		     :content    "text/html;charset=utf-8")
-		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
-		 (:meta :names "description" :content "")
-		 (:meta :name "author" :content "")
-		 (:link :rel "icon" :href "/favicon.ico")
-		 (:title ,title ))
-		 (:body
-		  (:p
-			,@body)))))
+    (:html 
+     (:body
+       (:img :class "profile-img" :src "https://highrisehub.com/img/logo.png" :alt "Welcome to Highrisehub.com")
+       (:p
+	,@body)))))
 
 
 (defmacro with-standard-page-template ((&key title nav-func)  &body body)

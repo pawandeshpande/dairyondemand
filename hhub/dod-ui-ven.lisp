@@ -353,7 +353,23 @@
 					;else
    (hunchentoot:redirect "/hhub/vendor-login.html")))
 
+
+(defun hhub-cust-forgot-pass-action ()
+
+  ) 
+
+
     
+(defun modal.vendor-forgot-password() 
+  (cl-who:with-html-output (*standard-output* nil)
+    (:div :class "row" 
+	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		(:form :id (format nil "form-customerforgotpass")  :role "form" :method "POST" :action "hhubvendforgotpassaction" :enctype "multipart/form-data" 
+		      (:h1 :class "text-center login-title"  "Forgot Password")
+		      (:div :class "form-group"
+			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "text"))
+		      (:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Send Email")))))))
 
 
 (defun dod-controller-vendor-loginpage ()
@@ -364,8 +380,8 @@
 		  (standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
 		    (:div :class "row" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
-				(:form :class "form-vendorsignin" :role "form" :method "POST" :action "dodvendlogin"
-				       (:div :class "account-wall"
+				(:div :class "account-wall"
+					     (:form :class "form-vendorsignin" :role "form" :method "POST" :action "dodvendlogin"
 					     (:img :class "profile-img" :src "/img/logo.png" :alt "")
 					     (:h1 :class "text-center login-title"  "Vendor - Login to DAS")
 					     (:div :class "form-group"
@@ -373,7 +389,13 @@
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
 					     (:div :class "form-group"
-						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))
+					     
+					     (:div :class "form-group"
+						   (:a :data-toggle "modal" :data-target (format nil "#dasvendforgotpass-modal")  :href "#"  "Forgot Password?"))
+					     (modal-dialog (format nil "dasvendforgotpass-modal") "Forgot Password?" (modal.vendor-forgot-password))
+
+					     ))))))
 	      (clsql:sql-database-data-error (condition)
 					     (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
 												      (stop-das) 
