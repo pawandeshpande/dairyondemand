@@ -34,8 +34,6 @@
 (defvar *ABAC-ATTRIBUTE-FUNC-PREFIX* "com-hhub-attribute-")
 (defvar *ABAC-POLICY-FUNC-PREFIX* "com-hhub-policy-")
 (defvar *ABAC-TRANSACTION-FUNC-PREFIX* "com-hhub-transaction-")
-(defvar *DEMOPAYMENTAPIKEY "9f64df72-0b21-4c7e-b9f3-19b9fb34dce6")
-(defvar *DEMOPAYMENTAPISALT "531337f97ac843613e9a191a4c639ec70b3056c3")
 (defvar *PAYGATEWAYRETURNURL* "https://highrisehub.com/hhub/custpaymentsuccess")
 (defvar *PAYGATEWAYCANCELURL* "https://highrisehub.com/hhub/custpaymentcancel")
 (defvar *PAYGATEWAYFAILUREURL* "https://highrisehub.com/hhub/custpaymentfailure")
@@ -53,8 +51,6 @@
 ;;;;;;;;;; AWS SMTP SETTINGS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar *HHUBSMTPSENDER*  "no-reply@highrisehub.com") 
 (defvar *HHUBSMTPFROMNAME*  "HighriseHub Sender")
-(defvar *HHUBSMTPUSERNAME* "AKIAI4YZOOXBMYZHZKXA")
-(defvar *HHUBSMTPPASSWORD*  "BPeNDvQUy81CZ78B08B35lECx+Ku43lVYqHRopXNlSPh")
 (defvar *HHUBSMTPSERVER* "email-smtp.us-east-1.amazonaws.com")
 (defvar *HHUBSMTPTESTSENDER*  "Testuser@highrisehub.com")
 (defvar *HHUBSMTPTESTFROMNAME*  "HighriseHub Test Sender")

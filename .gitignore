@@ -6,3 +6,4 @@
 *#*#
 *.#*.lisp
 hhub/resources/*.*
+hhub/secretkeys.lisp
