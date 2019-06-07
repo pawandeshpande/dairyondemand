@@ -93,10 +93,17 @@
 										     (:a :class "button raised" :href verify-url :target "_blank" :style "font-size: 14px; line-height: 14px; font-weight: 500; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; :border-radius: 3px; padding: 10px 25px; :border: 1px solid #17bef7; display: inline-block;" "Activate Your Account") )))))))))))))
 	   
 (defmethod send-test-email (customer)
-  (let* ((verify-url "http://highrisehub.com/hhub/account-activate")
-	(reg-templ-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-REG-TEMPLATE-FILE*)))
+  (let* ((reg-templ-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-REG-TEMPLATE-FILE*)))
 	(cust-reg-email (format nil reg-templ-str (slot-value customer 'name)))) 
   (hhubsendmail "pawan.deshpande@gmail.com" "Welcome to highrisehub" cust-reg-email)))
+
+
+
+(defmethod send-cust-password-reset-link (customer token )
+  (let* ((cust-password-reset-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-PASSWORD-RESET-FILE* )))
+	 (querystr (format nil "token=~A" token))
+	 (cust-password-reset-email (format nil cust-password-reset-str (format nil "https://highrisehub.com/hhub/custpassreset?~A" querystr)  (format nil "https://highrisehub.com/hhub/custpassreset?~A" querystr))))
+  (hhubsendmail "pawan.deshpande@gmail.com" "Your Password Has Been Reset" cust-password-reset-email)))
 
 
 

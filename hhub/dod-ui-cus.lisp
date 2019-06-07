@@ -609,12 +609,12 @@
 
 
 (defun dod-controller-cust-register-action ()
-(let* ((captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
-       (reg-type (hunchentoot:parameter "reg-type"))
-       (paramname (list "secret" "response" ) ) 
-       (paramvalue (list "6LeiXSQUAAAAAFDP0jgtajXXvrOplfkMR9rWnFdO" captcha-resp))
-       (param-alist (pairlis paramname paramvalue ))
-       (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
+  (let* ((reg-type (hunchentoot:parameter "reg-type"))
+	 (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
+	 (paramname (list "secret" "response" ) ) 
+	 (paramvalue (list "6LeiXSQUAAAAAFDP0jgtajXXvrOplfkMR9rWnFdO" captcha-resp))
+	 (param-alist (pairlis paramname paramvalue ))
+	 (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
                        :method :POST
                        :parameters param-alist  ))))
        (name (hunchentoot:parameter "name"))
@@ -715,6 +715,36 @@
 
  
 			   
+(defun dod-controller-customer-reset-password-action-link ()
+(let* ((email (hunchentoot:parameter "email"))
+       (customer (select-customer-by-email email))
+       (token (format nil "~A" (uuid:make-v1-uuid )))
+       (user-type "CUSTOMER")
+       (tenant-id (slot-value customer 'tenant-id))
+       (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
+       (paramname (list "secret" "response" ) ) 
+       (paramvalue (list "6LeiXSQUAAAAAFDP0jgtajXXvrOplfkMR9rWnFdO" captcha-resp))
+       (param-alist (pairlis paramname paramvalue ))
+       (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
+												 :method :POST
+												 :parameters param-alist  )))))
+  
+  
+  (cond 
+	 ; Check whether captcha has been solved 
+    ((null (cdr (car json-response))) (dod-response-captcha-error))
+    ((null customer) (hunchentoot:redirect "/hhub/invalid.html"))
+    ; if customer is valid then create an entry in the password reset table. 
+    (customer
+     (progn 
+       (create-reset-password-instance user-type token email  tenant-id)
+       ; temporarily disable the customer record 
+       ;(setf (slot-value customer 'active-flag) "N")
+       ;(update-customer customer)
+       ; Send customer an email with password reset link. 
+       (send-cust-password-reset-link customer token)
+       (hunchentoot:redirect "/hhub/customer-login.html"))))))
+
 
 
 (defun modal.customer-forgot-password() 
@@ -726,7 +756,9 @@
 		      (:div :class "form-group"
 			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "text"))
 		      (:div :class "form-group"
-			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Send Email")))))))
+			(:div :class "g-recaptcha" :data-sitekey "6LeiXSQUAAAAAO-qh28CcnBFva6cQ68PCfxiMC0V"))
+		      (:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Reset Password")))))))
 
 
 (defun dod-controller-customer-loginpage ()

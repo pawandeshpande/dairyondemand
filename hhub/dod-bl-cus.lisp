@@ -15,6 +15,7 @@
   (car (clsql:select 'dod-cust-profile :where [and
 		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
+		[= [:active-flag] "Y"]
 		[like  [:name] name-like-clause]]
 		:caching *dod-database-caching* :flatp t))))
 
@@ -23,6 +24,7 @@
   (car (clsql:select 'dod-cust-profile :where [and
 		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
+		[= [:active-flag] "Y"]
 		[like  [:phone] phone]]
 		:caching *dod-database-caching* :flatp t))))
 
@@ -39,10 +41,34 @@
   (car (clsql:select 'dod-cust-profile :where [and
 		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
+		[= [:active-flag] "Y"]
 		[=  [:row-id] id]]
 		:caching *dod-database-caching* :flatp t))))
 
 
+
+(defun select-customer-by-email (email)
+  (car (clsql:select 'dod-cust-profile :where [and
+		[= [:deleted-state] "N"]
+		[= [:active-flag] "Y"]
+		[=  [:email] email]]
+		:caching *dod-database-caching* :flatp t)))
+
+
+
+
+(defun reset-customer-password (customer)
+  (let* ((confirmpassword (hhub-random-password 8))
+	(salt-octet (secure-random:bytes 56 secure-random:*generator*))
+	(salt (flexi-streams:octets-to-string  salt-octet))
+	(encryptedpass (check&encrypt confirmpassword confirmpassword salt)))
+	  
+    (setf (slot-value customer 'password) encryptedpass)
+    (setf (slot-value customer 'salt) salt) 
+    (update-customer  customer )
+    confirmpassword)) ; return the newly generated password. 
+
+       
 
 (defun select-deleted-customer-by-id (id company)
 (let ((tenant-id (slot-value company 'row-id)))

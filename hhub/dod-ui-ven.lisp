@@ -359,25 +359,28 @@
   ) 
 
 
-    
 (defun modal.vendor-forgot-password() 
   (cl-who:with-html-output (*standard-output* nil)
     (:div :class "row" 
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		(:form :id (format nil "form-customerforgotpass")  :role "form" :method "POST" :action "hhubvendforgotpassaction" :enctype "multipart/form-data" 
+		(:form :id (format nil "form-vendorforgotpass")  :role "form" :method "POST" :action "hhubvendforgotpassaction" :enctype "multipart/form-data" 
 		      (:h1 :class "text-center login-title"  "Forgot Password")
 		      (:div :class "form-group"
 			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "text"))
 		      (:div :class "form-group"
-			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Send Email")))))))
+			(:div :class "g-recaptcha" :data-sitekey "6LeiXSQUAAAAAO-qh28CcnBFva6cQ68PCfxiMC0V"))
+		      (:div :class "form-group"
+			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Reset Password")))))))
 
+
+    
 
 (defun dod-controller-vendor-loginpage ()
   (handler-case
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
 	      (if (is-dod-vend-session-valid?)
 		  (hunchentoot:redirect "/hhub/dodvendindex?context=home")
-		  (standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+		  (with-standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
 		    (:div :class "row" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
@@ -391,10 +394,11 @@
 					     (:div :class "form-group"
 						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))
 					     
-					     (:div :class "form-group"
-						   (:a :data-toggle "modal" :data-target (format nil "#dasvendforgotpass-modal")  :href "#"  "Forgot Password?"))
+					     (:div :class ""
+					     (:a :data-toggle "modal" :data-target (format nil "#dasvendforgotpass-modal")  :href "#"  "Forgot Password?"))
 					     (modal-dialog (format nil "dasvendforgotpass-modal") "Forgot Password?" (modal.vendor-forgot-password))
-
+				       
+					     
 					     ))))))
 	      (clsql:sql-database-data-error (condition)
 					     (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
@@ -488,51 +492,9 @@
 
 
 
-(defmacro standard-vendor-page ((&key title)  &body body)
-    `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
-	 (:html :xmlns "http://www.w3.org/1999/xhtml"
-	     :xml\:lang "en" 
-	     :lang "en"
-	     (:head 
-		 (:meta :http-equiv "Content-Type" 
-		     :content    "text/html;charset=utf-8")
-		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
-		 (:meta :name "description" :content "")
-		 (:meta :name "author" :content "")
-		 (:link :rel "icon" :href "/favicon.ico")
-		 (:title ,title )
-		 (:link :href "/css/style.css" :rel "stylesheet")
-		 (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
-		 (:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")
- 		 (:link :href "/css/theme.css" :rel "stylesheet")
-		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
-		 ;; JS files
-		 (:script :src "https://code.jquery.com/jquery-3.3.1.min.js" :integrity "sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" :crossorigin "anonymous")
-		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
-		 (:script :src "/js/spin.min.js")
-		
-		 ) ;; Header completes here.
-	     
-	     (:body
-		 (:div :id "dod-main-container"
-		     (:a :href "#" :class "scrollup" :style "display: none;") 
-		 (:div :id "dod-error" (:h2 "error..."))
-		 (:div :id "busy-indicator")
-		  (:script :src "/js/hhubbusy.js")
-		 (if (is-dod-vend-session-valid?) (vendor-navigation-bar))
-		 (:div :class "container theme-showcase" :role "main" 
-		   (:div :id "header"  ,@body))
-		       		 ;; rangeslider
-		 
-		 
-		 ;; bootstrap core javascript
-		 (:script :src "/js/bootstrap.min.js")
-		 (:script :src "/js/dod.js"))))))
 
 
-
-
-(defmacro vendor-navigation-bar ()
+(defmacro with-vendor-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
     `(cl-who:with-html-output (*standard-output* nil)
 	 (:div :class "navbar navbar-default navbar-inverse navbar-static-top"

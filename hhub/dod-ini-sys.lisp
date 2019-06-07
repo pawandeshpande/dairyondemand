@@ -20,6 +20,7 @@
 (defvar *HHUB-EMAIL-CSS-CONTENTS* NIL)
 (defvar *HHUB-EMAIL-TEMPLATES-FOLDER* "~/dairyondemand/hhub/email/templates")
 (defvar *HHUB-CUST-REG-TEMPLATE-FILE* "cust-reg.html")
+(defvar *HHUB-CUST-PASSWORD-RESET-FILE* "cust-pass-reset.html")
 
 (defvar *dod-db-instance*)
 (defvar *sitepass* (encrypt "P@ssword1" "highrisehub.com"))

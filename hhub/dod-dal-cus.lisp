@@ -29,73 +29,73 @@
     :accessor salt
     :type (string 128)
     :initarg :salt)
-
-      (email
-	  :accessor email
-	  :type (string 255)
-	  :initarg email)
-      (firstname
-	  :accessor firstname
-	  :type (string 50)
-	  :initarg :firstname)
+   
+   (email
+    :accessor email
+    :type (string 255)
+    :initarg email)
+   (firstname
+    :accessor firstname
+    :type (string 50)
+    :initarg :firstname)
       (lastname
-	  :accessor lastname
-	  :type (string 50)
-	  :initarg :lastname)
-      (salutation
-	  :accessor salutation
-	  :type (string 10)
-	  :initarg :salutation)
-      (title
-	  :accessor title
-	  :type (string 255)
-	  :initarg :title)
-      (birthdate
-	  :accessor birthdate
-	  :type clsql:date
-	  :initarg :birthdate)
-      (city
-	  :accessor city
+       :accessor lastname
+       :type (string 50)
+       :initarg :lastname)
+   (salutation
+    :accessor salutation
+    :type (string 10)
+    :initarg :salutation)
+   (title
+    :accessor title
+    :type (string 255)
+    :initarg :title)
+   (birthdate
+    :accessor birthdate
+    :type clsql:date
+    :initarg :birthdate)
+   (city
+    :accessor city
 	  :type (string 256)
 	  :initarg :city)
-      (state
-	  :accessor city
-	  :type (string 256)
-	  :initarg :state)
-      (country
-	  :accessor city
-	  :type (string 256)
-	  :initarg :country)
-      (zipcode
-	  :accessor zipcode
-	  :type (string 10)
-	  :initarg :zipcode)
-      
-      (picture-path
-	  :accessor picture-path
-	  :type (string 256)
-	  :initarg :picture-path)
-      
-
+   (state
+    :accessor city
+    :type (string 256)
+    :initarg :state)
+   (country
+    :accessor city
+    :type (string 256)
+    :initarg :country)
+   (zipcode
+    :accessor zipcode
+    :type (string 10)
+    :initarg :zipcode)
+   
+   (picture-path
+    :accessor picture-path
+    :type (string 256)
+    :initarg :picture-path)
+   
+   
    (deleted-state
     :type (string 1)
     :void-value "N"
     :initarg :deleted-state)
-
-      (cust-type
+   
+   (cust-type
     :accessor cust-type
     :type (string 50)
     :initarg :cust-type)
-
+   
    
    (active-flag
     :type (string 1)
     :void-value "N"
-       :initarg :active-flag)
-
-
-
-    (tenant-id
+    :initarg :active-flag)
+   
+   
+   
+   (tenant-id
     :type integer
     :initarg :tenant-id)
    (COMPANY
@@ -105,8 +105,8 @@
 	                  :HOME-KEY tenant-id
                           :FOREIGN-KEY row-id
                           :SET T)))
-
-   
+  
+  
   (:BASE-TABLE dod_cust_profile))
 
 
@@ -117,8 +117,8 @@
     :db-constraints :not-null
     :type integer
     :initarg :row-id)
-  
-    (cust-id
+   
+   (cust-id
     :type integer
     :initarg :cust-id)
    (customer
@@ -128,7 +128,7 @@
 	                  :HOME-KEY cust-id
                           :FOREIGN-KEY row-id
                           :SET nil))
-
+   
    (all-customers
     :ACCESSOR get-all-customers
     :DB-KIND :JOIN
@@ -136,9 +136,9 @@
 	                  :HOME-KEY cust-id
                           :FOREIGN-KEY row-id
                           :SET T))
-
-
- (vendor-id
+   
+   
+   (vendor-id
     :type integer
     :initarg :vendor-id)
    (vendor
@@ -149,20 +149,20 @@
                           :FOREIGN-KEY row-id
                           :SET nil))
    
-
-
+   
+   
    (balance 
     :type (number ) 
     :initarg :balance)
-
+   
    (deleted-state
     :type (string 1)
     :void-value "N"
     :initarg :deleted-state)
-
-
-
-    (tenant-id
+   
+   
+   
+   (tenant-id
     :type integer
     :initarg :tenant-id)
    (COMPANY
@@ -172,8 +172,8 @@
 	                  :HOME-KEY tenant-id
                           :FOREIGN-KEY row-id
                           :SET nil)))
-
-   
+  
+  
   (:BASE-TABLE dod_cust_wallet))
 
 

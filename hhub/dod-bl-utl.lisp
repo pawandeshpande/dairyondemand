@@ -1,6 +1,12 @@
 ;; -*- mode: common-lisp; coding: utf-8 -*-
 (in-package :hhub)
 
+(defun hhub-random-password (length)
+  (with-output-to-string (stream)
+    (let ((*print-base* 36))
+      (loop repeat length do (princ (random 36) stream)))))       
+
+
 (defun hhub-read-file (filename)
  :documentation "Reads a file and returns a string"
   (with-open-file (stream filename)
