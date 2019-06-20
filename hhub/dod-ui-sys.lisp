@@ -503,6 +503,8 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/rundailyordersbatch" 'dod-controller-run-daily-orders-batch)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustomerchangepin" 'dod-controller-customer-change-pin)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustforgotpassaction" 'dod-controller-customer-reset-password-action-link)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustpassreset" 'dod-controller-customer-reset-password-action)
+	
 	
 
 ;************VENDOR RELATED ********************

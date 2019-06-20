@@ -368,7 +368,7 @@
 		      (:div :class "form-group"
 			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "text"))
 		      (:div :class "form-group"
-			(:div :class "g-recaptcha" :data-sitekey "6LeiXSQUAAAAAO-qh28CcnBFva6cQ68PCfxiMC0V"))
+			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
 		      (:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Reset Password")))))))
 

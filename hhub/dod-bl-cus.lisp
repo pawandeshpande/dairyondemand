@@ -50,7 +50,7 @@
 (defun select-customer-by-email (email)
   (car (clsql:select 'dod-cust-profile :where [and
 		[= [:deleted-state] "N"]
-		[= [:active-flag] "Y"]
+		;[= [:active-flag] "Y"]
 		[=  [:email] email]]
 		:caching *dod-database-caching* :flatp t)))
 

@@ -23,7 +23,7 @@
 
    (created
     :accessor created
-    :type clsql:date
+    :type clsql:wall-time
     :initarg :created)
    
    (token

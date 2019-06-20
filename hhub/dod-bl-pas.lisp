@@ -2,15 +2,14 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
-(defun get-reset-password-instance-by-token (token tenant-id) 
-  (clsql:select 'dod-password-reset  :where [and [= [:deleted-state] "N"] 
-		[= [:tenant-id] tenant-id]
-		[= [:token] token]]    :caching nil :flatp t ))
+(defun get-reset-password-instance-by-token (token) 
+  (car (clsql:select 'dod-password-reset  :where [and [= [:deleted-state] "N"] 
+		[= [:token] token]]    :caching nil :flatp t )))
 
 (defun get-reset-password-instance-by-email (email tenant-id) 
-  (clsql:select 'dod-password-reset  :where [and [= [:deleted-state] "N"] 
+ (car (clsql:select 'dod-password-reset  :where [and [= [:deleted-state] "N"] 
 		[= [:tenant-id] tenant-id]
-		[= [:email] email]]    :caching nil :flatp t ))
+		[= [:email] email]]    :caching nil :flatp t )))
 
 (defun delete-reset-password-instance ( id )
   (let ((object (car (clsql:select 'dod-password-reset :where [= [:row-id] id] :flatp t :caching nil))))
@@ -39,6 +38,7 @@
 				    :email email 
 				    :token token 
 				    :tenant-id tenant-id 
+				    :deleted-state "N"
 				    :active-flg "Y")))
 				    
  

@@ -101,9 +101,17 @@
 
 (defmethod send-cust-password-reset-link (customer token )
   (let* ((cust-password-reset-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-PASSWORD-RESET-FILE* )))
+	 (email (slot-value customer 'email))
 	 (querystr (format nil "token=~A" token))
-	 (cust-password-reset-email (format nil cust-password-reset-str (format nil "https://highrisehub.com/hhub/custpassreset?~A" querystr)  (format nil "https://highrisehub.com/hhub/custpassreset?~A" querystr))))
-  (hhubsendmail "pawan.deshpande@gmail.com" "Your Password Has Been Reset" cust-password-reset-email)))
+	 (cust-password-reset-email (format nil cust-password-reset-str (format nil "https://highrisehub.com/hhub/hhubcustpassreset?~A" querystr)  (format nil "https://highrisehub.com/hhub/hhubcustpassreset?~A" querystr))))
+  (hhubsendmail email  "Your Password Reset Link" cust-password-reset-email)))
+
+
+(defmethod send-cust-temp-password (customer temp-pass)
+  (let* ((cust-temp-password-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-TEMP-PASSWORD-FILE* )))
+	 (email (slot-value customer 'email))
+	 (cust-temp-password-email (format nil cust-temp-password-str temp-pass (format nil "https://highrisehub.com/hhub/customer-login.html"))))
+  (hhubsendmail email  "Your Password Has Been Reset" cust-temp-password-email)))
 
 
 

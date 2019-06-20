@@ -594,7 +594,7 @@
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "confirmpass" :placeholder "Confirm Password" :type "password" :required T :data-match "#inputpass"  :data-match-error "Passwords dont match" ))
 		  (:div :class "form-group"
-			(:div :class "g-recaptcha" :data-sitekey "6LeiXSQUAAAAAO-qh28CcnBFva6cQ68PCfxiMC0V")
+			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* )
 			(:div :class "form-group"
 			      (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))
 	        )))))
@@ -612,7 +612,7 @@
   (let* ((reg-type (hunchentoot:parameter "reg-type"))
 	 (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
 	 (paramname (list "secret" "response" ) ) 
-	 (paramvalue (list "6LeiXSQUAAAAAFDP0jgtajXXvrOplfkMR9rWnFdO" captcha-resp))
+	 (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
 	 (param-alist (pairlis paramname paramvalue ))
 	 (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
                        :method :POST
@@ -714,16 +714,38 @@
 							       )))))
 
  
+
+(defun dod-controller-customer-reset-password-action ()
+  (let* ((token (hunchentoot:parameter "token"))
+	 (rstpassinst (get-reset-password-instance-by-token token))
+	 (user-type (if rstpassinst (slot-value rstpassinst 'user-type)))
+	 (email (if rstpassinst (slot-value rstpassinst 'email))))
+    
+	 (cond 
+	   ((and (equal user-type "CUSTOMER")
+		 (duration< (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute 20)))
+	    (let* ((customer (select-customer-by-email email))
+		   (newpassword (reset-customer-password customer)))
+	      (setf (slot-value customer 'active-flag) "Y")
+	      (update-customer customer)
+					;send mail to the customer with new password 
+	      (send-cust-temp-password customer newpassword)))
+	   
+					  
+	   
+	   ((equal user-type "VENDOR") ())
+	   ((equal user-type "EMPLOYEE") ()))
+	 (hunchentoot:redirect "/hhub/passwordresetconf.html")))
 			   
 (defun dod-controller-customer-reset-password-action-link ()
 (let* ((email (hunchentoot:parameter "email"))
        (customer (select-customer-by-email email))
        (token (format nil "~A" (uuid:make-v1-uuid )))
        (user-type "CUSTOMER")
-       (tenant-id (slot-value customer 'tenant-id))
+       (tenant-id (if customer (slot-value customer 'tenant-id)))
        (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
        (paramname (list "secret" "response" ) ) 
-       (paramvalue (list "6LeiXSQUAAAAAFDP0jgtajXXvrOplfkMR9rWnFdO" captcha-resp))
+       (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
        (param-alist (pairlis paramname paramvalue ))
        (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
 												 :method :POST
@@ -739,8 +761,8 @@
      (progn 
        (create-reset-password-instance user-type token email  tenant-id)
        ; temporarily disable the customer record 
-       ;(setf (slot-value customer 'active-flag) "N")
-       ;(update-customer customer)
+       (setf (slot-value customer 'active-flag) "N")
+       (update-customer customer)
        ; Send customer an email with password reset link. 
        (send-cust-password-reset-link customer token)
        (hunchentoot:redirect "/hhub/customer-login.html"))))))
@@ -756,7 +778,7 @@
 		      (:div :class "form-group"
 			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "text"))
 		      (:div :class "form-group"
-			(:div :class "g-recaptcha" :data-sitekey "6LeiXSQUAAAAAO-qh28CcnBFva6cQ68PCfxiMC0V"))
+			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
 		      (:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Reset Password")))))))
 
