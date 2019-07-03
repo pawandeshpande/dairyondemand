@@ -49,7 +49,7 @@
 (defvar *HHUBVENDLOGINPAGEURL* "/hhub/vendor-login.html")
 (defvar *HHUBOPRLOGINPAGEURL* "/hhub/opr-login.html")
 (defvar *HHUBCADLOGINPAGEURL* "/hhub/cad-login.html")
-
+(defvar *HHUBPASSRESETTIMEWINDOW* 20) ; 20 minutes. Depicts the reset password time window. 
 
 
 (defun set-customer-page-title (name)

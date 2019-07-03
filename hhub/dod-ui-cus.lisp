@@ -713,9 +713,63 @@
 							       (start-das)
 							       )))))
 
+(defun dod-controller-customer-password-reset-action ()
+  (let* ((token (hunchentoot:parameter "token"))
+	 (rstpassinst (get-reset-password-instance-by-token token))
+	 (user-type (if rstpassinst (slot-value rstpassinst 'user-type)))
+	 (password (hunchentoot:parameter "password"))
+	 (pwdresettoken (hunchentoot:parameter "token"))
+	 (newpassword (hunchentoot:parameter "newpassword"))
+	 (confirmpassword (hunchentoot:parameter "confirmpassword"))
+	 (salt-octet (secure-random:bytes 56 secure-random:*generator*))
+	 (salt (flexi-streams:octets-to-string  salt-octet))
+	 (encryptedpass (check&encrypt newpassword confirmpassword salt))
+	 (rstpassinst (get-reset-password-instance-by-token  pwdresettoken ))
+	 (email (if rstpassinst (slot-value rstpassinst 'email)))
+	 (customer (select-customer-by-email email))
+	 (present-salt (if customer (slot-value customer 'salt)))
+	 (present-pwd (if customer (slot-value customer 'password)))
+	 (password-verified (if customer  (check-password password present-salt present-pwd))))
+     (cond 
+       ((or
+	 (not password-verified) 
+	 (null encryptedpass)) (dod-response-passwords-do-not-match-error)) 
+       ;Token has expired
+       ((and (equal user-type "CUSTOMER")
+		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+       ((and password-verified encryptedpass) (progn 
+       (setf (slot-value customer 'password) encryptedpass)
+       (setf (slot-value customer 'salt) salt) 
+       (update-customer customer)
+       (hunchentoot:redirect "/hhub/customer-login.html"))))))
  
 
-(defun dod-controller-customer-reset-password-action ()
+
+(defun dod-controller-customer-password-reset-page ()
+  (let ((token (hunchentoot:parameter "token")))
+(with-standard-customer-page (:title "Password Reset") 
+(:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (with-html-form "form-customerchangepin" "hhubcustpassreset"  
+					;(:div :class "account-wall"
+			 (:h1 :class "text-center login-title"  "Change Password")
+			 (:div :class "form-group"
+			  
+			       (:input :class "form-control" :name "token" :value token :type "hidden"))
+			 (:div :class "form-group"
+			       (:label :for "password" "Password")
+			       (:input :class "form-control" :name "password" :value "" :placeholder "Enter OTP from Email Old" :type "password" :required T))
+			 (:div :class "form-group"
+			       (:label :for "newpassword" "New Password")
+			       (:input :class "form-control" :id "newpassword" :data-minlength "8" :name "newpassword" :value "" :placeholder "New Password" :type "password" :required T))
+			 (:div :class "form-group"
+			       (:label :for "confirmpassword" "Confirm New Password")
+			       (:input :class "form-control" :name "confirmpassword" :value "" :data-minlength "8" :placeholder "Confirm New Password" :type "password" :required T :data-match "#newpassword"  :data-match-error "Passwords dont match"  ))
+			 (:div :class "form-group"
+			       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+
+
+(defun dod-controller-customer-generate-temp-password ()
   (let* ((token (hunchentoot:parameter "token"))
 	 (rstpassinst (get-reset-password-instance-by-token token))
 	 (user-type (if rstpassinst (slot-value rstpassinst 'user-type)))
@@ -723,19 +777,18 @@
     
 	 (cond 
 	   ((and (equal user-type "CUSTOMER")
-		 (duration< (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute 20)))
+		 (duration< (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*)))
 	    (let* ((customer (select-customer-by-email email))
 		   (newpassword (reset-customer-password customer)))
-	      (setf (slot-value customer 'active-flag) "Y")
-	      (update-customer customer)
 					;send mail to the customer with new password 
-	      (send-cust-temp-password customer newpassword)))
-	   
-					  
-	   
+	      (send-cust-temp-password customer newpassword token)
+	      (hunchentoot:redirect "/hhub/hhubcustpassresetmailsent.html")))
+	  
+	   ((and (equal user-type "CUSTOMER")
+		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
 	   ((equal user-type "VENDOR") ())
-	   ((equal user-type "EMPLOYEE") ()))
-	 (hunchentoot:redirect "/hhub/passwordresetconf.html")))
+	   ((equal user-type "EMPLOYEE") ()))))
+
 			   
 (defun dod-controller-customer-reset-password-action-link ()
 (let* ((email (hunchentoot:parameter "email"))
@@ -755,7 +808,7 @@
   (cond 
 	 ; Check whether captcha has been solved 
     ((null (cdr (car json-response))) (dod-response-captcha-error))
-    ((null customer) (hunchentoot:redirect "/hhub/invalid.html"))
+    ((null customer) (hunchentoot:redirect "/hhub/hhubinvalidemail.html"))
     ; if customer is valid then create an entry in the password reset table. 
     (customer
      (progn 
@@ -773,10 +826,10 @@
   (cl-who:with-html-output (*standard-output* nil)
     (:div :class "row" 
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		(:form :id (format nil "form-customerforgotpass")  :role "form" :method "POST" :action "hhubcustforgotpassaction" :enctype "multipart/form-data" 
+		(:form :id (format nil "form-customerforgotpass") :data-toggle "validator"  :role "form" :method "POST" :action "hhubcustforgotpassactionlink" :enctype "multipart/form-data" 
 		      (:h1 :class "text-center login-title"  "Forgot Password")
 		      (:div :class "form-group"
-			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "text"))
+			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "email" :required "true"))
 		      (:div :class "form-group"
 			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
 		      (:div :class "form-group"
@@ -793,13 +846,13 @@
 	      (:div :class "row" 
 		    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 			   (:div :class "account-wall"
-				 (:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin"
+				 (:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin" :data-toggle "validator"
 					(:img :class "profile-img" :src "/img/logo.png" :alt "")
 				       (:h1 :class "text-center login-title"  "Customer - Login to HighriseHub")
 				       (:div :class "form-group"
-					     (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "text" ))
+					     (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "number" :required "true" ))
 				       (:div :class "form-group"
-					     (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
+					     (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password"  :required "true" ))
 				       (:div :class "form-group"
 					     (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))
 				       
@@ -813,12 +866,6 @@
 							       (stop-das) 
 							       (start-das)
 							       (hunchentoot:redirect "/hhub/customer-login.html"))))))
-
-
-
-
-
-
 
 
 

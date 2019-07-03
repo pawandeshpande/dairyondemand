@@ -1,3 +1,8 @@
+(in-package :hhub)
+(clsql:file-enable-sql-reader-syntax)
+
+
+
 (defmacro with-html-email-template ((&key title) &body body)
   `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
     (:html :xmlns "http://www.w3.org/1999/xhtml"
@@ -67,8 +72,8 @@
 
 (defun customer-registration-html-content (customer verify-url)
   :documentation "You can insert any html table content here. It will be merged with the html display template on the upward journey" 
-  (let* ((cust-name (slot-value customer 'name))
-	(id (slot-value customer 'row-id)))
+  (let* ((cust-name (slot-value customer 'name)))
+	;(id (slot-value customer 'row-id)))
    (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
 					      (:table :width "600" :cellpadding "0" :cellspacing "0" :border "1" :class "container" 
 						      (:tr 
@@ -99,18 +104,19 @@
 
 
 
-(defmethod send-cust-password-reset-link (customer token )
+(defun send-cust-password-reset-link (customer token )
   (let* ((cust-password-reset-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-PASSWORD-RESET-FILE* )))
 	 (email (slot-value customer 'email))
 	 (querystr (format nil "token=~A" token))
-	 (cust-password-reset-email (format nil cust-password-reset-str (format nil "https://highrisehub.com/hhub/hhubcustpassreset?~A" querystr)  (format nil "https://highrisehub.com/hhub/hhubcustpassreset?~A" querystr))))
+	 (url (format nil "https://highrisehub.com/hhub/hhubcustgentemppass?~A" querystr))
+	 (cust-password-reset-email (format nil cust-password-reset-str url url)))
   (hhubsendmail email  "Your Password Reset Link" cust-password-reset-email)))
 
 
-(defmethod send-cust-temp-password (customer temp-pass)
+(defun send-cust-temp-password  (customer temp-pass token)
   (let* ((cust-temp-password-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-TEMP-PASSWORD-FILE* )))
 	 (email (slot-value customer 'email))
-	 (cust-temp-password-email (format nil cust-temp-password-str temp-pass (format nil "https://highrisehub.com/hhub/customer-login.html"))))
+	 (cust-temp-password-email (format nil cust-temp-password-str temp-pass (format nil "https://highrisehub.com/hhub/hhubcustpassreset.html?token=~A" token ))))
   (hhubsendmail email  "Your Password Has Been Reset" cust-temp-password-email)))
 
 

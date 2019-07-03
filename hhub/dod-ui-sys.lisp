@@ -418,11 +418,6 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/delcomp" 'dod-controller-delete-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/journal-entry-added" 'dod-controller-journal-entry-added)
         (hunchentoot:create-regex-dispatcher "^/hhub/account-added" 'dod-controller-account-added)
-	(hunchentoot:create-regex-dispatcher "^/hhub/new-account" 'dod-controller-new-account)
-	(hunchentoot:create-regex-dispatcher "^/hhub/delaccount" 'dod-controller-delete-account)
-	(hunchentoot:create-regex-dispatcher "^/hhub/deljournal-entry" 'dod-controller-delete-journal-entry)
-	(hunchentoot:create-regex-dispatcher "^/hhub/list-journal-entries" 'dod-controller-list-journal-entries2)
-        (hunchentoot:create-regex-dispatcher "^/hhub/new-journal-entry" 'dod-controller-new-journal-entry)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-users" 'dod-controller-list-users)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-accounts" 'dod-controller-list-accounts)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listattributes" 'dod-controller-list-attrs)
@@ -502,8 +497,13 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustupdateaction" 'dod-controller-customer-update-action )
 	(hunchentoot:create-regex-dispatcher "^/hhub/rundailyordersbatch" 'dod-controller-run-daily-orders-batch)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustomerchangepin" 'dod-controller-customer-change-pin)
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustforgotpassaction" 'dod-controller-customer-reset-password-action-link)
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustpassreset" 'dod-controller-customer-reset-password-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustforgotpassactionlink" 'dod-controller-customer-reset-password-action-link)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustpassreset.html" 'dod-controller-customer-password-reset-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustgentemppass"   'dod-controller-customer-generate-temp-password) 
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustpassreset"   'dod-controller-customer-password-reset-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubinvalidemail.html"   'dod-controller-invalid-email-error)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresettokenexpired.html"   'dod-controller-password-reset-token-expired )
+	
 	
 	
 

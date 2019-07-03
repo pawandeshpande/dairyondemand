@@ -1,5 +1,28 @@
 (in-package :hhub)
 
+
+
+(defun dod-controller-invalid-email-error ()
+  (with-standard-customer-page 
+    (:div :class "row" 
+	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
+					;(:div :class "account-wall"
+		  (:h1 :class "text-center login-title"  "Invalid Customer Email"))))))
+		  
+
+
+(defun dod-controller-password-reset-token-expired ()
+  (with-standard-customer-page 
+    (:div :class "row" 
+	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
+					;(:div :class "account-wall"
+		  (:h1 :class "text-center login-title"  "Your password reset time window has expired. Please try again." ))))))
+		  
+
+
+
 (defun hhubsendmail (to subject body &optional attachments-list)
 (let ((username *HHUBSMTPUSERNAME*) 
       (password  *HHUBSMTPPASSWORD*))  

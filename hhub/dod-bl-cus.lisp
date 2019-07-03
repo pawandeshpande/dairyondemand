@@ -65,6 +65,8 @@
 	  
     (setf (slot-value customer 'password) encryptedpass)
     (setf (slot-value customer 'salt) salt) 
+    ; Whenever we reset the customer password, we activate the customer, as he is in-activated when this process started. 
+    (setf (slot-value customer 'active-flag) "Y") 
     (update-customer  customer )
     confirmpassword)) ; return the newly generated password. 
 
