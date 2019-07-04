@@ -2,13 +2,23 @@
 
 
 
+
+(defun dod-controller-password-reset-mail-sent ()
+(with-standard-customer-page 
+    (:div :class "row" 
+	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
+					;(:div :class "account-wall"
+		  (:h1 :class "text-center login-title"  "Password Reset Email Sent."))))))
+  
+
 (defun dod-controller-invalid-email-error ()
   (with-standard-customer-page 
     (:div :class "row" 
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
 					;(:div :class "account-wall"
-		  (:h1 :class "text-center login-title"  "Invalid Customer Email"))))))
+		  (:h1 :class "text-center login-title"  "Invalid Customer Email."))))))
 		  
 
 

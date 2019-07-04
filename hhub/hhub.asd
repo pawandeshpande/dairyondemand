@@ -108,5 +108,9 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
 	       (:file "dod-bl-pay" :depends-on ("packages"))
 	       (:file "dod-dal-pay" :depends-on ("packages"))
 	       
+	       ;Password reset
+	       (:file "dod-dal-pas" :depends-on ("packages"))
+	       (:file "dod-bl-pas" :depends-on ("packages"))
+	       
 	       ))
 

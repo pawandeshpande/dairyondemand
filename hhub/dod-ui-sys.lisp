@@ -503,8 +503,17 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustpassreset"   'dod-controller-customer-password-reset-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubinvalidemail.html"   'dod-controller-invalid-email-error)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresettokenexpired.html"   'dod-controller-password-reset-token-expired )
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresetmailsent.html"   'dod-controller-password-reset-mail-sent )
 	
 	
+
+
+
+;;***************************************************************************************************************************
+;; WARNING: Two URIs should not have a common substring. For example hhubcustpassreset and hhubcustpassresetmail.html 
+;;          has got hhubcustpassreset as a common string. When a call for hhubcustpassresetmail.html is made, then 
+;;          hhubcustpassreset may get invoked. Keep the URIs unique. 
+;;***************************************************************************************************************************	
 	
 
 ;************VENDOR RELATED ********************

@@ -714,26 +714,22 @@
 							       )))))
 
 (defun dod-controller-customer-password-reset-action ()
-  (let* ((token (hunchentoot:parameter "token"))
-	 (rstpassinst (get-reset-password-instance-by-token token))
+  (let* ((pwdresettoken (hunchentoot:parameter "token"))
+	 (rstpassinst (get-reset-password-instance-by-token pwdresettoken))
 	 (user-type (if rstpassinst (slot-value rstpassinst 'user-type)))
 	 (password (hunchentoot:parameter "password"))
-	 (pwdresettoken (hunchentoot:parameter "token"))
 	 (newpassword (hunchentoot:parameter "newpassword"))
 	 (confirmpassword (hunchentoot:parameter "confirmpassword"))
 	 (salt-octet (secure-random:bytes 56 secure-random:*generator*))
 	 (salt (flexi-streams:octets-to-string  salt-octet))
 	 (encryptedpass (check&encrypt newpassword confirmpassword salt))
-	 (rstpassinst (get-reset-password-instance-by-token  pwdresettoken ))
 	 (email (if rstpassinst (slot-value rstpassinst 'email)))
 	 (customer (select-customer-by-email email))
 	 (present-salt (if customer (slot-value customer 'salt)))
 	 (present-pwd (if customer (slot-value customer 'password)))
 	 (password-verified (if customer  (check-password password present-salt present-pwd))))
      (cond 
-       ((or
-	 (not password-verified) 
-	 (null encryptedpass)) (dod-response-passwords-do-not-match-error)) 
+       ((or  (not password-verified)  (null encryptedpass)) (dod-response-passwords-do-not-match-error)) 
        ;Token has expired
        ((and (equal user-type "CUSTOMER")
 		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
@@ -782,8 +778,7 @@
 		   (newpassword (reset-customer-password customer)))
 					;send mail to the customer with new password 
 	      (send-cust-temp-password customer newpassword token)
-	      (hunchentoot:redirect "/hhub/hhubcustpassresetmailsent.html")))
-	  
+	      (hunchentoot:redirect "/hhub/hhubpassresetmailsent.html")))	  
 	   ((and (equal user-type "CUSTOMER")
 		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
 	   ((equal user-type "VENDOR") ())
