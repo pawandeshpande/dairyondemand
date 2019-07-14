@@ -151,7 +151,7 @@
     (let* ((wallets (get-cust-wallets-for-vendor (get-login-vendor) (get-login-vendor-company)))
 	   (customers (mapcar (lambda (wallet) 
 			   (get-customer wallet)) wallets)))
-      (standard-vendor-page (:title "Customers list for vendor") 
+      (with-standard-vendor-page (:title "Customers list for vendor") 
 	(str (display-as-table (list "Name" "Mobile" "Email" "Actions") customers 'vendor-customers-card))))))
  
 
@@ -171,7 +171,7 @@
     ;list all the completed orders for Today. 
     (let* ((todaysorders (dod-get-cached-completed-orders-today))
 	  (total (if todaysorders (reduce #'+ (mapcar (lambda (ord) (slot-value ord 'order-amt)) todaysorders)))))
-    (standard-vendor-page (:title "Welcome to DAS Platform- Vendor")
+    (with-standard-vendor-page (:title "Welcome to DAS Platform- Vendor")
       (:div :class "row"
 	    (:div :class "col-xs-12 col-sm-4 col-md-4 col-lg-4" 
 		   "Completed orders "
@@ -197,7 +197,7 @@
       (let* ((vendor-company (get-login-vendor-company))
 	     (cmplist (hunchentoot:session-value :login-vendor-tenants)))
 	   
-	(standard-vendor-page (:title "Welcome to DAS Platform - Vendor")
+	(with-standard-vendor-page (:title "Welcome to DAS Platform - Vendor")
 	  (:a :class "btn btn-primary" :role "button" :href "dodvendsearchtenantpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Group  ")
 	  (:hr)
 	  (:h5 (str (format nil "Currently Logged Into Group - ~A" (slot-value vendor-company 'name))))
@@ -213,7 +213,7 @@
 
 (defun dod-controller-cmpsearch-for-vend-page ()
   (if (is-dod-vend-session-valid?)
-      (standard-vendor-page (:title "Welcome to DAS platform") 
+      (with-standard-vendor-page (:title "Welcome to DAS platform") 
 	(:div :class "row"
 	      (:h2 "Search Apartment/Group")
 	      (:div :id "custom-search-input"
@@ -271,20 +271,13 @@
 
 
 
-(defun dod-controller-list-vendors ()
-(if (is-dod-session-valid?)
-   (let (( dodvendors (select-vendors-for-company (get-login-company)))
-	 (header (list "Name" "Address" "Phone"  "Action")))
-     (if dodvendors (ui-list-vendors header dodvendors) "No vendors"))
-     (hunchentoot:redirect "vendor-login.html")))
-
 
 
 (defun dod-controller-vendor-add-product-page ()
   (if (is-dod-vend-session-valid?)
       ;(let ((catglist (get-prod-cat (get-login-vendor-tenant-id))))
 
-    (standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+    (with-standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
 		    (:div :class "row" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:form :class "form-vendorprodadd" :role "form" :method "POST" :action "dodvenaddproductaction" :data-toggle "validator" :enctype "multipart/form-data" 
@@ -409,7 +402,7 @@
 
 (defun dod-controller-vendor-search-cust-wallet-page ()
     (if (is-dod-vend-session-valid?)
-    (standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+    (with-standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
 	(:div :class "row" 
 	    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 		(:form :class "form-cust-wallet-search" :role "form" :method "POST" :action "dodsearchcustwalletaction"
@@ -429,11 +422,11 @@
 	(wallet (if customer (get-cust-wallet-by-vendor customer (get-login-vendor) (get-login-vendor-company)))))
  
 (if (null wallet) 
-(standard-vendor-page (:title "Welcome to DAS Platform")
+(with-standard-vendor-page (:title "Welcome to DAS Platform")
  (:div :class "row" 
 	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 "Wallet does not exist"))))
 ;else
-(standard-vendor-page (:title "Welcome to DAS Platform")
+(with-standard-vendor-page (:title "Welcome to DAS Platform")
   (:div :class "row" 
 	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Name: ~A" (if customer (slot-value customer 'name)))))))
   (:div :class "row" 
@@ -474,7 +467,7 @@
    
 (defun dod-controller-vend-profile ()
 (if (is-dod-vend-session-valid?)
-    (standard-vendor-page (:title "Welcome to Highrisehub")
+    (with-standard-vendor-page (:title "Welcome to Highrisehub")
        (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
        (:hr)
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6"
@@ -602,7 +595,7 @@
 
 (defun dod-controller-prd-details-for-vendor ()
     (if (is-dod-vend-session-valid?)
-	(standard-vendor-page (:title "Product Details")
+	(with-standard-vendor-page (:title "Product Details")
 	    (let* ((company (hunchentoot:session-value :login-vendor-company))
 		   (product (select-product-by-id (parse-integer (hunchentoot:parameter "id")) company)))
 		(product-card-with-details-for-vendor product)))
@@ -635,7 +628,7 @@
 (defun dod-controller-vendor-products ()
 (if (is-dod-vend-session-valid?)
 (let ((vendor-products-func (first (hunchentoot:session-value :login-vendor-products-functions))))
-  (standard-vendor-page (:title "Welcome to HighriseHub  - Vendor")
+  (with-standard-vendor-page (:title "Welcome to HighriseHub  - Vendor")
     (:a :class "btn btn-primary" :role "button" :href "dodvenaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Product  ")
     (:hr)
     (str (display-as-tiles (funcall vendor-products-func) 'product-card-for-vendor))))
@@ -703,7 +696,7 @@
 	      (reqdate (hunchentoot:parameter "reqdate"))
 	      (btnexpexl (hunchentoot:parameter "btnexpexl"))
 	      (context (hunchentoot:parameter "context")))
-	  (standard-vendor-page (:title "Welcome to HighriseHub - Vendor")
+	  (with-standard-vendor-page (:title "Welcome to HighriseHub - Vendor")
 	    (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
 	    (:hr)
 	    
@@ -771,7 +764,7 @@
 
 
 (defun display-wallet-for-customer (wallet-instance custom-message)
-  (standard-vendor-page (:title "Wallet Display")
+  (with-standard-vendor-page (:title "Wallet Display")
     (wallet-card wallet-instance custom-message)))
 
 (defun dod-controller-ven-expexl ()
@@ -840,7 +833,7 @@
 
 (defun dod-controller-vendor-orderdetails ()
  (if (is-dod-vend-session-valid?)
-     (standard-vendor-page (:title "List Vendor Order Details")   
+     (with-standard-vendor-page (:title "List Vendor Order Details")   
        (let* (( dodvenorder  (get-vendor-orders-by-orderid (hunchentoot:parameter "id") (get-login-vendor) (get-login-vendor-company)))
 	      (customer (get-customer dodvenorder))
 	      (wallet (get-cust-wallet-by-vendor customer (get-login-vendor) (get-login-vendor-company)))

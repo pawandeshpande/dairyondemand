@@ -32,7 +32,7 @@
     :initarg :token)
    
    (active-flg
-    :accessor activt-flg
+    :accessor active-flg
     :type (string 1)
     :void-value "N"
     :initarg :active-flg)

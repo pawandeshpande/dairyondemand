@@ -1,4 +1,5 @@
 (in-package :hhub)
+(clsql:file-enable-sql-reader-syntax)
 
 
 
@@ -83,10 +84,13 @@
 		 (:meta :http-equiv "content-type" 
 		     :content    "text/html;charset=utf-8")
 		 (:meta :name "viewport" :content "width=device-width,user-scalable=no")
-		 (:meta :names "description" :content "")
-		 (:meta :name "author" :content "")
+		 (:meta :name "theme-color" :content "#5382EE")
+		 (:meta :names "description" :content "A community marketplace app.")
+		 (:meta :name "author" :content "HighriseHub")
 		 (:link :rel "icon" :href "/favicon.ico")
 		 (:title ,title )
+		 ; Link to the app manifest for PWA. 
+		 (:link :rel "manifest" :href "/manifest.json")
 		 (:link :href "/css/style.css" :rel "stylesheet")
 		 (:link :href "/css/bootstrap.min.css" :rel "stylesheet")
 		 (:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")

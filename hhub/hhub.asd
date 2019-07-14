@@ -112,5 +112,13 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
 	       (:file "dod-dal-pas" :depends-on ("packages"))
 	       (:file "dod-bl-pas" :depends-on ("packages"))
 	       
+	         ; Vendor Availability Day 
+	       (:file "dod-dal-vad" :depends-on ("packages"))
+	       (:file "dod-bl-vad" :depends-on ("packages"))
+
+	         ; Vendor appointment
+	       (:file "dod-dal-vas" :depends-on ("packages"))
+	       (:file "dod-bl-vas" :depends-on ("packages"))
+
 	       ))
 
