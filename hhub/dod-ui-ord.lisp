@@ -17,7 +17,7 @@
       (:table :class "table table-striped"  (:thead (:tr
  (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
 								  (mapcar (lambda (order)
-									    (let ((ord-customer  (get-ord-customer order)))
+									    (let ((ord-customer  (get-customer order)))
 									      (htm (:tr (:td  :height "12px" (str (slot-value order 'row-id)))
 											(:td  :height "12px" (str (slot-value order 'ord-date)))
 											(:td  :height "12px" (str (slot-value ord-customer 'name)))
@@ -169,7 +169,9 @@
 	(cl-who:with-html-output (*standard-output* nil)
 	  (:div :class "order-box" 
 	  (:div :class "row"
-		      (:div :class "col-sm-12" (str name ))
-		      (:div :class "col-sm-12" (str (if (> (length address) 20)  (subseq (slot-value customer 'address) 0 20) address)))
+		      (:div :class "col-sm-12"  (str name)))
+	  (:div :class "row" 
+		      (:div :class "col-sm-12" (str (if (> (length address) 20)  (subseq (slot-value customer 'address) 0 20) address))))
+	  (:div :class "row"
 		(:div :class "col-sm-12"  (:a :href (format nil "dodvendororderdetails?id=~A" order-id) (:span :class "label label-info" (str order-id) ))))))))
 

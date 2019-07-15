@@ -104,13 +104,14 @@
 
 
 
-(defun send-cust-password-reset-link (customer token )
-  (let* ((cust-password-reset-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-PASSWORD-RESET-FILE* )))
-	 (email (slot-value customer 'email))
+(defun send-password-reset-link (object token )
+  :documentation "Here object is either CUSTOMER, VENDOR OR EMPLOYEE"
+  (let* ((password-reset-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-PASSWORD-RESET-FILE* )))
+	 (email (slot-value object 'email))
 	 (querystr (format nil "token=~A" token))
 	 (url (format nil "https://highrisehub.com/hhub/hhubcustgentemppass?~A" querystr))
-	 (cust-password-reset-email (format nil cust-password-reset-str url url)))
-  (hhubsendmail email  "Your Password Reset Link" cust-password-reset-email)))
+	 (password-reset-email (format nil password-reset-str url url)))
+  (hhubsendmail email  "Your Password Reset Link" password-reset-email)))
 
 
 (defun send-cust-temp-password  (customer temp-pass token)

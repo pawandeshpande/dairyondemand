@@ -3,6 +3,14 @@
 
 
 
+(defun dod-controller-password-reset-mail-link-sent ()
+(with-standard-customer-page 
+    (:div :class "row" 
+	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
+					;(:div :class "account-wall"
+		  (:h1 :class "text-center login-title"  "Password Reset Link Sent To Your Email."))))))
+
 
 (defun dod-controller-password-reset-mail-sent ()
 (with-standard-customer-page 
@@ -96,6 +104,7 @@
 		 (:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")
 		 (:link :href "https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css" :rel "stylesheet")
 		 (:link :href "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" :rel "stylesheet")
+		 (:link :href "https://fonts.googleapis.com/css?family=Merriweather:400,900,900i" :rel "stylesheet")
 		 (:link :href "/css/theme.css" :rel "stylesheet")
 		 ;; js files
 		 (:script :src "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
@@ -106,7 +115,7 @@
 		 ) ;; header completes here.
 	     (:body
 		 (:div :id "dod-main-container"
-		     (:a :href "#" :class "scrollup" :style "display: none;") 
+		     (:a :id "scrollup" "abc" ) 
 		 (:div :id "dod-error" (:h2 "error..."))
 		 (:div :id "busy-indicator")
 		 (:script :src "/js/hhubbusy.js")

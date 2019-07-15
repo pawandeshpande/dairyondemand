@@ -789,7 +789,7 @@
 (let* ((email (hunchentoot:parameter "email"))
        (customer (select-customer-by-email email))
        (token (format nil "~A" (uuid:make-v1-uuid )))
-       (user-type "CUSTOMER")
+       (user-type (hunchentoot:parameter "user-tpe"))
        (tenant-id (if customer (slot-value customer 'tenant-id)))
        (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
        (paramname (list "secret" "response" ) ) 
@@ -805,15 +805,15 @@
     ((null (cdr (car json-response))) (dod-response-captcha-error))
     ((null customer) (hunchentoot:redirect "/hhub/hhubinvalidemail.html"))
     ; if customer is valid then create an entry in the password reset table. 
-    (customer
+    ((and (equal user-type "CUSTOMER") customer)
      (progn 
        (create-reset-password-instance user-type token email  tenant-id)
        ; temporarily disable the customer record 
        (setf (slot-value customer 'active-flag) "N")
        (update-customer customer)
        ; Send customer an email with password reset link. 
-       (send-cust-password-reset-link customer token)
-       (hunchentoot:redirect "/hhub/customer-login.html"))))))
+       (send-password-reset-link customer token)
+       (hunchentoot:redirect "/hhub/hhubpassresetmaillinksent.html"))))))
 
 
 
@@ -824,7 +824,9 @@
 		(:form :id (format nil "form-customerforgotpass") :data-toggle "validator"  :role "form" :method "POST" :action "hhubcustforgotpassactionlink" :enctype "multipart/form-data" 
 		      (:h1 :class "text-center login-title"  "Forgot Password")
 		      (:div :class "form-group"
-			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "email" :required "true"))
+			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "email" :required "true")
+			    (:input :class "form-control" :name "user-type" :value "CUSTOMER"  :type "hidden" :required "true"))
+			    
 		      (:div :class "form-group"
 			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
 		      (:div :class "form-group"

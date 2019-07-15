@@ -504,6 +504,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubinvalidemail.html"   'dod-controller-invalid-email-error)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresettokenexpired.html"   'dod-controller-password-reset-token-expired )
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresetmailsent.html"   'dod-controller-password-reset-mail-sent )
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresetmaillinksent.html"   'dod-controller-password-reset-mail-link-sent)
 	
 	
 
