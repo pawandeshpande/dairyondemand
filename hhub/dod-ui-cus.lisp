@@ -769,6 +769,7 @@
   (let* ((token (hunchentoot:parameter "token"))
 	 (rstpassinst (get-reset-password-instance-by-token token))
 	 (user-type (if rstpassinst (slot-value rstpassinst 'user-type)))
+	 (url (format nil "https://www.highrisehub.com/hhub/hhubcustpassreset.html?token=~A" token))
 	 (email (if rstpassinst (slot-value rstpassinst 'email))))
     
 	 (cond 
@@ -777,7 +778,7 @@
 	    (let* ((customer (select-customer-by-email email))
 		   (newpassword (reset-customer-password customer)))
 					;send mail to the customer with new password 
-	      (send-cust-temp-password customer newpassword token)
+	      (send-temp-password customer newpassword url)
 	      (hunchentoot:redirect "/hhub/hhubpassresetmailsent.html")))	  
 	   ((and (equal user-type "CUSTOMER")
 		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
@@ -792,6 +793,7 @@
        (user-type (hunchentoot:parameter "user-tpe"))
        (tenant-id (if customer (slot-value customer 'tenant-id)))
        (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
+       (url (format nil "https://www.highrisehub.com/hhub/hhubcustgentemppass?token=~A" token))
        (paramname (list "secret" "response" ) ) 
        (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
        (param-alist (pairlis paramname paramvalue ))
@@ -810,9 +812,9 @@
        (create-reset-password-instance user-type token email  tenant-id)
        ; temporarily disable the customer record 
        (setf (slot-value customer 'active-flag) "N")
-       (update-customer customer)
+       (update-customer customer) 
        ; Send customer an email with password reset link. 
-       (send-password-reset-link customer token)
+       (send-password-reset-link customer url)
        (hunchentoot:redirect "/hhub/hhubpassresetmaillinksent.html"))))))
 
 

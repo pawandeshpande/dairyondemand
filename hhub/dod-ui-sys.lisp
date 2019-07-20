@@ -549,8 +549,13 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendupdateaction" 'dod-controller-vendor-update-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendupdatesettings" 'dod-controller-vendor-update-settings)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendchangepin" 'dod-controller-vendor-change-pin)
-	(hunchentoot:create-regex-dispatcher "^hhub/hhubvendresetpassaction" 'dod-controller-vendor-reset-password-action)
-	))
+	
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendforgotpassactionlink" 'dod-controller-vendor-reset-password-action-link)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendpassreset.html" 'dod-controller-vendor-password-reset-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendgentemppass"   'dod-controller-vendor-generate-temp-password) 
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendpassreset"   'dod-controller-vendor-password-reset-action)
+	
+))
 
 
 

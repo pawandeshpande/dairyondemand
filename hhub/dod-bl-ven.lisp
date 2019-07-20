@@ -13,6 +13,13 @@
 		[=[:row-id] id]]    :caching nil :flatp t )))
 
 
+(defun select-vendor-by-email (email)
+  (car (clsql:select 'dod-vend-profile  :where
+		[and [= [:deleted-state] "N"]
+		;[= [:active-flag] "Y"]
+		[=[:email] email]]    :caching nil :flatp t )))
+
+
 (defun select-vendor-by-name (name-like-clause company)
   (let ((tenant-id (slot-value company 'row-id)))
   (car (clsql:select 'dod-vend-profile :where [and
@@ -20,6 +27,24 @@
 		[= [:tenant-id] tenant-id]
 		[like  [:name] name-like-clause]]
 		:caching nil :flatp t))))
+
+
+(defun reset-vendor-password (vendor)
+  (let* ((confirmpassword (hhub-random-password 8))
+	(salt-octet (secure-random:bytes 56 secure-random:*generator*))
+	(salt (flexi-streams:octets-to-string  salt-octet))
+	(encryptedpass (check&encrypt confirmpassword confirmpassword salt)))
+	  
+    (setf (slot-value vendor 'password) encryptedpass)
+    (setf (slot-value vendor 'salt) salt) 
+    ; Whenever we reset the vendor password, we activate the vendor, as he is in-activated when this process started. 
+    (setf (slot-value vendor 'active-flag) "Y") 
+    (update-vendor-details  vendor )
+    confirmpassword)) ; return the newly generated password. 
+
+
+
+
 
 (defun update-vendor-payment-params (payment-api-key payment-api-salt vendor)
   (setf (slot-value vendor 'payment-api-key) payment-api-key)
@@ -29,8 +54,6 @@
 
 (defun update-vendor-details (vendor-instance); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance vendor-instance))
-
-
 
 (defun delete-vendor( id company )
   (let ((tenant-id (slot-value company 'row-id)))

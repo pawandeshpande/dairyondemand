@@ -346,20 +346,124 @@
 					;else
    (hunchentoot:redirect "/hhub/vendor-login.html")))
 
+(defun dod-controller-vendor-password-reset-action ()
+  (let* ((pwdresettoken (hunchentoot:parameter "token"))
+	 (rstpassinst (get-reset-password-instance-by-token pwdresettoken))
+	 (user-type (if rstpassinst (slot-value rstpassinst 'user-type)))
+	 (password (hunchentoot:parameter "password"))
+	 (newpassword (hunchentoot:parameter "newpassword"))
+	 (confirmpassword (hunchentoot:parameter "confirmpassword"))
+	 (salt-octet (secure-random:bytes 56 secure-random:*generator*))
+	 (salt (flexi-streams:octets-to-string  salt-octet))
+	 (encryptedpass (check&encrypt newpassword confirmpassword salt))
+	 (email (if rstpassinst (slot-value rstpassinst 'email)))
+	 (vendor (select-vendor-by-email email))
+	 (present-salt (if vendor (slot-value vendor 'salt)))
+	 (present-pwd (if vendor (slot-value vendor 'password)))
+	 (password-verified (if vendor  (check-password password present-salt present-pwd))))
+     (cond 
+       ((or  (not password-verified)  (null encryptedpass)) (dod-response-passwords-do-not-match-error)) 
+       ;Token has expired
+       ((and (equal user-type "VENDOR")
+		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+       ((and password-verified encryptedpass) (progn 
+       (setf (slot-value vendor 'password) encryptedpass)
+       (setf (slot-value vendor 'salt) salt) 
+       (update-vendor-details vendor)
+       (hunchentoot:redirect "/hhub/vendor-login.html"))))))
+ 
 
-(defun hhub-cust-forgot-pass-action ()
 
-  ) 
+(defun dod-controller-vendor-password-reset-page ()
+  (let ((token (hunchentoot:parameter "token")))
+(with-standard-vendor-page (:title "Password Reset") 
+(:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (with-html-form "form-vendorchangepin" "hhubvendpassresetaction"  
+					;(:div :class "account-wall"
+			 (:h1 :class "text-center login-title"  "Change Password")
+			 (:div :class "form-group"
+			  
+			       (:input :class "form-control" :name "token" :value token :type "hidden"))
+			 (:div :class "form-group"
+			       (:label :for "password" "Password")
+			       (:input :class "form-control" :name "password" :value "" :placeholder "Enter OTP from Email Old" :type "password" :required T))
+			 (:div :class "form-group"
+			       (:label :for "newpassword" "New Password")
+			       (:input :class "form-control" :id "newpassword" :data-minlength "8" :name "newpassword" :value "" :placeholder "New Password" :type "password" :required T))
+			 (:div :class "form-group"
+			       (:label :for "confirmpassword" "Confirm New Password")
+			       (:input :class "form-control" :name "confirmpassword" :value "" :data-minlength "8" :placeholder "Confirm New Password" :type "password" :required T :data-match "#newpassword"  :data-match-error "Passwords dont match"  ))
+			 (:div :class "form-group"
+			       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+
+
+(defun dod-controller-vendor-generate-temp-password ()
+  (let* ((token (hunchentoot:parameter "token"))
+	 (rstpassinst (get-reset-password-instance-by-token token))
+	 (user-type (if rstpassinst (slot-value rstpassinst 'user-type)))
+	 (url (format nil "https://www.highrisehub.com/hhub/hhubvendpassreset.html?token=~A" token))
+	 (email (if rstpassinst (slot-value rstpassinst 'email))))
+    
+	 (cond 
+	   ((and (equal user-type "VENDOR")
+		 (duration< (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*)))
+	    (let* ((vendor (select-vendor-by-email email))
+		   (newpassword (reset-vendor-password vendor)))
+					;send mail to the vendor with new password 
+	      (send-cust-temp-password vendor newpassword url)
+	      (hunchentoot:redirect "/hhub/hhubpassresetmailsent.html")))	  
+	   ((and (equal user-type "VENDOR")
+		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+	   ((equal user-type "CUSTOMER") ())
+	   ((equal user-type "EMPLOYEE") ()))))
+
+
+
+(defun dod-controller-vendor-reset-password-action-link ()
+(let* ((email (hunchentoot:parameter "email"))
+       (vendor (select-vendor-by-email email))
+       (token (format nil "~A" (uuid:make-v1-uuid )))
+       (user-type (hunchentoot:parameter "user-type"))
+       (tenant-id (if vendor (slot-value vendor 'tenant-id)))
+       (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
+       (paramname (list "secret" "response" ))
+       (url (format nil "https://www.highrisehub.com/hhub/hhubvendgentemppass?token=~A" token))
+       (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
+       (param-alist (pairlis paramname paramvalue ))
+       (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
+												 :method :POST
+												 :parameters param-alist  )))))
+  
+  
+  (cond 
+	 ; Check whether captcha has been solved 
+    ((null (cdr (car json-response))) (dod-response-captcha-error))
+    ((null vendor) (hunchentoot:redirect "/hhub/hhubinvalidemail.html"))
+    ; if vendor is valid then create an entry in the password reset table. 
+    ((and (equal user-type "VENDOR") vendor)
+     (progn 
+       (create-reset-password-instance user-type token email  tenant-id)
+       ; temporarily disable the vendor record 
+       (setf (slot-value vendor 'active-flag) "N")
+       (update-vendor-details vendor) 
+       ; Send vendor an email with password reset link. 
+       (send-password-reset-link vendor url)
+       (hunchentoot:redirect "/hhub/hhubpassresetmaillinksent.html"))))))
+
+
+
 
 
 (defun modal.vendor-forgot-password() 
   (cl-who:with-html-output (*standard-output* nil)
     (:div :class "row" 
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		(:form :id (format nil "form-vendorforgotpass")  :role "form" :method "POST" :action "hhubvendforgotpassaction" :enctype "multipart/form-data" 
+		(:form :id (format nil "form-vendorforgotpass")  :role "form" :method "POST" :action "hhubvendforgotpassactionlink" :enctype "multipart/form-data" 
 		      (:h1 :class "text-center login-title"  "Forgot Password")
 		      (:div :class "form-group"
-			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "text"))
+			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "text")
+			    (:input :class "form-control" :name "user-type" :value "VENDOR"  :type "hidden" :required "true"))
 		      (:div :class "form-group"
 			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
 		      (:div :class "form-group"
@@ -435,7 +539,7 @@
 	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Address: ~A" (if customer (slot-value customer 'address)))))))
 
   (:div :class "row" 
-	    (:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Balance = Rs.~$" (if wallet (slot-value wallet 'balance) 0.00 ) )))))
+	    (:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Balance = Rs.~$" (if wallet (slot-value wallet 'balance) 0.00 ))))))
 	(:div :class "row" 
 	    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 		  (:form :class "form-vendor-update-balance" :role "form" :method "POST" :action "dodupdatewalletbalance"

@@ -86,6 +86,10 @@
     :type (string 40)
     :initarg :payment-api-salt)
    
+   (active-flag
+    :type (string 1)
+    :void-value "N"
+    :initarg :active-flag ) 
    
    
    (deleted-state
