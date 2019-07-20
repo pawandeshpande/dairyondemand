@@ -7,3 +7,4 @@
 *.#*.lisp
 hhub/resources/*.*
 hhub/secretkeys.lisp
+privatekey.key
