@@ -37,7 +37,7 @@
     :initarg :order-fulfilled)
 
    (order-amt
-    :type (number)
+    :type float
     :initarg :order-amt)
 
 (payment-mode
@@ -81,7 +81,7 @@
     :type integer
     :initarg :tenant-id)
    (COMPANY
-    :ACCESSOR order-company
+    :ACCESSOR get-company
     :DB-KIND :JOIN
     :DB-INFO (:JOIN-CLASS dod-company
 	                  :HOME-KEY tenant-id
@@ -163,7 +163,7 @@
     :initarg :ship-address)
 
    (order-amt
-    :type (number)
+    :type float
     :initarg :order-amt)
 
 (payment-mode
@@ -198,7 +198,7 @@
     :type integer
     :initarg :tenant-id)
    (COMPANY
-    :ACCESSOR company
+    :ACCESSOR get-company
     :DB-KIND :JOIN
     :DB-INFO (:JOIN-CLASS dod-company
 	                  :HOME-KEY tenant-id

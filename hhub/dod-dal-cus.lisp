@@ -152,7 +152,7 @@
    
    
    (balance 
-    :type (number ) 
+    :type float
     :initarg :balance)
    
    (deleted-state

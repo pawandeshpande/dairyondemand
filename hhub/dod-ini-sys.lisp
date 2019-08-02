@@ -16,6 +16,8 @@
 (defvar *dod-dbconn-spec* (list *crm-database-server* *crm-database-name* *crm-database-user* *crm-database-password*))
 
 
+(defvar *HHUB-CUSTOMER-ORDER-CUTOFF-TIME* NIL)
+
 (defvar *HHUB-EMAIL-CSS-FILE* "/data/www/highrisehub.com/public/css")
 (defvar *HHUB-EMAIL-CSS-CONTENTS* NIL)
 (defvar *HHUB-EMAIL-TEMPLATES-FOLDER* "~/dairyondemand/hhub/email/templates")
@@ -102,8 +104,8 @@ Database type: Supported type is ':odbc'"
 
 (defun init-dairyondemand ()
   (cond  ((null *dod-debug-mode*) (setf *dod-database-caching* T))
-       ( *dod-debug-mode* (setf *dod-database-caching* nil))
-       (T (setf *dod-database-caching* NIL))))
+	 (*dod-debug-mode* (setf *dod-database-caching* nil))
+	 (T (setf *dod-database-caching* NIL))))
 
 
 (defun start-das(&optional (withssl nil) (debug-mode T)  )
@@ -119,7 +121,8 @@ the hunchentoot server with ssl settings"
        (if withssl  (init-httpserver-withssl))
        (if withssl  (hunchentoot:start *ssl-http-server*) (hunchentoot:start *http-server*) )
        (crm-db-connect :servername *crm-database-server* :strdb *crm-database-name* :strusr *crm-database-user*  :strpwd *crm-database-password* :strdbtype :mysql)
-       (setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* (hhub-gen-globally-cached-lists-functions))))
+       (setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* (hhub-gen-globally-cached-lists-functions))
+       (setf *HHUB-CUSTOMER-ORDER-CUTOFF-TIME* "23:00:00")))
 
 
 
@@ -153,10 +156,12 @@ the hunchentoot server with ssl settings"
 
 (defun hhub-gen-globally-cached-lists-functions ()
   :documentation "These functions are list returning functions. The various lists are accessible throughout the application. For example, list of all the authorization policies, attributes, etc."
-  (let ((policies (get-auth-policies 1)) ; The first tenant is the system tenant. 
-	(roles (select-all-roles)))
+  (let ((policies (get-system-auth-policies))
+	(roles (get-system-roles))
+	(transactions (get-system-bus-transactions)))
     (list (function (lambda () policies))
-	  (function (lambda () roles) ))))
+	  (function (lambda () roles))
+	  (function (lambda () transactions)))))
 
 
 (defun hhub-get-cached-auth-policies()
@@ -168,3 +173,10 @@ the hunchentoot server with ssl settings"
   :documentation "This function gets a list of all the globally cached roles."
   (let ((rolesfunc (nth 1 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
     (funcall rolesfunc)))
+
+
+(defun hhub-get-cached-transactions ()
+  :documentation "This function gets a list of all the globally cached transactions."
+  (let ((rolesfunc (nth 3 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+    (funcall rolesfunc)))
+

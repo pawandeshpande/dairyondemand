@@ -30,7 +30,7 @@
 
 (defun create-bus-object (name company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id))) 
-	      (persist-bus-object name tenant-id)))
+	      (persist-bus-object (string-upcase name) tenant-id)))
 
 
 
@@ -40,6 +40,9 @@
 
 (defun get-bus-transaction (id)
  (car  (clsql:select 'dod-bus-transaction  :where [and [= [:deleted-state] "N"] [= [:row-id] id]]    :caching *dod-database-caching* :flatp t )))
+
+(defun get-system-bus-transactions () 
+(select-bus-trans-by-company (select-company-by-id 1)))
 
 (defun select-bus-trans-by-trans-func (name)
   (car (clsql:select 'dod-bus-transaction  :where

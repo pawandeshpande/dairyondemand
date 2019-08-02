@@ -1,6 +1,5 @@
-(in-package :dairyondemand)
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
-
 
 (defmacro with-compadmin-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."

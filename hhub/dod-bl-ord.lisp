@@ -14,8 +14,8 @@
 					   (* (slot-value voitem 'unit-price) (slot-value voitem 'prd-qty))) vendor-order-items))))
       
       (hunchentoot:log-message* :info "Inside set-order-fulfilled function - before if condition:  login vendor company is ~A" (slot-value company-instance 'name))
-      (hunchentoot:log-message* :info "Inside set-order-fulfilled function - before if condition:  order company is ~A" (slot-value (order-company order-instance) 'name))
-      (if  (equal (slot-value (order-company order-instance) 'name) (slot-value  company-instance 'name))
+      (hunchentoot:log-message* :info "Inside set-order-fulfilled function - before if condition:  order company is ~A" (slot-value (get-company order-instance) 'name))
+      (if  (equal (slot-value (get-company order-instance) 'name) (slot-value  company-instance 'name))
 	   (progn
 	     (hunchentoot:log-message* :info "Inside set-order-fulfilled function - now completing order item status to CMP. ")
 					; complete the order items for that particular vendor.  	
@@ -357,9 +357,9 @@
     (progn (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt payment-mode comments  company-instance)
 	   (let 
 	           ((order (get-order-by-context-id (print-object uuid nil) company-instance))
-		      (cust-id (get-login-customer-id))
-		         (vendors (get-shopcart-vendorlist order-items))
-		         (tenant-id (slot-value company-instance 'row-id)))
+		    (cust-id (get-login-customer-id))
+		    (vendors (get-shopcart-vendorlist order-items))
+		    (tenant-id (slot-value company-instance 'row-id)))
 
 	     ;Create the order-items and also update the current products in stock. 
 	       (mapcar (lambda (odt)

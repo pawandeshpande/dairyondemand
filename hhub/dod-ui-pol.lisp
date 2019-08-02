@@ -51,20 +51,21 @@ T)
 (if (equal (cdr username)  "superadmin") T NIL)))
 
 
-(defun com-hhub-policy-cust-edit-order (&optional transaction params)
+(defun com-hhub-policy-cust-edit-order-item (&optional transaction params)
   (let ((transbo (get-bus-tran-busobject transaction)))
     ; Match the Resource attribute and Action attribute for Edit Order.
     (if  (and (string-equal (slot-value transbo 'name )(com-hhub-attribute-order)) 
-	      (if (equal (com-hhub-attribute-cust-edit-order) (slot-value transaction 'name))  T NIL)
-	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
+	      (if (equal (com-hhub-attribute-cust-edit-order-item) (slot-value transaction 'name))  T NIL)
+	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-customer-order-cutoff-time)))  T NIL)) T NIL)))
 
 
 (defun com-hhub-policy-create-order (&optional transaction params)
   (let ((transbo (get-bus-tran-busobject transaction)))
-    ; Match the Resource attribute and Action attribute for Create Order.
+					; Match the Resource attribute and Action attribute for Create Order.
+    (hunchentoot:log-message* :info "Now executing policy com.hhub.policy.create.order")
     (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
 	      (if (equal (com-hhub-attribute-create-order) (slot-value transaction 'name)) T NIL)
-	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
+	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-customer-order-cutoff-time)))  T NIL)) T NIL)))
 
 
 ;(defun com-hhub-policy-create-order1 (subject resource action env ) 
@@ -377,10 +378,9 @@ T)
 	 (attrname (if attribute (slot-value attribute 'name)))
 	 (attrdesc (if attribute (slot-value attribute 'description)))
 	 (attrtype (if attribute (slot-value attribute 'attr-type)))
-	 (attrfunc (if attribute (slot-value attribute 'attr-func)))
-	 (transaction (select-bus-trans-by-trans-func "com-hhub-transaction-create-attribute")))
-
-(if (has-permission transaction)
+	 (attrfunc (if attribute (slot-value attribute 'attr-func))))
+	
+(with-hhub-transaction "com-hhub-transaction-create-attribute" nil 
     (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
@@ -390,7 +390,7 @@ T)
 			    (:h1 :class "text-center login-title"  "Add/Edit Attribute")
 			    (:div :class "form-group input-group"
 				  (:span :class "input-group-addon" :id "attrnameprefix" (str *ABAC-ATTRIBUTE-NAME-PREFIX*)) 
-				  (:input :class "form-control" :name "attrname" :aria-describedby "attrnameprefix" :maxlength "30"  :value (if attribute (subseq attrname (length *ABAC-ATTRIBUTE-NAME-PREFIX*))) :placeholder "Enter Attribute  Name ( max 30 characters) " :type "text" ))
+				  (:input :class "form-control" :name "attrname" :id "attrname"  :aria-describedby "attrnameprefix" :maxlength "30"  :value (if attribute (subseq attrname (length *ABAC-ATTRIBUTE-NAME-PREFIX*))) :placeholder "Enter Attribute  Name ( max 30 characters) " :type "text" ))
 			    (:div :class "form-group"
 				  (:label :for "attrdesc")
 				  (:textarea :class "form-control" :name "attrdesc"  :placeholder "Enter Attribute Description ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 200)" (str attrdesc) ))
@@ -398,15 +398,12 @@ T)
 			    (:div :class "form-group input-group"
 				  
 				  (:span :class "input-group-addon" :id "attrfuncprefix" (str *ABAC-ATTRIBUTE-FUNC-PREFIX*)) 
-				  (:input :class "form-control" :name "attrfunc" :maxlength "30"  :value (if attribute (subseq attrfunc (length *ABAC-ATTRIBUTE-FUNC-PREFIX*))) :placeholder "Declare Attribute Function Name ( max 100 characters) " :aria-describedby "attrfuncprefix"  :type "text" ))
+				  (:input :class "form-control" :name "attrfunc" :id "attrfunc"  :maxlength "30"  :value (if attribute (subseq attrfunc (length *ABAC-ATTRIBUTE-FUNC-PREFIX*))) :placeholder "Declare Attribute Function Name ( max 100 characters) " :aria-describedby "attrfuncprefix"  :type "text" ))
 			    (:div :class "form-group"
 				  (attribute-type-dropdown attrtype))
 			    
 			    (:div :class "form-group"
-				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
-(cl-who:with-html-output (*standard-output* nil)
-  (:div :class "row" 
-	(:h3 "Permission Denied"))))))
+				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
 
 
 (defun com-hhub-transaction-policy-create (&optional id)

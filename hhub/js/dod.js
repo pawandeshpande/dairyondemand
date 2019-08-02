@@ -6,19 +6,6 @@ var  $formcustsignin = $(".form-custsignin"),  $formvendsignin = $(".form-vendor
 $busyindicator.removeChild(spinner.el);
 
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/serviceworker.js')
-  .then(function(registration) {
-    console.log('Registration successful, scope is:', registration.scope);
-  })
-  .catch(function(error) {
-    console.log('Service worker registration failed, error:', error);
-  });
-}
-
-
-
-
 
 $(document).ready(function () {
         $('#reg-type').change(function () {
@@ -130,6 +117,19 @@ $formvendsignin.submit ( function() {
 })
 
 
+$("form").on('submit', function (e) {
+    var theForm = $(this);
+    $(theForm).find("button[type='submit']").hide(); //prop('disabled',true);
+      $.ajax({
+            type: 'POST',
+          url: $(theForm).attr("action"), 
+            data: $(theForm).serialize(),
+            success: function (response) {
+		
+		location.reload();
+            }
+      });
+      e.preventDefault();});
 
 $(".form-product").on('submit', function (e) {
     var theForm = $(this);

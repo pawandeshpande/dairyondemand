@@ -2,6 +2,23 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
+;Experiment with push notification 
+(defun sendnotification ()
+(let ((endpoint "https://fcm.googleapis.com/fcm/send/eFLH0xlueR4:APA91bGevnpSVStDgHjBslYh4yO2wNCgS2qOyogfKoiyVnIcB2bEYLu-QUgtft59zZvlD8ZQXsrOtUXC_3LOa88omefheO5tDeAjh115vGIxRqBcpTgYbrHBC0mDP_Wpun_wK-Ss1dP6")
+      (expiationtime "null") 
+      (publickey "BMmpRlfUxiyZCTDw_S3XgvhrpgcLVknUS5ueo6jW5bu751nHO8ER0PPt9MhfapS_H890frZ058harID-duWZETw")
+      (authkey "lAHxGXAZBHDpjqyeRedniA")
+  ;    (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
+   ;   (param-alist (pairlis paramname paramvalue ))
+    ;  (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request endpoint
+     ;                  :method :POST
+      ;                 :parameters param-alist  )))))))
+     ))) 
+
+
+
+
+
 
 (defun dod-controller-password-reset-mail-link-sent ()
 (with-standard-customer-page 
@@ -115,7 +132,7 @@
 		 ) ;; header completes here.
 	     (:body
 		 (:div :id "dod-main-container"
-		     (:a :id "scrollup" "abc" ) 
+		     (:a :id "scrollup" "" ) 
 		 (:div :id "dod-error" (:h2 "error..."))
 		 (:div :id "busy-indicator")
 		 (:script :src "/js/hhubbusy.js")
@@ -168,11 +185,6 @@
 	(decode-universal-time (+ (get-universal-time) hunchentoot:*session-max-time*))
 	(list hour minute second)))
 
-
-
-
-
-
 (defmacro with-cust-session-check (&body body)
    `(if hunchentoot:*session* ,@body 
 	;else 
@@ -193,12 +205,17 @@
 	;else 
   (hunchentoot:redirect *HHUBCADLOGINPAGEURL*)))
 
+
 (defmacro with-hhub-transaction (name &optional params &body body)
 `(let ((transaction (select-bus-trans-by-trans-func ,name)))
    (if (has-permission transaction ,params) 
-       ,@body
+       (progn 
+	 (hunchentoot:log-message* :info "Got permission for transaction ~A" (slot-value transaction 'name))
+	 ,@body)
       ;else
-       "Permission Denied")))
+       (progn 
+	 (hunchentoot:log-message* :info "Permission denied for transaction ~A" (slot-value transaction 'name))
+	 "Permission Denied"))))
 
 ; Policy Enforcement Point for HHUB
 (defmacro with-hhub-pep (name subject resource action env &body body)
@@ -240,10 +257,9 @@
 individual tiles. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizingrefer to style.css. " 
   (cl-who:with-html-output-to-string (*standard-output* nil)
     ; searchresult div will be used to store the search result. 
-    (:div :id "searchresult" 
     (:div :class "row-fluid"  (mapcar (lambda (item)
 					(htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-4" 
-						    (funcall displayfunc item))))  listdata)))))
+						    (funcall displayfunc item))))  listdata))))
 
 
 

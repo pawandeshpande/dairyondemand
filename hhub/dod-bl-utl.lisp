@@ -1,6 +1,17 @@
 ;; -*- mode: common-lisp; coding: utf-8 -*-
 (in-package :hhub)
 
+
+(defun hhub-function-memoize (function-symbol)
+  (let ((original-function (symbol-function function-symbol))
+        (values            (make-hash-table)))
+    (setf (symbol-function function-symbol)
+          (lambda (arg &rest args)
+            (or (gethash arg values)
+                (setf (gethash arg values)
+                      (apply original-function arg args)))))))
+
+
 (defun hhub-random-password (length)
   (with-output-to-string (stream)
     (let ((*print-base* 36))

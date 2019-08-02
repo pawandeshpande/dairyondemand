@@ -82,6 +82,7 @@
     (if (not (equal row-id (slot-value (car list) 'row-id))) (search-prd-in-list row-id (cdr list))
     (car list)))
 
+
 (defun prdinlist-p  (prd-id list)
 (member prd-id  (mapcar (lambda (item)
 		(slot-value item 'prd-id)) list)))

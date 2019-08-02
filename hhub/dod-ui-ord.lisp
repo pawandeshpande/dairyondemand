@@ -161,17 +161,18 @@
 
 
 (defun vendor-order-card (order-instance)
-    (let* ((id (slot-value order-instance 'cust-id))
-	   (customer (select-customer-by-id id (get-login-vendor-company)))
-	  (order-id (slot-value order-instance 'order-id))
-	  (name (if customer (slot-value customer 'name)))
-	  (address (if customer (slot-value customer 'address))))
-	(cl-who:with-html-output (*standard-output* nil)
+  (let* ((customer (get-customer order-instance))
+	 (company (get-company order-instance))
+	 (order-id (slot-value order-instance 'order-id))
+	 (name (if customer (slot-value customer 'name)))
+	 (address (if customer (slot-value customer 'address))))
+    (cl-who:with-html-output (*standard-output* nil)
 	  (:div :class "order-box" 
-	  (:div :class "row"
+		(:div :class "row"
 		      (:div :class "col-sm-12"  (str name)))
-	  (:div :class "row" 
+		(:div :class "row" 
 		      (:div :class "col-sm-12" (str (if (> (length address) 20)  (subseq (slot-value customer 'address) 0 20) address))))
-	  (:div :class "row"
-		(:div :class "col-sm-12"  (:a :href (format nil "dodvendororderdetails?id=~A" order-id) (:span :class "label label-info" (str order-id) ))))))))
+		(:div :class "row"
+		      (:div :class "col-sm-12" (:a :data-toggle "modal" :data-target (format nil "#hhubvendorderdetails~A-modal" (str order-id))  :href "#"  (:span :class "label label-info" (str order-id))))
+		      (modal-dialog (format nil "hhubvendorderdetails~A-modal" (str order-id)) "Vendor Order Details" (modal.vendor-order-details order-id company)))))))
 

@@ -1,4 +1,4 @@
-(in-package :dairyondemand)
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
 (defvar *current-vendor-session* nil)
@@ -170,7 +170,7 @@
 (with-vend-session-check
     ;list all the completed orders for Today. 
     (let* ((todaysorders (dod-get-cached-completed-orders-today))
-	  (total (if todaysorders (reduce #'+ (mapcar (lambda (ord) (slot-value ord 'order-amt)) todaysorders)))))
+	   (total (if todaysorders (reduce #'+ (mapcar (lambda (ord) (slot-value ord 'order-amt)) todaysorders)))))
     (with-standard-vendor-page (:title "Welcome to DAS Platform- Vendor")
       (:div :class "row"
 	    (:div :class "col-xs-12 col-sm-4 col-md-4 col-lg-4" 
@@ -180,7 +180,7 @@
       (:div :class  "col-xs-12 col-sm-4 col-md-4 col-lg-4"  :align "right" 
 	    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))))
       (:hr)
-      (str (display-as-tiles todaysorders 'vendor-order-card))))))
+      (str (display-as-tiles todaysorders 'vendor-order-card ))))))
 
 
  
@@ -274,10 +274,9 @@
 
 
 (defun dod-controller-vendor-add-product-page ()
-  (if (is-dod-vend-session-valid?)
+(with-vend-session-check 
       ;(let ((catglist (get-prod-cat (get-login-vendor-tenant-id))))
-
-    (with-standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+  (with-standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
 		    (:div :class "row" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:form :class "form-vendorprodadd" :role "form" :method "POST" :action "dodvenaddproductaction" :data-toggle "validator" :enctype "multipart/form-data" 
@@ -305,12 +304,12 @@
 					     (:div :class "form-group" (:label :for "prodimage" "Select Product Image:")
 						   (:input :class "form-control" :name "prodimage" :placeholder "Product Image" :type "file" ))
 					      (:div :class "form-group"
-						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
-(hunchentoot:redirect "/hhub/vendor-login.html")))					    
+						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+
 
 
 (defun dod-controller-vendor-add-product-action ()
- (if (is-dod-vend-session-valid?)
+ (with-vend-session-check 
    (let* ((prodname (hunchentoot:parameter "prdname"))
 	  (id (hunchentoot:parameter "id"))
 	  (product (if id (select-product-by-id id (get-login-vendor-company))))
@@ -342,9 +341,8 @@
 					;else
 	 (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice units-in-stock (if tempfilewithpath (format nil "/img/~A" file-name) (format nil "/img/~A"   *HHUBDEFAULTPRDIMG*))  subscriptionflag  (get-login-vendor-company)))
      (dod-reset-vendor-products-functions (get-login-vendor))
-     (hunchentoot:redirect "/hhub/dodvenproducts"))
-					;else
-   (hunchentoot:redirect "/hhub/vendor-login.html")))
+     (hunchentoot:redirect "/hhub/dodvenproducts"))))
+
 
 (defun dod-controller-vendor-password-reset-action ()
   (let* ((pwdresettoken (hunchentoot:parameter "token"))
@@ -365,7 +363,7 @@
        ((or  (not password-verified)  (null encryptedpass)) (dod-response-passwords-do-not-match-error)) 
        ;Token has expired
        ((and (equal user-type "VENDOR")
-		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+		 (duration> (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
        ((and password-verified encryptedpass) (progn 
        (setf (slot-value vendor 'password) encryptedpass)
        (setf (slot-value vendor 'salt) salt) 
@@ -407,14 +405,14 @@
     
 	 (cond 
 	   ((and (equal user-type "VENDOR")
-		 (duration< (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*)))
+		 (duration< (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*)))
 	    (let* ((vendor (select-vendor-by-email email))
 		   (newpassword (reset-vendor-password vendor)))
 					;send mail to the vendor with new password 
-	      (send-cust-temp-password vendor newpassword url)
+	      (send-temp-password vendor newpassword url)
 	      (hunchentoot:redirect "/hhub/hhubpassresetmailsent.html")))	  
 	   ((and (equal user-type "VENDOR")
-		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+		 (duration> (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
 	   ((equal user-type "CUSTOMER") ())
 	   ((equal user-type "EMPLOYEE") ()))))
 
@@ -639,7 +637,7 @@
 	     (pwd (if vendor (slot-value vendor 'password)))
 	     (salt (if vendor (slot-value vendor 'salt)))
 	     (password-verified (if vendor  (check-password password salt pwd)))
-	     (vendor-company (if vendor (car (vendor-company vendor)))))
+	     (vendor-company (if vendor  (vendor-company vendor))))
 					;(log (if password-verified (hunchentoot:log-message* :info (format nil  "phone : ~A password : ~A" phone password)))))
 	(when (and  vendor
 		    password-verified
@@ -682,8 +680,7 @@
    (if vendor (setf (hunchentoot:session-value :login-vendor-id) (slot-value vendor 'row-id)))
    (if vendor (setf (hunchentoot:session-value :login-vendor-tenants) (get-vendor-tenants-as-companies vendor)))
    (if vendor (setf (hunchentoot:session-value :order-func-list) (dod-gen-order-functions vendor company)))
-   (if vendor (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor)))   
-   (dod-reset-vendor-products-functions (get-login-vendor))))
+   (if vendor (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor)))))
    
    
    
@@ -730,18 +727,16 @@
 
 
 (defun dod-controller-vendor-products ()
-(if (is-dod-vend-session-valid?)
-(let ((vendor-products-func (first (hunchentoot:session-value :login-vendor-products-functions))))
+(with-vend-session-check 
   (with-standard-vendor-page (:title "Welcome to HighriseHub  - Vendor")
-    (:a :class "btn btn-primary" :role "button" :href "dodvenaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Product  ")
-    (:hr)
-    (str (display-as-tiles (funcall vendor-products-func) 'product-card-for-vendor))))
-    ;(ui-list-vendor-products (funcall vendor-products-func )))
-;else
-(hunchentoot:redirect "/hhub/vendor-login.html")))
+			     (:a :class "btn btn-primary" :role "button" :href "dodvenaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Product  ")
+			     (:hr)
+			     (str (display-as-tiles (hhub-get-cached-vendor-products)  'product-card-for-vendor)))))
+   
+
 
 (defun dod-gen-vendor-products-functions (vendor)
-  (let ((vendor-products (select-products-by-vendor vendor (get-login-vendor-company))))
+  (let ((vendor-products (select-products-by-vendor vendor (vendor-company vendor))))
     (list (function (lambda () vendor-products)))))
 
 (defun dod-gen-order-functions (vendor company)
@@ -768,6 +763,10 @@
     (setf (hunchentoot:session-value :order-func-list) order-func-list)))
 
 
+(defun hhub-get-cached-vendor-products ()
+  (let ((vendor-products-func (first (hunchentoot:session-value :login-vendor-products-functions))))
+    (funcall vendor-products-func)))
+
 (defun dod-get-cached-pending-orders()
   (let ((pending-orders-func (first (hunchentoot:session-value :order-func-list))))
     (funcall pending-orders-func)))
@@ -793,62 +792,59 @@
 
 
 (defun dod-controller-vend-index () 
-   (hunchentoot:log-message* :info (if (is-dod-vend-session-valid?) (format nil  "vendor session is valid Inside vend index  " ) (format nil "vendor session is invalid")))  
-  (if (is-dod-vend-session-valid?)
-	
-	(let (( dodorders (dod-get-cached-pending-orders ))
-	      (reqdate (hunchentoot:parameter "reqdate"))
-	      (btnexpexl (hunchentoot:parameter "btnexpexl"))
-	      (context (hunchentoot:parameter "context")))
-	  (with-standard-vendor-page (:title "Welcome to HighriseHub - Vendor")
-	    (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
-	    (:hr)
-	    
-	    (:form :class "form-venorders" :method "POST" :action "dodvendindex"
-		(:div :class "row" :style "display: none"
-		(:div :class "btn-group" :role "group" :aria-label "..."
-		(:button  :name "btnpendord" :type "submit" :class "btn btn-default active" "Orders" )
-		(:button  :name "btnordcomp" :type "submit" :class "btn btn-default" "Completed Orders")))
-	   ; (:hr)
-	    (:div :class "row" :style "display: none"
-		(:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12" 
+  (with-vend-session-check 
+    (let (( dodorders (dod-get-cached-pending-orders ))
+	  (reqdate (hunchentoot:parameter "reqdate"))
+	  (btnexpexl (hunchentoot:parameter "btnexpexl"))
+	  (context (hunchentoot:parameter "context")))
+      (with-standard-vendor-page (:title "Welcome to HighriseHub - Vendor")
+				 (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
+				 (:hr)
+				 
+				 (:form :class "form-venorders" :method "POST" :action "dodvendindex"
+					(:div :class "row" :style "display: none"
+					      (:div :class "btn-group" :role "group" :aria-label "..."
+						    (:button  :name "btnpendord" :type "submit" :class "btn btn-default active" "Orders" )
+						    (:button  :name "btnordcomp" :type "submit" :class "btn btn-default" "Completed Orders")))
+					; (:hr)
+					(:div :class "row" :style "display: none"
+					      (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12" 
 			(:input :type "text" :name "reqdate" :placeholder "yyyy/mm/dd")
 			(:button :class "btn btn-primary" :type "submit" :name "btnordprd" "Get Orders by Products")
 			(:button :class "btn btn-primary" :type "submit" :name "btnordcus" "Get Orders by Customers")
 			(if (and reqdate dodorders)
-			(htm (:a :href (format nil "/dodvenexpexl?reqdate=~A" (cl-who:escape-string reqdate)) :class "btn btn-primary" "Export To Excel")))
+			    (htm (:a :href (format nil "/dodvenexpexl?reqdate=~A" (cl-who:escape-string reqdate)) :class "btn btn-primary" "Export To Excel")))
 			(:button :class "btn btn-primary"  :type "submit" :name "btnprint" :onclick "javascript:window.print();" "Print") 
-		   )))
-	   ; (:hr)
-	    (cond ((equal context "ctxordprd") (ui-list-vendor-orders-by-products dodorders))
-		((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/hhub/dodvenexpexl?reqdate=~A" reqdate)))
-		((equal context "ctxordcus") (ui-list-vendor-orders-by-customers dodorders))
-		((equal context "home")	(htm (:div :class "list-group col-xs-6 col-sm-6 col-md-6 col-lg-6" 
-						   (:a :class "list-group-item" :href "dodvendindex?context=pendingorders" " Orders " (:span :class "badge" (str (format nil " ~d " (length dodorders)))))
-						   (:a :class "list-group-item" :href "dodvendindex?context=ctxordprd" "Todays Demand")
-						   (:a :class "list-group-item" :href (str (format nil "dodvendrevenue"))  "Today's Revenue"))))  
-   
-		((equal context "pendingorders") 
-		 (progn (htm (str "Pending Orders") (:span :class "badge" (str (format nil " ~d " (length dodorders))))
-			     (:a :class "btn btn-primary btn-xs" :role "button" :href "dodrefreshpendingorders" (:span :class "glyphicon glyphicon-refresh"))
-			     (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvendindex?context=ctxordcus" "Printer Friendly View")
-			     (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=pendingorders" "Export To Excel")
-			     (:hr))
-			(str (display-as-tiles dodorders 'vendor-order-card))))
-		((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
-						     (progn (htm (str (format nil "Completed orders"))
-								 (:span :class "badge" (str (format nil " ~d " (length orders)))) 
-								 (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=completedorders" "Export To Excel")
-								 (:hr))
-							(str(display-as-tiles orders 'vendor-order-card)))))
-							    
-		(T ()) )))
-					; Else
-	(hunchentoot:redirect "/hhub/vendor-login.html")))
+			)))
+					; (:hr)
+				 (cond ((equal context "ctxordprd") (ui-list-vendor-orders-by-products dodorders))
+				       ((and dodorders btnexpexl) (hunchentoot:redirect (format nil "/hhub/dodvenexpexl?reqdate=~A" reqdate)))
+				       ((equal context "ctxordcus") (ui-list-vendor-orders-by-customers dodorders))
+				       ((equal context "home")	(htm (:div :class "list-group col-xs-6 col-sm-6 col-md-6 col-lg-6" 
+									   (:a :class "list-group-item" :href "dodvendindex?context=pendingorders" " Orders " (:span :class "badge" (str (format nil " ~d " (length dodorders)))))
+									   (:a :class "list-group-item" :href "dodvendindex?context=ctxordprd" "Todays Demand")
+									   (:a :class "list-group-item" :href (str (format nil "dodvendrevenue"))  "Today's Revenue"))))  
+				       
+				       ((equal context "pendingorders") 
+					(progn (htm (str "Pending Orders") (:span :class "badge" (str (format nil " ~d " (length dodorders))))
+						    (:a :class "btn btn-primary btn-xs" :role "button" :href "dodrefreshpendingorders" (:span :class "glyphicon glyphicon-refresh"))
+						    (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvendindex?context=ctxordcus" "Printer Friendly View")
+						    (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=pendingorders" "Export To Excel")
+						    (:hr))
+					       (str (display-as-tiles dodorders 'vendor-order-card))))
+				       ((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
+									    (progn (htm (str (format nil "Completed orders"))
+											(:span :class "badge" (str (format nil " ~d " (length orders)))) 
+											(:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=completedorders" "Export To Excel")
+											(:hr))
+										   (str(display-as-tiles orders 'vendor-order-card)))))
+				       
+		 )))))
+
 
 
 (defun dod-controller-ven-order-fulfilled ()
-    (if (is-dod-vend-session-valid?)
+  (with-vend-session-check 
 	(let* ((id (hunchentoot:parameter "id"))
 	       (company-instance (hunchentoot:session-value :login-vendor-company))
 	       (order-instance (get-order-by-id id company-instance))
@@ -862,9 +858,8 @@
 		     (if (not (check-wallet-balance (get-order-items-total-for-vendor vendor  vendor-order-items) wallet))
 			 (display-wallet-for-customer wallet "Not enough balance for the transaction.")))
 		 (set-order-fulfilled "Y"  order-instance company-instance)
-		 (hunchentoot:redirect "/hhub/dodvendindex?context=pendingorders")))
-	;else     
-	(hunchentoot:redirect "/hhub/vendor-login.html")))
+		 (hunchentoot:redirect "/hhub/dodvendindex?context=pendingorders")))))
+	
 
 
 (defun display-wallet-for-customer (wallet-instance custom-message)
@@ -933,7 +928,42 @@
 		  
 
 
+(defun modal.vendor-order-details (order-id company)
+(with-vend-session-check 
+  (let* (( dodvenorder  (get-vendor-orders-by-orderid order-id  (get-login-vendor) company))
+	      (customer (get-customer dodvenorder))
+	      (wallet (get-cust-wallet-by-vendor customer (get-login-vendor) company))
+	      (balance (slot-value wallet 'balance))
+	      (venorderfulfilled (if dodvenorder (slot-value dodvenorder 'fulfilled)))
+	      (order (get-order-by-id order-id company))
+	      (payment-mode (slot-value order 'payment-mode))
+	      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
+	      (odtlst (if order (dod-get-cached-order-items-by-order-id (slot-value order 'row-id))) )
+	      (total   (reduce #'+  (mapcar (lambda (odt)
+					      (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
+	      (lowwalletbalance (< balance total)))
+	 
+        (cl-who:with-html-output (*standard-output* nil)
+	  (:div :class "row" 
+	       (:div :class "col-md-12" :align "right" 
+		     (if (and lowwalletbalance (equal payment-mode "PRE")) 
+			 (htm (:h2 (:span :class "label label-danger" (str (format nil "Low wallet Balance = Rs ~$" balance))))))
+					;else
+		     (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))
+		     (if (equal venorderfulfilled "Y") 
+			 (htm (:span :class "label label-info" "FULFILLED"))
+					;ELSE
+					; Convert the complete button to a submit button and introduce a form here. 
+			 (htm (with-html-form "form-vendordercomplete" "dodvenordfulfilled"
+				(:input :type "hidden" :name "id" :value (slot-value order 'row-id))
+					; (:a :onclick "return CancelConfirm();" :href (format nil "dodvenordcancel?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Cancel")) "&nbsp;&nbsp;"  
+				(:div :class "form-group" 
+				      (:input :type "submit"  :class "btn btn-primary" :value "Complete")))))))
 
+	
+	 (if odtlst (ui-list-vend-orderdetails header odtlst) "No order details")
+	 (if order (display-order-header-for-vendor  order)) 
+	 ))))
 
 (defun dod-controller-vendor-orderdetails ()
  (if (is-dod-vend-session-valid?)

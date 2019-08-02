@@ -92,6 +92,10 @@
 ;;;;;;;;;;;;;;;;;;;;; business logic for dod-auth-policy ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(defun get-system-auth-policies () 
+(get-auth-policies 1))
+
+
 (defun get-auth-policies (tenant-id)
   (clsql:select 'dod-auth-policy  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
 

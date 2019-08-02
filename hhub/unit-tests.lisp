@@ -1,12 +1,13 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 					;**********Get the company***********
-(defparameter dod-company (select-company-by-name "Gopalan Atlantis"))
+(defparameter dod-company (select-company-by-name "demo"))
 
 
-;******Create the customer ******
+					;******Create the customer ******
+(defparameter *birthdate* (make-date :year 2016 :month 5 :day 29))
 (defparameter *customer-params* nil)
-(setf *customer-params* (list (format nil "Test Customer ~a" (random 200)) "GA Bangalore 560066" (format nil "98456~a" (random 99999)) dod-company))
+(setf *customer-params* (list (format nil "Test Customer ~a" (random 200)) "GA Bangalore 560066" (format nil "98456~a" (random 99999)) "test@test.com" *birthdate* "P@ssword" "salt" "Bangalore" "Karnataka" "560066"  dod-company))
 ;Create the customer now.
 (apply #'create-customer *customer-params*)
 ;Get the customer which we have created in the above steps. 
@@ -14,7 +15,7 @@
 
 ; **** Create the vendor *****
 (defparameter *vendor-params* nil)
-(setf *vendor-params* (list (format nil "Test Vendor ~a" (random 20)) "GA Bangalore 560066" (format nil "98456~a" (random 99999)) dod-company))
+(setf *vendor-params* (list (format nil "Test Vendor ~a" (random 20)) "GA Bangalore 560066" (format nil "98456~a" (random 99999)) "testvendor@test.com" "P@ssword" "salt"  "Bangalore"  "Karnataka" "560066" dod-company))
 ;Create the vendor now.
 (apply #'create-vendor *vendor-params*)
 ;Get the vendor which we have created in the above steps. 
@@ -26,11 +27,11 @@
 (defparameter ShipDate (make-date :year 2016 :month 5 :day 29))
 (defparameter NandiniBlue (select-product-by-name "%Nandini Blue" dod-company))
 (defparameter NandiniGreen (select-product-by-name "%Nandini-Green" dod-company))
-(create-order OrderDate Testcustomer1 RequestDate ShipDate "GA Bangalore" nil dod-company  )
+(create-order OrderDate Testcustomer1 RequestDate ShipDate "GA Bangalore" nil nil "PRE" "Test CommentS" dod-company  )
 (defparameter TestOrder1 (get-latest-order-for-customer Testcustomer1 ))
 ;;****** Create order details ********
-(create-order-details TestOrder1 NandiniBlue 1 15.00 dod-company)
-(create-order-details TestOrder1 NandiniGreen 1 20.00 dod-company)
+(create-order-items TestOrder1 NandiniBlue 1 15.00 dod-company)
+(create-order-items TestOrder1 NandiniGreen 1 20.00 dod-company)
 
 (defparameter Customer1-orders (get-orders-for-customer  Testcustomer1))
 ;Create test data for Tenant 3
@@ -96,7 +97,7 @@
 	 
 
     (defun test-order-details ()
-     (let ((order-details (get-order-details order)))
+     (let ((order-details (get-order-items order)))
        order-details))))
 		
 
@@ -126,4 +127,4 @@
 					; For each customer, get the order preference list and pass to the below function.
 	      (mapcar (lambda (customer)
 			  (let ((custopflist (get-opreflist-for-customer customer)))
-			    (if (> 0 (count custopflist))  (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) customer dodcompany)) )) customers)))
+			    (if (> 0 (length custopflist))  (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) nil customer dodcompany)) )) customers)))

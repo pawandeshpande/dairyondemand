@@ -70,9 +70,8 @@
 		(:div :class "col-sm-12" (:a :href (format nil "dodproducts?id=~A" row-id) (str catg-name)))))))
 		
 
-(defun modal.vendor-product-edit-html (prd-id mode)
-  (let* ((product (select-product-by-id prd-id (get-login-vendor-company)))
-	 (prd-image-path (slot-value product 'prd-image-path))
+(defun modal.vendor-product-edit-html (product mode) 
+  (let* ((prd-image-path (slot-value product 'prd-image-path))
 	 (description (slot-value product 'description))
 	 (unit-price (slot-value product 'unit-price))
 	 (subscribe-flag (slot-value product 'subscribe-flag))
@@ -198,10 +197,10 @@
 		      (:a :href (format nil "dodvendactivateprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-off")))))
 		(:div :class "col-xs-2" 
 		      (:a :data-toggle "modal" :data-target (format nil "#dodvendcopyprod-modal~A" prd-id)  :href "#"  (:span :class "glyphicon glyphicon-copy"))
-		      (modal-dialog (format nil "dodvendcopyprod-modal~A" prd-id) "Copy Product" (modal.vendor-product-edit-html  prd-id "COPY")))
+		      (modal-dialog (format nil "dodvendcopyprod-modal~A" prd-id) "Copy Product" (modal.vendor-product-edit-html  product-instance "COPY")))
 		(:div :class "col-xs-2" :align "right" 
 		     (:a :data-toggle "modal" :data-target (format nil "#dodvendeditprod-modal~A" prd-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
-		     (modal-dialog (format nil "dodvendeditprod-modal~A" prd-id) "Edit Product" (modal.vendor-product-edit-html  prd-id "EDIT"))) 
+		     (modal-dialog (format nil "dodvendeditprod-modal~A" prd-id) "Edit Product" (modal.vendor-product-edit-html product-instance  "EDIT"))) 
 		    
 		(:div :class "col-xs-4" :align "right" "")
 		(:div :class "col-xs-2" :align "right"

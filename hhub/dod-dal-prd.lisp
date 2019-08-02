@@ -52,11 +52,11 @@
 
 
    (unit-price
-    :type (number)
+    :type float
     :initarg :unit-price)
 
       (units-in-stock
-    :type (number)
+    :type integer
     :initarg :units-in-stock)
 
 

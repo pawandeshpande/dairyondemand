@@ -2,7 +2,7 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
-(defun select-all-roles ()
+(defun get-system-roles () 
 (clsql:select 'dod-roles :where 
 	      [and 
 	      [= [:deleted-state] "N"]

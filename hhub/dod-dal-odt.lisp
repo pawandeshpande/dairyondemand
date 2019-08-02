@@ -62,7 +62,7 @@
 (unit-price
  :accessor get-unit-price
  :db-constraints :not-null
- :type (number 5 2)
+ :type float
  :initarg :unit-price)
 
 

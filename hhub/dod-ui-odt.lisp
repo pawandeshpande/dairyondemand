@@ -1,7 +1,7 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
-(defun com-hhub-transaction-cust-edit-order ()
+(defun com-hhub-transaction-cust-edit-order-item ()
   (with-hhub-transaction "com-hhub-transaction-cust-edit-order" 
       (let* ((item-id (hunchentoot:parameter "item-id"))
 	     (company (get-login-customer-company))

@@ -6,6 +6,9 @@
 (defvar *current-user-session* nil)
 
 
+(defun com-hhub-transaction-system-dashboard ()
+)
+
 
 (defun com-hhub-transaction-sadmin-profile ()
  (with-opr-session-check 
@@ -116,7 +119,6 @@
 				  (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
 			    (:div :class "form-group"
 				  (:input :class "form-control" :type "text" :maxlength "256" :value cmpwebsite :placeholder "Website" :name "cmpwebsite" ))
-			    
 			    (:div :class "form-group"
 				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
 
@@ -124,7 +126,7 @@
 (defun dod-controller-company-search-for-sys-action ()
   (let*  ((qrystr (hunchentoot:parameter "livesearch"))
 	  (company-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr))))
-    (display-as-tiles company-list 'company-card )))
+    (display-as-tiles company-list 'company-card)))
 
 (defun dod-controller-abac-security ()
   (with-opr-session-check 
@@ -148,7 +150,7 @@
   (with-opr-session-check
     (with-hhub-transaction "com-hhub-transaction-sadmin-home" nil 
       (let (( companies (list-dod-companies)))
-	(with-standard-admin-page (:title "Welcome to Highrisehub.")
+	    (with-standard-admin-page (:title "Welcome to Highrisehub.")
 	  (:div :class "container"
 		(:div :id "row"
 		      (:div :id "col-xs-6" 
@@ -162,7 +164,7 @@
 			    (:span :class "badge" (str (format nil "~A" (length companies))))))
 		(:hr)
 		(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
-		(str (display-as-tiles companies 'company-card ))))))))
+		(str (display-as-tiles companies 'company-card))))))))
 
 
 (setq *logged-in-users* (make-hash-table :test 'equal))
@@ -435,6 +437,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasproductapprovals" 'dod-controller-products-approval-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasadduseraction" 'dod-controller-add-user-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubsadminprofile" 'com-hhub-transaction-sadmin-profile)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubdiagnostics" 'com-hhub-transaction-system-dashboard)
 	
 	;***************** COMPADMIN/COMPANYHELPDESK/COMPANYOPERATOR  RELATED ********************
      
@@ -487,7 +490,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/companysearchaction" 'dod-controller-company-search-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/createcustwallet" 'dod-controller-create-cust-wallet)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustprofile" 'dod-controller-customer-profile)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustorditemedit" 'com-hhub-transaction-cust-edit-order )
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustorditemedit" 'com-hhub-transaction-cust-edit-order-item )
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustorderscal" 'dod-controller-cust-orders-calendar) 
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustordersdata" 'dod-controller-cust-order-data-json)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasmakepaymentrequest" 'dod-controller-make-payment-request-html)

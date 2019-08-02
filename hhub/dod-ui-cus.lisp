@@ -441,7 +441,7 @@
 		      (if (equal vendorordertotal 0)
 			  (delete-order vendororder)))) vendors)
 	  
-	  (setf (slot-value order 'order-amt) custordertotal)
+	  (setf (slot-value order 'order-amt) (coerce custordertotal 'float))
 	  (update-order order)
 	  
 	  (if (equal custordertotal 0) 
@@ -732,7 +732,7 @@
        ((or  (not password-verified)  (null encryptedpass)) (dod-response-passwords-do-not-match-error)) 
        ;Token has expired
        ((and (equal user-type "CUSTOMER")
-		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+		 (duration> (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
        ((and password-verified encryptedpass) (progn 
        (setf (slot-value customer 'password) encryptedpass)
        (setf (slot-value customer 'salt) salt) 
@@ -774,14 +774,14 @@
     
 	 (cond 
 	   ((and (equal user-type "CUSTOMER")
-		 (duration< (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*)))
+		 (duration< (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*)))
 	    (let* ((customer (select-customer-by-email email))
 		   (newpassword (reset-customer-password customer)))
 					;send mail to the customer with new password 
 	      (send-temp-password customer newpassword url)
 	      (hunchentoot:redirect "/hhub/hhubpassresetmailsent.html")))	  
 	   ((and (equal user-type "CUSTOMER")
-		 (duration> (time-difference (get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+		 (duration> (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
 	   ((equal user-type "VENDOR") ())
 	   ((equal user-type "EMPLOYEE") ()))))
 
@@ -935,8 +935,8 @@
 	       (:div :class "col-xs-4"
 		     (:a :class "up btn btn-primary" :href "#" (:span :class "glyphicon glyphicon-plus" ""))))
 	 
-			    (:div :class "form-group" 
-			    (:input :type "submit"  :class "btn btn-primary" :value "Add To Cart"))
+		(:div :class "form-group" 
+		      (:input :type "submit"  :class "btn btn-primary" :value "Add To Cart"))
 			    ))))))
   
   
