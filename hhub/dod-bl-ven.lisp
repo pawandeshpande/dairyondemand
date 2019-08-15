@@ -77,7 +77,6 @@
     (clsql:update-record-from-slot dodvendor 'deleted-state))) list )))
 
   
-
   
 (defun create-vendor(name address phone email password salt city state zipcode company )
   (let ((tenant-id (slot-value company 'row-id)))

@@ -340,7 +340,7 @@
 	   (update-prd-details product))
 					;else
 	 (create-product prodname description (get-login-vendor) (select-prdcatg-by-id catg-id (get-login-vendor-company)) qtyperunit prodprice units-in-stock (if tempfilewithpath (format nil "/img/~A" file-name) (format nil "/img/~A"   *HHUBDEFAULTPRDIMG*))  subscriptionflag  (get-login-vendor-company)))
-     (dod-reset-vendor-products-functions (get-login-vendor))
+     (dod-reset-vendor-products-functions (get-login-vendor) (get-login-vendor-company))
      (hunchentoot:redirect "/hhub/dodvenproducts"))))
 
 
@@ -645,6 +645,9 @@
 	  (progn
 	    (format T "Starting session")
 	    (setf *current-vendor-session* (hunchentoot:start-session))
+	    (if vendor (setf (hunchentoot:session-value :login-vendor ) vendor))
+	    (if vendor (setf (hunchentoot:session-value :login-vendor-name) (slot-value vendor 'name)))
+	    (if vendor (setf (hunchentoot:session-value :login-vendor-id) (slot-value vendor 'row-id)))
 	    (set-vendor-session-params  vendor-company vendor))))
 
 					;handle the exception. 
@@ -656,15 +659,13 @@
 	    (hunchentoot:redirect "/hhub/vendor-login.html"))))))
 
 (defun dod-controller-vendor-switch-tenant ()
-(if (is-dod-vend-session-valid?) 
+(with-vend-session-check
 (let* ((company (select-company-by-id (hunchentoot:parameter "id")))
        (vendor (get-login-vendor)))
       
   (progn
 	(set-vendor-session-params company vendor)
-	(hunchentoot:redirect "/hhub/dodvendindex?context=home")))
-  ;else  
-(hunchentoot:redirect "/hhub/vendor-login.html")))
+	(hunchentoot:redirect "/hhub/dodvendindex?context=home")))))
 
 (defun set-vendor-session-params ( company  vendor)
  (progn 
@@ -675,12 +676,9 @@
    (setf (hunchentoot:session-value :login-vendor-company) company)
    ;(setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company company))
    ;set vendor related params 
-   (if vendor (setf (hunchentoot:session-value :login-vendor ) vendor))
-   (if vendor (setf (hunchentoot:session-value :login-vendor-name) (slot-value vendor 'name)))
-   (if vendor (setf (hunchentoot:session-value :login-vendor-id) (slot-value vendor 'row-id)))
    (if vendor (setf (hunchentoot:session-value :login-vendor-tenants) (get-vendor-tenants-as-companies vendor)))
    (if vendor (setf (hunchentoot:session-value :order-func-list) (dod-gen-order-functions vendor company)))
-   (if vendor (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor)))))
+   (if vendor (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor company)))))
    
    
    
@@ -690,7 +688,7 @@
     (if (= (length (get-pending-order-items-for-vendor-by-product (select-product-by-id id (get-login-vendor-company)) (get-login-vendor))) 0)
 	(progn 
 	  (delete-product id (get-login-vendor-company))
-	  (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor)))))   
+	  (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor) (get-login-vendor-company)))))   
     (hunchentoot:redirect "/hhub/dodvenproducts"))
      	(hunchentoot:redirect "/hhub/vendor-login.html"))) 
 
@@ -707,7 +705,7 @@
   (if (is-dod-vend-session-valid?)
   (let ((id (parse-integer (hunchentoot:parameter "id"))))
     (deactivate-product id (get-login-vendor-company))
-    (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor)))   
+    (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor) (get-login-vendor-company)))   
     (hunchentoot:redirect "/hhub/dodvenproducts"))
   ;else
   (hunchentoot:redirect "/hhub/vendor-login.html")))
@@ -716,7 +714,7 @@
   (if (is-dod-vend-session-valid?)
   (let ((id (hunchentoot:parameter "id")))
     (activate-product id (get-login-vendor-company))
-    (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor)))   
+    (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions (get-login-vendor) (get-login-vendor-company)))   
     (hunchentoot:redirect "/hhub/dodvenproducts"))
   ;else
   (hunchentoot:redirect "/hhub/vendor-login.html")))
@@ -735,8 +733,8 @@
    
 
 
-(defun dod-gen-vendor-products-functions (vendor)
-  (let ((vendor-products (select-products-by-vendor vendor (vendor-company vendor))))
+(defun dod-gen-vendor-products-functions (vendor company)
+  (let ((vendor-products (select-products-by-vendor vendor company)))
     (list (function (lambda () vendor-products)))))
 
 (defun dod-gen-order-functions (vendor company)
@@ -752,8 +750,8 @@
 	(function (lambda () completed-orders-today)))))
 
 
-(defun dod-reset-vendor-products-functions (vendor)
-  (let ((vendor-products-func-list (dod-gen-vendor-products-functions vendor)))
+(defun dod-reset-vendor-products-functions (vendor company)
+  (let ((vendor-products-func-list (dod-gen-vendor-products-functions vendor company)))
 	(setf (hunchentoot:session-value :login-vendor-products-functions) vendor-products-func-list)))
 
 
@@ -800,7 +798,6 @@
       (with-standard-vendor-page (:title "Welcome to HighriseHub - Vendor")
 				 (:h3 "Welcome " (str (format nil "~A" (get-login-vendor-name))))
 				 (:hr)
-				 
 				 (:form :class "form-venorders" :method "POST" :action "dodvendindex"
 					(:div :class "row" :style "display: none"
 					      (:div :class "btn-group" :role "group" :aria-label "..."
@@ -931,18 +928,18 @@
 (defun modal.vendor-order-details (order-id company)
 (with-vend-session-check 
   (let* (( dodvenorder  (get-vendor-orders-by-orderid order-id  (get-login-vendor) company))
-	      (customer (get-customer dodvenorder))
-	      (wallet (get-cust-wallet-by-vendor customer (get-login-vendor) company))
-	      (balance (slot-value wallet 'balance))
-	      (venorderfulfilled (if dodvenorder (slot-value dodvenorder 'fulfilled)))
-	      (order (get-order-by-id order-id company))
-	      (payment-mode (slot-value order 'payment-mode))
-	      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
-	      (odtlst (if order (dod-get-cached-order-items-by-order-id (slot-value order 'row-id))) )
-	      (total   (reduce #'+  (mapcar (lambda (odt)
-					      (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
-	      (lowwalletbalance (< balance total)))
-	 
+	 (customer (if dodvenorder (get-customer dodvenorder)))
+	 (wallet (if customer (get-cust-wallet-by-vendor customer (get-login-vendor) company)))
+	 (balance (if wallet (slot-value wallet 'balance)))
+	 (venorderfulfilled (if dodvenorder (slot-value dodvenorder 'fulfilled)))
+	 (order (get-order-by-id order-id company))
+	 (payment-mode (if order (slot-value order 'payment-mode)))
+	 (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
+	 (odtlst (if order (dod-get-cached-order-items-by-order-id (slot-value order 'row-id))) )
+	 (total   (reduce #'+  (mapcar (lambda (odt)
+					 (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
+	 (lowwalletbalance (< balance total)))
+    
         (cl-who:with-html-output (*standard-output* nil)
 	  (:div :class "row" 
 	       (:div :class "col-md-12" :align "right" 

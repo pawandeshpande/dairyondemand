@@ -103,98 +103,98 @@
     :type integer
     :initarg :row-id)
 
-(cust-id
- :type integer
- :initarg :cust-id)
-(customer 
- :accessor get-customer 
- :db-kind :join
- :db-info (:join-class dod-cust-profile
-		       :home-key cust-id
-		       :foreign-key row-id
-		       :set nil))
+   (cust-id
+    :type integer
+    :initarg :cust-id)
+   (customer 
+    :accessor get-customer 
+    :db-kind :join
+    :db-info (:join-class dod-cust-profile
+			  :home-key cust-id
+			  :foreign-key row-id
+			  :set nil))
    
-(order-id
- :TYPE integer
- :initarg :order-id)
-
-(order
- :accessor get-order
- :db-kind :join
- :db-info (:join-class dod-order
-		       :home-key order-id
-		       :foreign-key row-id
-		       :set nil))
-
-(vendor-id
- :db-constraints :NOT-NULL
+   (order-id
+    :TYPE integer
+    :initarg :order-id)
+   
+   (order
+    :accessor get-order
+    :db-kind :join
+    :db-info (:join-class dod-order
+			  :home-key order-id
+			  :foreign-key row-id
+			  :set nil))
+   
+   (vendor-id
+    :db-constraints :NOT-NULL
     :type integer
     :initarg :vendor-id)
-
-(vendorobject
-	:accessor odt-vendorobject
-	:db-kind :join
-	:db-info (:join-class dod-vend-profile
-		     :home-key vendor-id
-		     :foreign-key row-id
-		     :set nil))
-
-(ord-date
+   
+   (vendorobject
+    :accessor odt-vendorobject
+    :db-kind :join
+    :db-info (:join-class dod-vend-profile
+			  :home-key vendor-id
+			  :foreign-key row-id
+			  :set nil))
+   
+   (ord-date
     :accessor order-date
     :DB-CONSTRAINTS :NOT-NULL
     :TYPE clsql:date
     :initarg :ord-date)
-
-(req-date
+   
+   (req-date
     :accessor get-requested-date
     :DB-CONSTRAINTS :NOT-NULL
     :TYPE clsql:date
     :initarg :req-date)
-
-(shipped-date
+   
+   (shipped-date
     :accessor get-shipped-date
     :TYPE clsql:date
     :INITARG :shipped-date)   
-
-
- (ship-address
+   
+   
+   (ship-address
     :ACCESSOR get-ship-address 
     :type (string 100)
     :initarg :ship-address)
-
+   
    (order-amt
     :type float
     :initarg :order-amt)
-
-(payment-mode
+   
+   (payment-mode
     :type (string 3)
     :initarg :payment-mode)
-
-(fulfilled
+   
+   (fulfilled
     :type (string 1)
     :void-value "N"
     :initarg :fulfilled)
-
-
-(status 
+   
+   
+   (status 
     :accessor odt-status
     :DB-CONSTRAINTS :NOT-NULL
     :TYPE (string 3)
     :initarg :status)
-
-
+   
+   
    (deleted-state
     :type (string 1)
     :void-value "N"
     :initarg :deleted-state)
-
-(comments
+   
+   (comments
     :accessor comments
     :type (string 250)
     :initarg :comments)
-
-
-    (tenant-id
+   
+   
+   (tenant-id
     :type integer
     :initarg :tenant-id)
    (COMPANY
@@ -204,7 +204,7 @@
 	                  :HOME-KEY tenant-id
                           :FOREIGN-KEY row-id
                           :SET nil)))
-
-   
+  
+  
   (:BASE-TABLE dod_vendor_orders))
 

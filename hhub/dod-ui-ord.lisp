@@ -142,17 +142,21 @@
     (:h3 "Orders")
   
       (:table :class "table table-striped table-hover"  (:thead (:tr
- (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
-								  (mapcar (lambda (order)
-									    (htm (:tr (:td  :height "12px" (str (slot-value order 'row-id)))
-											(:td  :height "12px" (str (get-date-string (slot-value order 'ord-date))))
-										       (:td  :height "12px" (str (get-date-string (slot-value order 'req-date))))
-											   (if (equal (slot-value order 'order-fulfilled) "Y")
-											      (htm  (:td :height "12px"   (:a :href  (format nil  "dodmyorderdetails?id=~A" (slot-value order 'row-id)) (:span :class "label label-primary" "Details" ))  "&nbsp;&nbsp;" (:span :class "label label-info" "FULFILLED")
-))
-											       ; ELSE
-										       	  (htm  (:td :height "12px" (:a :href  (format nil  "dodmyorderdetails?id=~A" (slot-value order 'row-id)) (:span :class "label label-primary" "Details" ))))
-											    )))) (if (not (typep data 'list)) (list data) data) )))))
+								 (mapcar (lambda (item) (htm (:th (str item)))) header)))
+	      (:tbody
+	       (mapcar (lambda (order)
+			 (htm (:tr (:td  :height "12px" (str (slot-value order 'row-id)))
+				   (:td  :height "12px" (str (get-date-string (slot-value order 'ord-date))))
+				   (:td  :height "12px" (str (get-date-string (slot-value order 'req-date))))
+				   (if (equal (slot-value order 'order-fulfilled) "Y")
+				       (htm  (:td :height "12px"
+						  (:a :href  (format nil  "hhubcustmyorderdetails?id=~A" (slot-value order 'row-id)) (:span :class "label label-primary" "Details" ))  "&nbsp;&nbsp;" (:span :class "label label-info" "FULFILLED")))
+					; ELSE
+				       (htm  (:td :height "12px" (:a :href  (format nil  "hhubcustmyorderdetails?id=~A" (slot-value order 'row-id)) (:span :class "label label-primary" "Details" ))))
+				       )))) (if (not (typep data 'list)) (list data) data) )))))
+
+
+
 
 (defun concat-ord-dtl-name (order-instance)
   (let ((odt ( get-order-items order-instance)))

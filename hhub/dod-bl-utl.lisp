@@ -12,6 +12,9 @@
                       (apply original-function arg args)))))))
 
 
+
+
+
 (defun hhub-random-password (length)
   (with-output-to-string (stream)
     (let ((*print-base* 36))

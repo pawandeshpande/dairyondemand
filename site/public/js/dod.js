@@ -36,8 +36,6 @@ $(document).ready (function(){
 });
 
 
-
-
 $(document).ready(function () {
     $.ajaxSetup({
     	beforeSend: function(){
@@ -117,20 +115,6 @@ $formvendsignin.submit ( function() {
 })
 
 
-$("form").on('submit', function (e) {
-    var theForm = $(this);
-    $(theForm).find("button[type='submit']").hide(); //prop('disabled',true);
-      $.ajax({
-            type: 'POST',
-          url: $(theForm).attr("action"), 
-            data: $(theForm).serialize(),
-            success: function (response) {
-		
-		location.reload();
-            }
-      });
-      e.preventDefault();});
-
 $(".form-product").on('submit', function (e) {
     var theForm = $(this);
     $(theForm).find("button[type='submit']").hide(); //prop('disabled',true);
@@ -161,8 +145,6 @@ $(".form-shopcart").on('submit', function (e) {
       });
       e.preventDefault();});	
 	
-
-
 
 function goBack (){
     window.history.back();

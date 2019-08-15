@@ -342,7 +342,7 @@
 	   ;else
 	       (progn (setf templist (acons "title" (format nil "Order ~A (Pending)" id)  templist))
 		      (setf templist (acons "class" "event-warning" templist))))
-	   (setf templist (acons "url" (format nil "dodmyorderdetails?id=~A" id )  templist))
+	   (setf templist (acons "url" (format nil "hhubcustmyorderdtls-modal?id=~A" id )  templist))
 	   (setf templist (acons "id" (format nil "~A" id) templist))
 	   
 	   (setf appendlist (append appendlist (list templist))) 
@@ -378,6 +378,8 @@
 	   (:div :class "row"
 		 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		       (:div :id "calendar"))))
+
+     (modal-dialog (format nil "events-modal") "Calendar Modal" )
      
      (:script :type "text/javascript" :src "/js/underscore-min.js")
      (:script :type "text/javascript" :src "/js/calendar.js")
@@ -455,21 +457,29 @@
 	    
 
 	    
+(defun  customer-my-order-details (order-id)
+  (let* ((dodorder (get-order-by-id order-id (get-login-cust-company)))
+	 (header (list "status" "action" "name" "qty"   "sub-total" ))
+	 (odtlst (get-order-items dodorder))
+	 (total (reduce #'+ (mapcar (lambda (odt) (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))) odtlst)))) 
+    (cl-who:with-html-output (*standard-output* nil)
+      (if odtlst (ui-list-cust-orderdetails header odtlst) "no order details")
+      (htm (:div :class "row" 
+		 (:div :class "col-md-12" :align "right" 
+		       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))
+      (display-order-header-for-customer  dodorder))))
 
-(defun dod-controller-my-orderdetails ()
-    (with-cust-session-check
-	(with-standard-customer-page (:title "list dod customer orders")   
-	    (let* ((order-id (parse-integer (hunchentoot:parameter "id")))
-		   ( dodorder (get-order-by-id order-id (get-login-cust-company)))
-		   (header (list "status" "action" "name" "qty"   "sub-total" ))
-		   (odtlst (get-order-items dodorder))
-		   (total (reduce #'+ (mapcar (lambda (odt) (* (slot-value odt 'prd-qty) (slot-value odt 'unit-price))) odtlst)))) 
-	      (display-order-header-for-customer  dodorder) 
-		(if odtlst (ui-list-cust-orderdetails header odtlst) "no order details")
-		 (htm (:div :class "row" 
-				(:div :class "col-md-12" :align "right" 
-				    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))))))
 
+(defun modal.customer-my-orderdetails ()
+ (with-cust-session-check (cl-who:with-html-output-to-string (*standard-output* nil) 
+    (let* ((order-id (parse-integer (hunchentoot:parameter "id"))))
+      (customer-my-order-details order-id)))))
+
+
+(defun hhub-controller-customer-my-orderdetails ()
+  (with-cust-session-check (with-standard-customer-page (:title "Customer My Order Details")
+	    (let* ((order-id (parse-integer (hunchentoot:parameter "id"))))
+	      (customer-my-order-details order-id)))))
 
 									  
 

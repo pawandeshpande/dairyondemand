@@ -5,7 +5,10 @@
 	var options = {
 		events_source: '/hhub/dodcustordersdata',
 	        view: 'month',
-		tmpl_path: 'tmpls/',
+	    modal : "#events-modal",
+	    modal_type : "ajax",
+	    modal_title : function (e) { return e.title },
+	    tmpl_path: 'tmpls/',
 		tmpl_cache: false,
 		//day: '2018-07-03',
 		onAfterEventsLoad: function(events) {

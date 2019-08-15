@@ -460,7 +460,8 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/delorder" 'dod-controller-del-order)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustordsuccess" 'dod-controller-cust-ordersuccess)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustorderprefs" 'dod-controller-my-orderprefs)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorderdetails" 'dod-controller-my-orderdetails)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustmyorderdetails" 'hhub-controller-customer-my-orderdetails)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustmyorderdtls.modal" 'modal.customer-my-orderdetails)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustaddorderpref" 'dod-controller-cust-add-orderpref-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustaddopfaction" 'dod-controller-cust-add-orderpref-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/delopref" 'dod-controller-del-opref)
@@ -508,6 +509,8 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresettokenexpired.html"   'dod-controller-password-reset-token-expired )
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresetmailsent.html"   'dod-controller-password-reset-mail-sent )
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresetmaillinksent.html"   'dod-controller-password-reset-mail-link-sent)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustsavepushsubscription"   'hhub-save-customer-push-subscription)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustremovepushsubscription"   'hhub-remove-customer-push-subscription)
 	
 	
 
@@ -557,6 +560,10 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendpassreset.html" 'dod-controller-vendor-password-reset-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendgentemppass"   'dod-controller-vendor-generate-temp-password) 
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendpassreset"   'dod-controller-vendor-password-reset-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendsavepushsubscription"   'hhub-save-vendor-push-subscription )
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendremovepushsubscription"   'hhub-remove-vendor-push-subscription )
+	
+	
 	
 ))
 

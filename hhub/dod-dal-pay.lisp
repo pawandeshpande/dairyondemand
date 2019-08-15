@@ -21,7 +21,7 @@
                           :SET nil))
 
    (amt
-    :type (number)
+    :type (float)
     :initarg :amt)
 
    (currency
