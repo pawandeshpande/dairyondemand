@@ -41,24 +41,29 @@
     :TYPE (string 30)
     :INITARG :browser-name)
 
-   (endpoint-json
-    :accessor endpoint-json 
+   (endpoint
+    :accessor endpoint 
     :DB-CONSTRAINTS :NOT-NULL
     :TYPE (string 512)
-    :INITARG :endpoint-json)
+    :INITARG :endpoint)
+
+   (publicKey
+    :accessor publickey
+    :db-constraints :not-null
+    :type (string 100)
+    :initarg :publickey)
+
+   (auth
+    :accessor auth
+    :db-constraints :not-null
+    :type (string 100)
+    :initarg :auth)
 
    
    (expired
     :type (string 1)
     :void-value "N"
        :initarg :expired)
-
-  (expires-on
-    :accessor expires-on
-    :DB-CONSTRAINTS :NOT-NULL
-    :TYPE clsql:date
-    :initarg :expires-on)
-
 
    (active-flag
     :type (string 1)
@@ -80,9 +85,6 @@
    (created
     :type clsql:wall-time
     :initarg :created)
-   (updated
-    :type clsql:wall-time
-    :initarg :updated)
 
    (created-by
     :type integer
@@ -95,17 +97,6 @@
 			  :foreign-key row-id
 			  :set NIL))
 
-   (updated-by
-    :type integer
-    :initarg :updated-by)
-   (updated-by-user
-    :accessor get-updated-by-user
-    :db-kind :join
-    :db-info (:join-class dod-users
-			  :home-key updated-by
-			  :foreign-key row-id
-			  :set NIL))
-   
 
    
     (tenant-id

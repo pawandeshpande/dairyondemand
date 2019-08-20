@@ -4,8 +4,11 @@
 # case i only have one instance running.
 upstream hunchentoot {
     server 127.0.0.1:4244;
-}
+	      }
 
+	      upstream webpushserver {
+	      server 127.0.0.1:4345;
+	      }
 
 server {
     listen 443 ssl;
@@ -70,7 +73,12 @@ server {
         # proxy to the hunchentoot server cluster
          proxy_pass http://hunchentoot;
     }
-     
+
+	      location /push/ {
+	      # proxy to webpush node server
+	      proxy_pass http://webpushserver;
+	      }
+	      
  
 }
 

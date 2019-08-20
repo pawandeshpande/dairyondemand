@@ -117,6 +117,7 @@
 
  
 
+
 (defun create-daily-orders (&key company-id odtstr reqstr)
     :documentation "odtstr and reqstr are of the format \"dd/mm/yyyy\" "
     (let* ((orderdate (get-date-from-string odtstr))
@@ -128,3 +129,4 @@
 	      (mapcar (lambda (customer)
 			  (let ((custopflist (get-opreflist-for-customer customer)))
 			    (if (> 0 (length custopflist))  (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) nil customer dodcompany)) )) customers)))
+

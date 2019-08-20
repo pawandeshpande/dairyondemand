@@ -1,43 +1,27 @@
 (in-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
+
 (defun hhub-save-customer-push-subscription ()
-  (let* ((browser-name (hunchentoot:parameter "browser-name"))
-	 (notificationEndPoint (hunchentoot:parameter "notificationEndPoint"))
-	 (publicKey (hunchentoot:parameter "publicKey"))
-	 (auth (hunchentoot:parameter "auth"))
-	 (list1 nil)
-	 (list1 (acons "endpoint" notificationEndPoint list1))
-	 (list2 (acons "p256dh" publicKey list2))
-	 (list2 (acons "auth" auth list2))
-	 (list1 (acons "keys" list2 list1))
-	 (endpoint-json (json:encode-json list1)))
-    
-    (create-push-notify-subscription-for-customer (get-login-customer) endpoint-json browser-name 1 (get-login-cust-tenant-id))
+  (let ((endpoint (hunchentoot:parameter "notificationEndPoint"))
+	(publicKey (hunchentoot:parameter "publicKey"))
+	(auth (hunchentoot:parameter "auth")))
+    (create-push-notify-subscription-for-customer (get-login-customer) endpoint publicKey auth "chrome"  (select-user-by-id 1 1) (get-login-cust-tenant-id))
     "Subscription Accepted"))
 
 
 (defun hhub-save-vendor-push-subscription ()
-  (let* ((browser-name (hunchentoot:parameter "browser-name"))
-	 (notificationEndPoint (hunchentoot:parameter "notificationEndPoint"))
-	 (publicKey (hunchentoot:parameter "publicKey"))
-	 (auth (hunchentoot:parameter "auth"))
-	 (list1 nil)
-	 (list1 (acons "endpoint" notificationEndPoint list1))
-	 (list2 (acons "p256dh" publicKey list2))
-	 (list2 (acons "auth" auth list2))
-	 (list1 (acons "keys" list2 list1))
-	 (endpoint-json (json:encode-json list1)))
-  
-    (create-push-notify-subscription-for-customer (get-login-vendor) endpoint-json browser-name 1 (get-login-vend-tenant-id))
+  (let ((endpoint (hunchentoot:parameter "notificationEndPoint"))
+	(publicKey (hunchentoot:parameter "publicKey"))
+	(auth (hunchentoot:parameter "auth")))
+    (create-push-notify-subscription-for-vendor (get-login-vendor) endpoint publicKey auth  "chrome" (select-user-by-id 1 1) (get-login-vend-tenant-id))
     "Subscription Accepted"))
 
 
 (defun hhub-remove-customer-push-subscription ()
-  (let* ((cust-id (hunchentoot:parameter "cust-id"))
-	 (customer (select-customer-by-id cust-id (get-login-customer-company)))
-	 (subscription (get-push-notify-subscription-for-customer customer)))
-    (remove-webpush-subscription-for-customer subscription)
+  (let* ((customer (get-login-customer))
+	 (subscriptions-list (get-push-notify-subscription-for-customer customer)))
+    (remove-webpush-subscription-for-customer subscriptions-list )
     "Customer Subscription Removed"))
 
 
@@ -51,6 +35,44 @@
 
 
 
+(defun test-webpush-notification-for-vendor (phone-number company)
+  (let* ((vendor (select-vendor-by-phone phone-number company))
+	 (title "HighriseHub")
+	 (message (format nil "Welcome to HighriseHub - ~A" (slot-value vendor 'name)))
+	 (clickTarget "https://www.highrisehub.com")
+	 (subscriptions (get-push-notify-subscription-for-vendor vendor)))
+    (mapcar (lambda (subscription)
+	      (let ((endpoint (slot-value subscription 'endpoint))
+		    (publickey (slot-value subscription 'publickey))
+		    (auth  (slot-value subscription 'auth)))
+		(send-webpush-notification title message clickTarget endpoint publickey auth))) subscriptions)))
 
 
+
+
+(defun test-webpush-notification-for-customer (phone-number company)
+  (let* ((customer (select-customer-by-phone phone-number company))
+	 (title "HighriseHub")
+	 (message (format nil "Welcome to HighriseHub - ~A" (slot-value customer 'name)))
+	 (clickTarget "https://www.highrisehub.com")
+	 (subscriptions (get-push-notify-subscription-for-customer customer)))
+    (mapcar (lambda (subscription)
+	      (let ((endpoint (slot-value subscription 'endpoint))
+		    (publickey (slot-value subscription 'publickey))
+		    (auth  (slot-value subscription 'auth)))
+		(send-webpush-notification title message clickTarget endpoint publickey auth))) subscriptions)))
+
+
+					;Experiment with push notification 
+(defun send-webpush-notification (title message clickTarget endpoint publicKey auth)
+:documentation "Test Webpush Notification" 
+  (let* ((paramnames (list "title" "message" "clickTarget" "endpoint" "publicKey" "auth"))
+	 (paramvalues (list title message clickTarget endpoint publicKey auth))
+	 (param-alist (pairlis paramnames paramvalues))
+	 (headers nil) 
+	 (headers (acons "auth-secret" "highrisehub1234" headers)))
+    ; Execution
+    (drakma:http-request "https://www.highrisehub.com/push/notify/user"
+			 :additional-headers headers
+			     :parameters param-alist)))
 

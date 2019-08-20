@@ -797,35 +797,33 @@
 
 			   
 (defun dod-controller-customer-reset-password-action-link ()
-(let* ((email (hunchentoot:parameter "email"))
-       (customer (select-customer-by-email email))
-       (token (format nil "~A" (uuid:make-v1-uuid )))
-       (user-type (hunchentoot:parameter "user-tpe"))
-       (tenant-id (if customer (slot-value customer 'tenant-id)))
-       (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
-       (url (format nil "https://www.highrisehub.com/hhub/hhubcustgentemppass?token=~A" token))
-       (paramname (list "secret" "response" ) ) 
-       (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
-       (param-alist (pairlis paramname paramvalue ))
-       (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
+  (let* ((email (hunchentoot:parameter "email"))
+	 (customer (select-customer-by-email email))
+	 (token (format nil "~A" (uuid:make-v1-uuid )))
+	 (user-type (hunchentoot:parameter "user-type"))
+	 (tenant-id (if customer (slot-value customer 'tenant-id)))
+	 (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
+	 (url (format nil "https://www.highrisehub.com/hhub/hhubcustgentemppass?token=~A" token))
+	 (paramname (list "secret" "response" ) ) 
+	 (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
+	 (param-alist (pairlis paramname paramvalue ))
+	 (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
 												 :method :POST
-												 :parameters param-alist  )))))
-  
-  
-  (cond 
-	 ; Check whether captcha has been solved 
-    ((null (cdr (car json-response))) (dod-response-captcha-error))
-    ((null customer) (hunchentoot:redirect "/hhub/hhubinvalidemail.html"))
-    ; if customer is valid then create an entry in the password reset table. 
-    ((and (equal user-type "CUSTOMER") customer)
-     (progn 
-       (create-reset-password-instance user-type token email  tenant-id)
-       ; temporarily disable the customer record 
-       (setf (slot-value customer 'active-flag) "N")
-       (update-customer customer) 
-       ; Send customer an email with password reset link. 
-       (send-password-reset-link customer url)
-       (hunchentoot:redirect "/hhub/hhubpassresetmaillinksent.html"))))))
+												 :parameters param-alist)))))
+    
+    (cond 	 ; Check whether captcha has been solved 
+      ((null (cdr (car json-response))) (dod-response-captcha-error))
+      ((null customer) (hunchentoot:redirect "/hhub/hhubinvalidemail.html"))
+					; if customer is valid then create an entry in the password reset table. 
+      ((and (equal user-type "CUSTOMER") customer)
+       (progn 
+	 (create-reset-password-instance user-type token email  tenant-id)
+					; temporarily disable the customer record 
+	 (setf (slot-value customer 'active-flag) "N")
+	 (update-customer customer) 
+					; Send customer an email with password reset link. 
+	 (send-password-reset-link customer url)
+	 (hunchentoot:redirect "/hhub/hhubpassresetmaillinksent.html"))))))
 
 
 

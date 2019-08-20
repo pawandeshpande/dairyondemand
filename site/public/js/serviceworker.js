@@ -62,3 +62,39 @@ evt.respondWith(
 
 });
 
+
+
+self.addEventListener("push", function(event) {
+    console.log("[Service Worker] Push Received.");
+    console.log(`[Service Worker] Push had this data: "${event.data.text()}"`);
+
+    var data = {};
+    if (event.data) {
+	data = event.data.json();
+    }
+
+    var title = data.title;
+    var message = data.message;
+    var icon = "img/FM_logo_2013.png";
+
+    //const title = "Push Codelab";
+    const options = {
+	body: message,
+	icon: "img/hhublogo.png",
+	badge: "images/badge.png"
+    };
+    self.clickTarget = data.clickTarget;
+
+    event.waitUntil(self.registration.showNotification(title, options));
+});
+
+
+self.addEventListener('notificationclick', function(event) {
+    console.log('[Service Worker] Notification click Received.');
+
+    event.notification.close();
+
+    if(clients.openWindow){
+	event.waitUntil(clients.openWindow(self.clickTarget));
+    }
+});

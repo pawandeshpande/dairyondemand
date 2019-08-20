@@ -12,6 +12,15 @@
 		[and [= [:deleted-state] "N"]
 		[=[:row-id] id]]    :caching nil :flatp t )))
 
+(defun select-vendor-by-phone (phone company)
+  (let ((tenant-id (slot-value company 'row-id)))
+    (car (clsql:select 'dod-vend-profile  :where
+		       [and [= [:deleted-state] "N"]
+		       [= [:phone] phone]
+		       [= [:tenant-id] tenant-id]
+		       [= [:active-flag] "Y"]]
+		       :caching nil :flatp t ))))
+
 
 (defun select-vendor-by-email (email)
   (car (clsql:select 'dod-vend-profile  :where

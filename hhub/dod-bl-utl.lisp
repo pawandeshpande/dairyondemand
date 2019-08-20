@@ -94,6 +94,26 @@ corresponding universal time."
   (multiple-value-bind (yr mon day)
                        (date-ymd dateobj)  (format nil "~2,'0d/~2,'0d/~4,'0d" day mon yr)))
 
+(defun mysql-now ()
+  (multiple-value-bind
+        (second minute hour date month year day-of-week dst-p tz)
+      (get-decoded-time)
+    (declare (ignore day-of-week dst-p tz))
+    ;; ~2,'0d is the designator for a two-digit, zero-padded number
+    (format nil "~a-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d"
+                 year month date hour minute second)))
+
+(defun mysql-now+days (numdays)
+  (multiple-value-bind
+        (second minute hour date month year day-of-week dst-p tz)
+      (date+ (get-date) (make-duration :day numdays))
+     (declare (ignore day-of-week dst-p tz))
+    ;; ~2,'0d is the designator for a two-digit, zero-padded number
+    (format nil "~a-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d"
+                 year month date hour minute second)))
+
+
+
 
 (defun get-date-string-mysql (dateobj) 
   "Returns current date as a string in DD-MM-YYYY format."

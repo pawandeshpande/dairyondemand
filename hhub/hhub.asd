@@ -30,7 +30,7 @@
 
 (asdf:defsystem #:hhub
   :serial t
-  :description "HighriseHub is an online marketplace for a group of people/colony/apartment. It can be extended to more than one apartment in a city or vendors can register their own areas as supply areas. Backend is MYSQL database and it is a web application. It is supported on all the mobile screens like iOS, Android."
+  :description "HighriseHub is an online marketplace for a group of people living in an apartment/colony/area/city. It can be extended to more than one apartment in a city or vendors can register their own areas as supply areas. Backend is MYSQL database and it is a web application. It is supported on all the mobile screens like iOS, Android."
   :author "Pawankumar Deshpande <pawan.deshpande@gmail.com>"
   :license "THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
 OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -116,9 +116,15 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
 	       (:file "dod-dal-vad" :depends-on ("packages"))
 	       (:file "dod-bl-vad" :depends-on ("packages"))
 
-	         ; Vendor appointment
+					; Vendor appointment
 	       (:file "dod-dal-vas" :depends-on ("packages"))
 	       (:file "dod-bl-vas" :depends-on ("packages"))
 
+					; Web Push Notifications 
+	       (:file "dod-ui-push" :depends-on ("packages"))
+	       (:file "dod-bl-push" :depends-on ("packages"))
+	       (:file "dod-dal-push" :depends-on ("packages"))
+
+	       
 	       ))
 

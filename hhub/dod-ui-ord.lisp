@@ -180,3 +180,4 @@
 		      (:div :class "col-sm-12" (:a :data-toggle "modal" :data-target (format nil "#hhubvendorderdetails~A-modal" (str order-id))  :href "#"  (:span :class "label label-info" (str order-id))))
 		      (modal-dialog (format nil "hhubvendorderdetails~A-modal" (str order-id)) "Vendor Order Details" (modal.vendor-order-details order-id company)))))))
 
+

@@ -2,18 +2,14 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
-;Experiment with push notification 
-(defun sendnotification ()
-(let ((endpoint "https://fcm.googleapis.com/fcm/send/eFLH0xlueR4:APA91bGevnpSVStDgHjBslYh4yO2wNCgS2qOyogfKoiyVnIcB2bEYLu-QUgtft59zZvlD8ZQXsrOtUXC_3LOa88omefheO5tDeAjh115vGIxRqBcpTgYbrHBC0mDP_Wpun_wK-Ss1dP6")
-      (expiationtime "null") 
-      (publickey "BMmpRlfUxiyZCTDw_S3XgvhrpgcLVknUS5ueo6jW5bu751nHO8ER0PPt9MhfapS_H890frZ058harID-duWZETw")
-      (authkey "lAHxGXAZBHDpjqyeRedniA")
-  ;    (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
-   ;   (param-alist (pairlis paramname paramvalue ))
-    ;  (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request endpoint
-     ;                  :method :POST
-      ;                 :parameters param-alist  )))))))
-     ))) 
+
+(defun hhub-json-body ()
+  (json:decode-json-from-string
+    (hunchentoot:raw-post-data :force-text t)))
+
+(defun attr (object field)
+  (cdr (assoc field object)))
+
 
 
 
