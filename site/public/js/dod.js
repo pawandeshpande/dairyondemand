@@ -3,7 +3,10 @@ var $busyindicator = document.getElementById('busy-indicator');
 var $error = $("#dod-error");
 var  $formcustsignin = $(".form-custsignin"),  $formvendsignin = $(".form-vendorsignin");
 
-$busyindicator.removeChild(spinner.el);
+$(window).load(function(){
+    $busyindicator.removeChild(spinner.el);
+    $('.loader').fadeOut();
+});
 
 
 

@@ -29,6 +29,19 @@
 		:caching *dod-database-caching* :flatp t))))
 
 
+(defun select-guest-customer (company)
+(let ((tenant-id (slot-value company 'row-id)))
+  (car (clsql:select 'dod-cust-profile :where [and
+		[= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]
+		[= [:active-flag] "Y"]
+		[= [:phone] *HHUBGUESTCUSTOMERPHONE*]
+		[= [:cust-type] "GUEST"]]
+		:caching *dod-database-caching* :flatp t))))
+
+
+
+
 (defun update-customer (customer-instance); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance customer-instance))
 
@@ -111,6 +124,8 @@
     (clsql:update-record-from-slot doduser 'deleted-state))) list ))
 
 
+
+
 (defun create-customer(name address phone  email birthdate password salt city state zipcode company  )
   (let ((tenant-id (slot-value company 'row-id)))
  (clsql:update-records-from-instance (make-instance 'dod-cust-profile
@@ -130,6 +145,24 @@
 						    :deleted-state "N"))))
  
 
+(defun create-guest-customer(company)
+  (let ((tenant-id (slot-value company 'row-id))
+	(customer-name (format nil "Guest Customer - ~A" (slot-value company 'name))))
+ (clsql:update-records-from-instance (make-instance 'dod-cust-profile
+						    :name customer-name
+						    :address (slot-value company 'address)
+						    :email nil 
+						    :password "demo"
+						    :salt nil
+						    :birthdate nil
+						    :phone "9999999999"
+						    :city (slot-value company 'city)
+						    :state (slot-value company 'state)
+						    :zipcode (slot-value company 'zipcode)
+						    :tenant-id tenant-id
+						    :cust-type "GUEST"
+						    :active-flag "Y"
+						    :deleted-state "N"))))
 
 
 

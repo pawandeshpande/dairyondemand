@@ -18,6 +18,7 @@
 
 (defvar *HHUB-CUSTOMER-ORDER-CUTOFF-TIME* NIL)
 
+
 (defvar *HHUB-EMAIL-CSS-FILE* "/data/www/highrisehub.com/public/css")
 (defvar *HHUB-EMAIL-CSS-CONTENTS* NIL)
 (defvar *HHUB-EMAIL-TEMPLATES-FOLDER* "~/dairyondemand/hhub/email/templates")
@@ -52,7 +53,7 @@
 (defvar *HHUBOPRLOGINPAGEURL* "/hhub/opr-login.html")
 (defvar *HHUBCADLOGINPAGEURL* "/hhub/cad-login.html")
 (defvar *HHUBPASSRESETTIMEWINDOW* 20) ; 20 minutes. Depicts the reset password time window. 
-
+(defvar *HHUBGUESTCUSTOMERPHONE* "9999999999")
 
 (defun set-customer-page-title (name)
   (setf *customer-page-title* (format nil "Welcome to HighriseHub - ~A." name))) 

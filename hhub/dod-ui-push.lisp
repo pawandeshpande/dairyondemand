@@ -35,9 +35,8 @@
 
 
 
-(defun test-webpush-notification-for-vendor (phone-number company)
-  (let* ((vendor (select-vendor-by-phone phone-number company))
-	 (title "HighriseHub")
+(defun test-webpush-notification-for-vendor (vendor)
+  (let* ((title "HighriseHub")
 	 (message (format nil "Welcome to HighriseHub - ~A" (slot-value vendor 'name)))
 	 (clickTarget "https://www.highrisehub.com")
 	 (subscriptions (get-push-notify-subscription-for-vendor vendor)))
@@ -50,9 +49,8 @@
 
 
 
-(defun test-webpush-notification-for-customer (phone-number company)
-  (let* ((customer (select-customer-by-phone phone-number company))
-	 (title "HighriseHub")
+(defun test-webpush-notification-for-customer (customer)
+  (let* ((title "HighriseHub")
 	 (message (format nil "Welcome to HighriseHub - ~A" (slot-value customer 'name)))
 	 (clickTarget "https://www.highrisehub.com")
 	 (subscriptions (get-push-notify-subscription-for-customer customer)))

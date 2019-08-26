@@ -48,11 +48,11 @@
 
 
 (defun dod-controller-list-companies ()
-(if (is-dod-session-valid?)
+(with-opr-session-check
    (let (( companies (list-dod-companies)))
-    (standard-page (:title "List companies")
-      (ui-list-companies companies)))
-(hunchentoot:redirect "opr-login.html")))
+    (with-standard-admin-page (:title "List companies")
+      (ui-list-companies companies)))))
+
 
 
 (defun ui-list-companies (company-list)
@@ -60,15 +60,22 @@
   (if company-list 
       (htm (:div :class "row-fluid"	  
 	    (mapcar (lambda (cmp)
-		      (htm (:form :method "POST" :action "custsignup1action" :id "custsignup1form" 
-			   (:div :class "col-sm-4 col-lg-3 col-md-4"
-			    (:div :class "form-group"
-			     (:input :class "form-control" :name "cname" :type "hidden" :value (str (format nil "~A" (slot-value cmp 'name)))))
-			    (:div :class "form-group"
-				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" (str (format nil "~A" (slot-value cmp 'name)))))))))  company-list)))
+		      (htm
+		        (:div :class "col-sm-4 col-lg-3 col-md-4"
+			      (:form :method "POST" :action "custsignup1action" :id "custsignup1form" 
+				     (:div :class "form-group"
+					   (:input :class "form-control" :name "cname" :type "hidden" :value (str (format nil "~A" (slot-value cmp 'name)))))
+				     (:div :class "form-group"
+					   (:button :class "btn btn-sm btn-primary btn-block" :type "submit" (str (format nil "~A - Sign Up" (slot-value cmp 'name))))))
+			(:a :target "_blank" :href (format nil "dascustloginasguest?tenant-id=~A" (slot-value cmp 'row-id)) (:span :class "glyphicon glyphicon-shopping-cart") " Shop Now")
+			)))  company-list)))
 					;else
       (htm (:div :class "col-sm-12 col-md-12 col-lg-12"
-		 (:h3 "No records found"))))))
+		 (:h3 "Record Not Found. Want to add your store?")
+		 (:a :href "hhubnewcompany" (:span :class "glyphicon glyphicon-plus") " Register New Community Store."))))))
+
+
+
 
 
 

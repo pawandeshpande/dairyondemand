@@ -53,6 +53,10 @@
                           :HOME-KEY updated-by
                           :FOREIGN-KEY row-id
                           :SET NIL))
+   (cmp-type
+    :type (string 30)
+    :initarg :cmp-type)
+   
    (deleted-state
     :type (string 1)
     :void-value "N"

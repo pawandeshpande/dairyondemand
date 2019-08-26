@@ -511,6 +511,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresetmaillinksent.html"   'dod-controller-password-reset-mail-link-sent)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustsavepushsubscription"   'hhub-save-customer-push-subscription)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustremovepushsubscription"   'hhub-remove-customer-push-subscription)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustonlinepayment"   'hhub-cust-online-payment)
 	
 	
 
