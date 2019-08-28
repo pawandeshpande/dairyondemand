@@ -214,15 +214,17 @@
 
 
 (defun list-customer-wallets (wallets)
-(let ((header (list "Vendor" "Phone" "Balance" "Recharge")))
+  (let ((header (list "Vendor" "Phone" "Balance" "Recharge")))
+        
   (cl-who:with-html-output (*standard-output* nil)
       (:h3 "My Wallets.")      
       (:table :class "table table-striped"  (:thead (:tr
  (mapcar (lambda (item) (htm (:th (str item)))) header))) 
 	      (:tbody
 	       (mapcar (lambda (wallet)
-			 (let ((vendor (slot-value wallet 'vendor))
-			       (balance (slot-value wallet 'balance))
+			 (let* ((vendor (slot-value wallet 'vendor))
+				(pg-mode (slot-value vendor 'payment-gateway-mode))
+				(balance (slot-value wallet 'balance))
 			       (wallet-id (slot-value wallet 'row-id))
 			       (lowbalancep (if (check-low-wallet-balance wallet) t nil)))
 			   (htm (:tr
@@ -231,15 +233,14 @@
 				  
 				  (if lowbalancep
 				      (htm (:td :height "12px" (:h4 (:span :class "label label-danger" (str (format nil "Rs. ~$ " balance))))))
-				      ;else
+					;else
 				      (htm (:td :height "12px" (str (format nil "Rs. ~$ " balance)))))
-				 
 				  (:td :height "12px" 
-				       (:a  :class "btn btn-primary" :role "button" :data-toggle "modal" :href (format nil "/hhub/dasmakepaymentrequest?amount=20&wallet-id=~A" wallet-id)  "20")
+				       (:a  :class "btn btn-primary" :role "button" :data-toggle "modal" :href (format nil "/hhub/dasmakepaymentrequest?amount=20&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode )  "20")
 				   
 					; Recharge 1500 
 				        
-				       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=1000&wallet-id=~A" wallet-id) "1000"))
+				       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=1000&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode) "1000"))
 
 				  
 				  
@@ -1166,7 +1167,7 @@
 (defun dod-controller-cust-login-as-guest ()
   (let ((tenant-id (hunchentoot:parameter "tenant-id")))
     (unless  ( or (null tenant-id) (zerop (length tenant-id)))
-      (if (equal (dod-cust-login-as-guest :tenant-id tenant-id) NIL)  (hunchentoot:redirect  "/hhub/dodcustindex")))))
+      (if (equal (dod-cust-login-as-guest :tenant-id tenant-id) NIL) (hunchentoot:redirect "/hhub/customer-login.html") (hunchentoot:redirect  "/hhub/dodcustindex")))))
 
 (defun dod-controller-cust-login ()
     (let  ( (phone (hunchentoot:parameter "phone"))
@@ -1227,7 +1228,7 @@
 	  (shopcart-total (get-shop-cart-total))
 	  (custcomp (get-login-customer-company))
 	  (vendor-list (get-shopcart-vendorlist odts))
-	  (order-cxt (format nil "hhub~A" (get-universal-time)))
+	  (order-cxt (format nil "hhubcustopy~A" (get-universal-time)))
 	  (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id))) 
 
      (save-cust-order-params  odts products odate reqdate nil  shipaddress shopcart-total payment-mode comments cust custcomp order-cxt)
@@ -1459,7 +1460,7 @@
 			      :caching nil :flatp t :database *dod-db-instance* )))
 	      (customer-id (if customer (slot-value customer 'row-id)))
 	      (customer-name (if customer (slot-value customer 'name)))
-	      (customer-company (if customer (car (customer-company customer))))
+	      (customer-company (if customer (customer-company customer)))
 	      (customer-tenant-id (if customer-company (slot-value customer-company 'row-id)))
 	      (customer-company-name (if customer-company (slot-value customer-company 'name)))
 	      (customer-company-website (if customer-company (slot-value customer-company 'website)))
@@ -1513,7 +1514,7 @@
 	     (password-verified (if customer  (check-password password salt pwd)))
 	     (customer-id (if customer (slot-value customer 'row-id)))
 	     (customer-name (if customer (slot-value customer 'name)))
-	     (customer-company (if customer (car (customer-company customer))))
+	     (customer-company (if customer (customer-company customer)))
 	     (customer-tenant-id (if customer-company (slot-value customer-company 'row-id)))
 	     (customer-company-name (if customer-company (slot-value customer-company 'name)))
 	     (customer-company-website (if customer-company (slot-value customer-company 'website)))

@@ -118,6 +118,22 @@ $formvendsignin.submit ( function() {
 })
 
 
+
+$(".form-vendordercomplete").on('submit', function (e) {
+    var theForm = $(this);
+    $(theForm).find("button[type='submit']").hide(); //prop('disabled',true);
+      $.ajax({
+            type: 'POST',
+          url: $(theForm).attr("action"), 
+            data: $(theForm).serialize(),
+            success: function (response) {
+		console.log("Completing the Order "); 
+		location.reload();
+            }
+      });
+      e.preventDefault();});
+
+
 $(".form-product").on('submit', function (e) {
     var theForm = $(this);
     $(theForm).find("button[type='submit']").hide(); //prop('disabled',true);

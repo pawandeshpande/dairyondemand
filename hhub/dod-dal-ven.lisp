@@ -76,6 +76,11 @@
     :type (string 128)
     :initarg :salt)
    
+   (payment-gateway-mode
+    :accessor payment-gateway-mode
+    :type (string 10)
+    :initarg :payment-gateway-mode)
+   
    (payment-api-key 
     :accessor payment-api-key
     :type (string 40)

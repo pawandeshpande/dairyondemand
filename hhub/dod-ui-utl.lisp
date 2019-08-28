@@ -276,7 +276,7 @@ individual tiles. It also supports search functionality by including the searchr
 (defmacro with-html-form ( form-name form-action  &body body) 
 :documentation "Arguments: form-action - the form's action, body - any additional hidden form input elements"  
 `(cl-who:with-html-output (*standard-output* nil) 
-    (:form :id "theForm" :name ,form-name  :method "POST" :action ,form-action :data-toggle "validator" 
+    (:form :class ,form-name :id ,form-name :name ,form-name  :method "POST" :action ,form-action :data-toggle "validator" 
 ,@body)))
 
 

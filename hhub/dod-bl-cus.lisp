@@ -24,6 +24,7 @@
   (car (clsql:select 'dod-cust-profile :where [and
 		[= [:deleted-state] "N"]
 		[= [:tenant-id] tenant-id]
+		[= [:cust_type] "STANDARD"]
 		[= [:active-flag] "Y"]
 		[like  [:phone] phone]]
 		:caching *dod-database-caching* :flatp t))))

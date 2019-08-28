@@ -104,7 +104,7 @@
     :DB-INFO (:JOIN-CLASS dod-company
 	                  :HOME-KEY tenant-id
                           :FOREIGN-KEY row-id
-                          :SET T)))
+                          :SET NIL)))
   
   
   (:BASE-TABLE dod_cust_profile))

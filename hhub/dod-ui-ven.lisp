@@ -70,12 +70,13 @@
 (defun modal.vendor-update-settings ()
   (let* ((vendor (get-login-vendor))
 	 (payment-api-key (payment-api-key vendor))
-	 (payment-api-salt (payment-api-salt vendor)))
+	 (payment-api-salt (payment-api-salt vendor))
+	 (pg-mode (slot-value vendor 'payment-gateway-mode)))
 	
     (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		  (:form :id (format nil "form-customerupdate")  :role "form" :method "POST" :action "hhubvendupdateaction" :enctype "multipart/form-data" 
+		  (:form :id (format nil "form-customerupdate")  :role "form" :method "POST" :action "hhubvendupdatesettings" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
 			 
 			 (:h1 :class "text-center login-title"  "Update Vendor Settings")
@@ -86,16 +87,29 @@
 			       (:label :for "payment-api-salt" "Payment API Salt")
 			       (:input :class "form-control" :name "payment-api-salt"  :value payment-api-salt :placeholder "Payment API Salt"  :type "text" ))
 			 (:div :class "form-group"
+			       (:label :for "pg-mode" "Payment Gateway Mode"
+			       (payment-gateway-mode-options pg-mode)))
+			 (:div :class "form-group"
 			       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+
+
+;; @@ deprecated : start using with-html-dropdown instead. 
+(defun payment-gateway-mode-options (selectedkey) 
+  (let ((pg-mode (make-hash-table)))
+    (setf (gethash "TEST" pg-mode) "TEST") 
+    (setf (gethash "LIVE" pg-mode) "LIVE")
+    (with-html-dropdown "pg-mode" pg-mode selectedkey)))
 
 
 (defun dod-controller-vendor-update-settings ()
   (with-vend-session-check 
     (let* ((payment-api-key (hunchentoot:parameter "payment-api-key"))
 	   (payment-api-salt (hunchentoot:parameter "payment-api-salt"))
+	   (pg-mode (hunchentoot:parameter "pg-mode"))
 	   (vendor (get-login-vendor)))
       (setf (slot-value vendor 'payment-api-key) payment-api-key)
       (setf (slot-value vendor 'payment-api-salt) payment-api-salt)
+      (setf (slot-value vendor 'payment-gateway-mode) pg-mode)
       (update-vendor-details vendor)
       (hunchentoot:redirect "/hhub/dodvendprofile"))))
 
@@ -520,7 +534,7 @@
 (defun dod-controller-vendor-search-cust-wallet-action ()
 (if (is-dod-vend-session-valid?)
   (let* ((phone (hunchentoot:parameter "phone"))
-	(customer (select-customer-by-phone phone (get-login-vendor-company)))
+	 (customer (select-customer-by-phone phone (get-login-vendor-company)))
 	(wallet (if customer (get-cust-wallet-by-vendor customer (get-login-vendor) (get-login-vendor-company)))))
  
 (if (null wallet) 
@@ -537,14 +551,14 @@
 	(:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Address: ~A" (if customer (slot-value customer 'address)))))))
 
   (:div :class "row" 
-	    (:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Balance = Rs.~$" (if wallet (slot-value wallet 'balance) 0.00 ))))))
+	    (:div :class "col-sm-6 col-md-4 col-md-offset-4" (:h3 (str (format nil "Balance = Rs.~$" (slot-value wallet 'balance))))))
 	(:div :class "row" 
 	    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 		  (:form :class "form-vendor-update-balance" :role "form" :method "POST" :action "dodupdatewalletbalance"
 		    (:div :class "account-wall"
 			  (:div :class "form-group"
 			    (:input :class "form-control" :name "balance" :placeholder "recharge amount" :type "text" ))
-			  (:input :class "form-control" :name "wallet-id" :value (if wallet (slot-value wallet 'row-id) 0.00) :type "hidden")
+			  (:input :class "form-control" :name "wallet-id" :value (slot-value wallet 'row-id) :type "hidden")
 			   (:input :class "form-control" :name "phone" :value phone :type "hidden")
 			  (:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
@@ -580,7 +594,7 @@
 		    
 		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendchangepin-modal")  :href "#"  "Change Password")
 		    (modal-dialog (format nil "dodvendchangepin-modal") "Change Password" (modal.vendor-change-pin))
-		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendsettings-modal")  :href "#"  "Update Settings")
+		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendsettings-modal")  :href "#"  "Payment Gateway Settings")
 		    (modal-dialog (format nil "dodvendsettings-modal") "Update Settings" (modal.vendor-update-settings))))
     (hunchentoot:redirect "/hhub/vendor-login.html")))
 

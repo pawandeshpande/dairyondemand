@@ -4,13 +4,13 @@
 
 (defun dod-controller-make-payment-request-html ()
   (let* ((customer (get-login-customer))
-	 (description "This is test description")
 	 (company (get-login-customer-company))
 	 (amount (hunchentoot:parameter "amount"))
 	 (wallet-id (hunchentoot:parameter "wallet-id"))
 	 (wallet (if wallet-id (get-cust-wallet-by-id wallet-id company)))
 	 (vendor (if wallet (get-vendor wallet)))
 	 (order-id (hunchentoot:parameter "order_id"))
+	 (description  "This is test description")
 	 (mode (hunchentoot:parameter "mode"))
 	 (currency "INR")
 	 (customer-type (slot-value customer 'cust-type))
@@ -125,8 +125,8 @@
 					; Print all the post params. 
 					;Update customer's wallet first
   ; (hunchentoot:log-message* :info  (format nil "params count =  ~A" (length params-alist)))
-   (loop for (a . b) in params-alist 
-	   do (hunchentoot:log-message* :info  (format nil "param is ~a: ~a" a b)))
+   ;(loop for (a . b) in params-alist 
+;	   do (hunchentoot:log-message* :info  (format nil "param is ~a: ~a" a b)))
  ; (hunchentoot:log-message* :info  (format nil "rec-hash is ~A" received-hash))
  ; (hunchentoot:log-message* :info  (format nil "cal-hash is ~A" calculated-hash ))
   (when (and (equal (parse-integer response-code) 0)
@@ -135,7 +135,7 @@
     (progn
       (create-payment-trans order-id amount currency description (get-login-customer) vendor payment-method transaction-id (parse-integer response-code) response-message error-desc company) 
       (if (equal udf2 "STANDARD") (update-cust-wallet-balance amount udf1))
-      (if (equal order-id order-cxt) (hunchentoot:redirect "/hhub/dodmyorderaddaction")))
+      (if (equal order-id order-cxt) (hunchentoot:redirect (format nil "/hhub/dodmyorderaddaction?order_cxt=~A" order-cxt)))
 					; Display a success page. 
 	 (with-standard-customer-page (:title "Payment Successful" ) 
 	      (:div :class "row" 
@@ -156,7 +156,7 @@
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
 			  (:h5 (str (format nil "Amount recharged: ~A.~A" currency amount))))
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
-			  (:h5 (str (format nil "Wallet Balance: ~A" (+ amount (slot-value wallet 'balance)))))))))))))
+			  (:h5 (str (format nil "Wallet Balance: ~A" (+ amount (slot-value wallet 'balance))))))))))))))
 	
 
  
