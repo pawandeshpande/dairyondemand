@@ -239,13 +239,15 @@
 :documentation "This is a generic function which will display items in list as a html table. You need to pass the html table header and  list data, and a display function which will display data. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizing refer to style.css. " 
 (let ((incr (let ((count 0)) (lambda () (incf count)))))
 (cl-who:with-html-output-to-string (*standard-output* nil)
-    (:table :class "table  table-striped  table-hover"
-      (:thead (:tr
-	(:th "No")
-	       (mapcar (lambda (item) (htm (:th (str item)))) header))) 
-          (:tbody
-	    (mapcar (lambda (item)
-		      (htm (:tr (:td (str (funcall incr))) (funcall rowdisplayfunc item))))  listdata))))))
+    ; searchresult div will be used to store the search result. 
+    (:div :id "searchresult"  :class "container" 
+	  (:table :class "table  table-striped  table-hover"
+		  (:thead (:tr
+			   (:th "No")
+			   (mapcar (lambda (item) (htm (:th (str item)))) header))) 
+		  (:tbody
+		   (mapcar (lambda (item)
+			     (htm (:tr (:td (str (funcall incr))) (funcall rowdisplayfunc item))))  listdata)))))))
 
 ;; Can this function be converted into a macro?
 (defun display-as-tiles (listdata displayfunc) 
@@ -253,12 +255,10 @@
 individual tiles. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizingrefer to style.css. " 
   (cl-who:with-html-output-to-string (*standard-output* nil)
     ; searchresult div will be used to store the search result. 
+    (:div :id "searchresult"  :class "container" 
     (:div :class "row-fluid"  (mapcar (lambda (item)
 					(htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-4" 
-						    (funcall displayfunc item))))  listdata))))
-
-
-
+						    (funcall displayfunc item))))  listdata)))))
 
 (defmacro with-html-search-form (search-form-action search-placeholder &body body) 
 :documentation "Arguments: search-form-action - the form's action, search-placeholder - placeholder for search text box, body - any additional hidden form input elements"  
@@ -269,9 +269,7 @@ individual tiles. It also supports search functionality by including the searchr
        (:div :class "input-group"
 	(:input :type "text" :name "livesearch" :id "livesearch"  :class "form-control" :placeholder ,search-placeholder)
 	,@body
-	(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Go!" ))))))
-    (:div :id "searchresult")))
-
+	(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Go!" ))))))))
      
 (defmacro with-html-form ( form-name form-action  &body body) 
 :documentation "Arguments: form-action - the form's action, body - any additional hidden form input elements"  
@@ -279,9 +277,6 @@ individual tiles. It also supports search functionality by including the searchr
     (:form :class ,form-name :id ,form-name :name ,form-name  :method "POST" :action ,form-action :data-toggle "validator" 
 ,@body)))
 
-
-
- 
 
 (defun copy-hash-table (hash-table)
   (let ((ht (make-hash-table 

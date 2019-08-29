@@ -72,20 +72,15 @@
 
 
 
+
+
+
 (defun company-search-html ()
 (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "row"
 	      (:div :id "custom-search-input"
 		    (:div :class "input-group col-xs-12 col-sm-6 col-md-6 col-lg-6"
-			  (:form :id "theForm" :action "dodsyssearchtenantaction" :OnSubmit "return false;" 
-				 (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Search for an Apartment/Group"))
-			  (:span :class "input-group-btn" (:<button :class "btn btn-danger" :type "button" 
-								(:span :class " glyphicon glyphicon-search"))))))))
-	     
-
-
-
-
+			  (with-html-search-form "dodsyssearchtenantaction" "Search for an Apartment/Group"))))))
 	
 (defun com-hhub-transaction-create-company (&optional id)
   (let* ((company (if id (select-company-by-id id)))

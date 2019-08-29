@@ -30,7 +30,7 @@
 	     (update-prd-details product)
 	     
 					; ((equal prdqty 0) (delete-order-items (list item-id) company)))
-	     (hunchentoot:redirect (format nil "/hhub/dodmyorderdetails?id=~A" order-id))))))))
+	     (hunchentoot:redirect (format nil "/hhub/hhubcustmyorderdetails?id=~A" order-id))))))))
 
 
 (defun order-item-edit-popup (item-id) 
@@ -47,8 +47,8 @@
 			(:div  :class "col-xs-12" 
 			       (:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) 
 				   (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " "))))
-		 (:form :class "form-orditemedit" :role "form" :method "POST" :action "dodcustorditemedit"
-			(:div :class "form-group row"  (:label :for "product-id" (str (format nil  " ~a" prd-name ))))
+		 (with-html-form "form-orditemedit" "dodcustorditemedit" 
+		   (:div :class "form-group row"  (:label :for "product-id" (str (format nil  " ~a" prd-name ))))
 			(:input :type "hidden" :name "item-id" :value (format nil "~a" (slot-value order-item 'row-id)))
 			(:input :type "hidden" :name "order-id" :value (format nil "~a" order-id ))
 			(:div  :class "inputQty row" 

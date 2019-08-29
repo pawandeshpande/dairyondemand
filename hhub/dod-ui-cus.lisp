@@ -170,20 +170,27 @@
 
 (defun dod-controller-my-orderprefs ()
  :documentation "a callback function which prints daily order preferences for a logged in customer in html format." 
- (let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
-	(header (list   "product"  "day"  "qty" "qty per unit" "price"  "actions")))
-      (das-cust-page-with-tiles 'ui-list-cust-orderprefs "customer order preferences" header dodorderprefs)))
+    (let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
+	   (header (list  "Product"  "Day"  "Qty" "Qty Per Unit" "Price"  "Actions")))
+      (with-cust-session-check
+	(with-standard-customer-page (:title "Customer Order Subscriptions")
+				     (:h3 "My Subscriptions.")      
+				     (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustindex") "Shop Now")
+				     (str (display-as-table header dodorderprefs 'cust-opf-as-row))))))
+					; (das-cust-page-with-tiles 'ui-list-cust-orderprefs "customer order preferences" header dodorderprefs)))
 
 
 
 (defun dod-controller-cust-wallet-display ()
 :documentation "a callback function which displays the wallets for a customer" 
 (let* ((company (hunchentoot:session-value :login-customer-company))
-      (customer (hunchentoot:session-value :login-customer))
-      (wallets (get-cust-wallets customer company)))
-       
-(das-cust-page-with-tiles 'list-customer-wallets "Customer Wallets" wallets)))
-
+       (customer (hunchentoot:session-value :login-customer))
+       (header (list "Vendor" "Phone" "Balance" "Recharge"))
+       (wallets (get-cust-wallets customer company)))
+  (with-cust-session-check
+    (with-standard-customer-page
+      (str (display-as-table header wallets 'cust-wallet-as-row))))))
+ ;     (str (display-as-tiles wallets 'wallet-card))))))
 
 
 (defun wallet-card (wallet-instance custom-message)
@@ -213,41 +220,26 @@
 
 
 
-(defun list-customer-wallets (wallets)
-  (let ((header (list "Vendor" "Phone" "Balance" "Recharge")))
-        
-  (cl-who:with-html-output (*standard-output* nil)
-      (:h3 "My Wallets.")      
-      (:table :class "table table-striped"  (:thead (:tr
- (mapcar (lambda (item) (htm (:th (str item)))) header))) 
-	      (:tbody
-	       (mapcar (lambda (wallet)
-			 (let* ((vendor (slot-value wallet 'vendor))
-				(pg-mode (slot-value vendor 'payment-gateway-mode))
-				(balance (slot-value wallet 'balance))
-			       (wallet-id (slot-value wallet 'row-id))
-			       (lowbalancep (if (check-low-wallet-balance wallet) t nil)))
-			   (htm (:tr
-				 (:td  :height "12px" (str (slot-value vendor  'name)))
-				  (:td  :height "12px" (str (slot-value vendor  'phone)))
-				  
-				  (if lowbalancep
-				      (htm (:td :height "12px" (:h4 (:span :class "label label-danger" (str (format nil "Rs. ~$ " balance))))))
+(defun cust-wallet-as-row (wallet)
+  (let* ((vendor (slot-value wallet 'vendor))
+	 (pg-mode (slot-value vendor 'payment-gateway-mode))
+	 (balance (slot-value wallet 'balance))
+	 (wallet-id (slot-value wallet 'row-id))
+	 (lowbalancep (if (check-low-wallet-balance wallet) t nil)))
+    (cl-who:with-html-output (*standard-output* nil)
+ 	  (:td  :height "12px" (str (slot-value vendor  'name)))
+	  (:td  :height "12px" (str (slot-value vendor  'phone)))
+	  
+	  (if lowbalancep
+	      (htm (:td :height "12px" (:h4 (:span :class "label label-danger" (str (format nil "Rs. ~$ " balance))))))
 					;else
-				      (htm (:td :height "12px" (str (format nil "Rs. ~$ " balance)))))
-				  (:td :height "12px" 
-				       (:a  :class "btn btn-primary" :role "button" :data-toggle "modal" :href (format nil "/hhub/dasmakepaymentrequest?amount=20&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode )  "20")
-				   
+	      (htm (:td :height "12px" (str (format nil "Rs. ~$ " balance)))))
+	  (:td :height "12px" 
+	       (:a  :class "btn btn-primary" :role "button" :data-toggle "modal" :href (format nil "/hhub/dasmakepaymentrequest?amount=20&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode )  "20")
+	       
 					; Recharge 1500 
-				        
-				       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=1000&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode) "1000"))
-
-				  
-				  
-				  
-				  )))) wallets))))))
-
-
+	       
+	       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=1000&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode) "1000")))))
 
 
 (defun list-customer-low-wallet-balance (wallets order-items-totals)
@@ -359,34 +351,34 @@
 
 (defun dod-controller-cust-orders-calendar ()
   (with-cust-session-check
-  (with-standard-customer-page (:title "list dod customer orders")   
-     (:link :href "/css/calendar.css" :rel "stylesheet")
- (:ul :class "nav nav-pills" 
-	       (:li :role "presentation" :class "active" (:a :href "dodmyorders" (:span :class "glyphicon glyphicon-th-list")))
-	       (:li :role "presentation" :class "active" (:a :href "dodcustorderscal" (:span :class "glyphicon glyphicon-calendar")))
-	       (:li :role "presentation" :class "active" (:a :href "dodcustindex" "Shop Now")))
- 
-     
-     (:div :class "container"
-	   (:div :class "page-header"
-		 (:div :class "pull-right form-inline"
-		       (:div :class "btn-group"
-			     (:button :class "btn btn-primary" :data-calendar-nav "prev" "<< Prev")
-			     (:button :class "btn btn-default" :data-calendar-nav "today" "Today")
-			     (:button :class "btn btn-primary" :data-calendar-nav "next" "Next >>"))
-		       		       
-		       (:h3)))
-	   (:div :class "row"
-		 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		       (:div :id "calendar"))))
+    (with-standard-customer-page (:title "list dod customer orders")   
+				 (:link :href "/css/calendar.css" :rel "stylesheet")
+				 (:ul :class "nav nav-pills" 
+				      (:li :role "presentation" :class "active" (:a :href "dodmyorders" (:span :class "glyphicon glyphicon-th-list")))
+				      (:li :role "presentation" :class "active" (:a :href "dodcustorderscal" (:span :class "glyphicon glyphicon-calendar")))
+				      (:li :role "presentation" :class "active" (:a :href "dodcustindex" "Shop Now")))
+				 (:div :class "container"
+				       (:div :class "page-header"
+					     (:div :class "pull-right form-inline"
+						   (:div :class "btn-group"
+							 (:button :class "btn btn-primary" :data-calendar-nav "prev" "<< Prev")
+							 (:button :class "btn btn-default" :data-calendar-nav "today" "Today")
+							 (:button :class "btn btn-primary" :data-calendar-nav "next" "Next >>"))
+						   
+						   (:h3)))
+				       (:div :class "row"
+					     (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+						   (:div :id "calendar")))
+				       (:hr))
 
-     ;(modal-dialog (format nil "events-modal") "Calendar Modal" )
-     
-     (:script :type "text/javascript" :src "/js/underscore-min.js")
-     (:script :type "text/javascript" :src "/js/calendar.js")
-     (:script :type "text/javascript" :src "/js/app.js"))
-;else
-	))
+				 
+					;(modal-dialog (format nil "events-modal") "Calendar Modal" )
+				 
+				 (:script :type "text/javascript" :src "/js/underscore-min.js")
+				 (:script :type "text/javascript" :src "/js/calendar.js")
+				 (:script :type "text/javascript" :src "/js/app.js"))))
+
+    
 
 
 (defun dod-controller-my-orders1 ()
@@ -424,7 +416,7 @@
 (defun dod-controller-del-cust-ord-item ()
   (with-cust-session-check
       (let* ((order-id (parse-integer (hunchentoot:parameter "ord")))
-	     (redirect-url (format nil "/hhub/dodmyorderdetails?id=~a" order-id))
+	     (redirect-url (format nil "/hhub/hhubcustmyorderdetails?id=~a" order-id))
 	     (item-id (parse-integer (hunchentoot:parameter "id")))
 	     (company (hunchentoot:session-value :login-customer-company))
 	     (order (get-order-by-id order-id company)))
