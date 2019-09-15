@@ -90,13 +90,13 @@
 					    ))))) (if (not (typep data 'list)) (list data) data) )))))
 
 
-(defun ui-list-shop-cart (data shopcart)
+(defun ui-list-shopcart (products shopcart)
     :documentation "A function used for rendering the shopping cart data in HTML format."
     (cl-who:with-html-output-to-string (*standard-output* nil)
 					; Header section.
 	      (:div :class "row"
 		  (:div :class "col-xs-6" 
-		      (:h4 (str (format nil "Shopping Cart (~A Items)" (length data)))))
+		      (:h4 (str (format nil "Shopping Cart (~A Items)" (length products)))))
 		  (:div :class "col-sm-6" :align "right"
 		      (htm  (:a :class "btn btn-primary" :role "button" :href "/hhub/dodcustindex" "Back To Shopping"  ))))
 	      (:hr)
@@ -104,19 +104,29 @@
 	      (:div :class "row-fluid"
 		    (mapcar (lambda (product odt)
 				    (htm (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-4" 
-					       (:div :class "product-box" (product-card-shopcart product odt)))))      data shopcart ))))
+					       (:div :class "product-box" (product-card-shopcart product odt)))))      products shopcart ))))
+
+
+(defun ui-list-shopcart-readonly (products shopcart)
+    :documentation "A function used for rendering the shopping cart data in HTML format."
+    (cl-who:with-html-output-to-string (*standard-output* nil)
+      (:div :class "row-fluid"
+	    (mapcar (lambda (product odt)
+		      (htm (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-4" 
+				 (:div :class "product-box" (product-card-shopcart-readonly product odt)))))  products shopcart ))))
+
 
 
 (defun ui-list-cust-orderdetails  (header data)
- (cl-who:with-html-output (*standard-output* nil)
-  (:div :class  "panel panel-default"
-   (:div :class "panel-heading" "Order Items")
-   (:div :class "panel-body"
-    (:table :class "table table-hover"  
-     (:thead (:tr
-      (mapcar (lambda (item) (htm (:th (str item)))) header))) 
-     (:tbody
-      (mapcar (lambda (odt)
+  (cl-who:with-html-output (*standard-output* nil)
+    (:div :class  "panel panel-default"
+	 (:div :class "panel-heading" "Order Items")
+	 (:div :class "panel-body"
+	       (:table :class "table table-hover"  
+		       (:thead (:tr
+				(mapcar (lambda (item) (htm (:th (str item)))) header))) 
+		       (:tbody
+			(mapcar (lambda (odt)
 	(let* ((odt-product  (get-odt-product odt))
 	      (item-id (slot-value odt 'row-id))
 					;(unit-price (slot-value odt 'unit-price))
@@ -133,8 +143,6 @@
 				       (if (not (equal payment-mode "OPY")) (modal-dialog (format nil "orditemedit-modal~A" item-id) "Order Item Edit" (order-item-edit-popup item-id)))
 				       (:a :onclick "return CancelConfirm();" :href  (format nil "/hhub/doddelcustorditem?id=~A&ord=~A" (slot-value odt 'row-id) ordid) :onclick "return false" (:span :class "glyphicon glyphicon-remove")))))
 			   ((and (equal status "CMP") (equal fulfilled "Y"))  (htm (:td  :height "12px" (str (format nil "Fulfilled"))))))
-		     
-		     
 		     (:td  :height "12px" (str (slot-value odt-product 'prd-name)))
 		     (:td  :height "12px" (str (format nil  "~d" prd-qty)))
 					;(:td  :height "12px" (str (format nil  "Rs. ~$" unit-price)))

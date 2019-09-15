@@ -3,9 +3,17 @@ var $busyindicator = document.getElementById('busy-indicator');
 var $error = $("#dod-error");
 var  $formcustsignin = $(".form-custsignin"),  $formvendsignin = $(".form-vendorsignin");
 
-$(window).load(function(){
+
+function getCookie(k)
+{
+    var v=document.cookie.match('(^|;) ?'+k+'=([^;]*)(;|$)');
+    return v?v[2]:null
+}
+
+
+
+$(document).ready(function(){
     $busyindicator.removeChild(spinner.el);
-    $('.loader').fadeOut();
 });
 
 

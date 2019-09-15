@@ -944,7 +944,7 @@
   (let* (( dodvenorder  (get-vendor-orders-by-orderid order-id  (get-login-vendor) company))
 	 (customer (if dodvenorder (get-customer dodvenorder)))
 	 (wallet (if customer (get-cust-wallet-by-vendor customer (get-login-vendor) company)))
-	 (balance (if wallet (slot-value wallet 'balance)))
+	 (balance (if wallet (slot-value wallet 'balance) 0))
 	 (venorderfulfilled (if dodvenorder (slot-value dodvenorder 'fulfilled)))
 	 (order (get-order-by-id order-id company))
 	 (payment-mode (if order (slot-value order 'payment-mode)))

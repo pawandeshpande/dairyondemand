@@ -1000,7 +1000,7 @@
 		(:div :class "row" 
 		      (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 			(:h1 :class "text-center login-title"  "Customer - Add order ")
-			(:form :class "form-order" :role "form" :method "POST" :action (if (equal paymentmode "OPY") "hhubcustonlinepayment" "dodmyorderaddaction") :data-toggle "validator"
+			(:form :class "form-order" :role "form" :method "POST" :action (if (equal paymentmode "OPY") "hhubcustonlinepayment" "dodcustshopcartro") :data-toggle "validator"
 			    (:div  :class "form-group" (:label :for "orddate" "Order Date" )
 				(:input :class "form-control" :name "orddate" :value (str (get-date-string (clsql::get-date))) :type "text"  :readonly "true"  ))
 			    (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
@@ -1178,33 +1178,61 @@
 		(when (equal cust-type "STANDARD") (htm (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorders") " My Orders Page")))))))))
 
 
+
+
 (defun com-hhub-transaction-create-order ()
  (with-cust-session-check 
    (with-hhub-transaction "com-hhub-transaction-create-order" 
-       (let* ((order-params (funcall 'get-guest-order-params)) 
-	      (odts (nth 0 order-params)) 
-	      (products (nth 1 order-params))
-	      (odate (nth 2 order-params))
-	      (reqdate (nth 3 order-params))
-	      (ship-date (nth 4 order-params))
-	      (shipaddress (nth 5 order-params))
-	      (shopcart-total (nth 6 order-params))
-	      (payment-mode (nth 7 order-params))
-	      (comments (nth 8 order-params))
-	      (cust (nth 9 order-params))
-	      (custcomp (nth 10 order-params))
-	      (vendor-list (get-shopcart-vendorlist odts)))
-	   
-	   (if  (equal payment-mode "PRE")
+       (multiple-value-bind (odts products odate reqdate ship-date shipaddress shopcart-total payment-mode comments cust custcomp order-cxt)
+		  (values-list (get-cust-order-params))
+	      (let ((vendor-list (get-shopcart-vendorlist odts)))
+		(if  (equal payment-mode "PRE")
 					; at least one vendor wallet has low balance 
 		(if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
 								   (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts")))
 	   (create-order-from-shopcart  odts products odate reqdate ship-date  shipaddress shopcart-total payment-mode comments cust custcomp)
 	   (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	   (setf (hunchentoot:session-value :login-shopping-cart ) nil)
-	   (hunchentoot:redirect "/hhub/dodcustordsuccess")))))
+	   (hunchentoot:redirect "/hhub/dodcustordsuccess"))))))
+
+(defun save-cust-order-params (list) 
+  (setf (hunchentoot:session-value :customer-clipboard) list))
+
+(defun get-cust-order-params()
+  (hunchentoot:session-value :customer-clipboard))
 
 
+(defun dod-controller-cust-show-shopcart-readonly()
+  (with-cust-session-check 
+    (let* ((odts (hunchentoot:session-value :login-shopping-cart))
+	   (products (hunchentoot:session-value :login-prd-cache))
+	   (payment-mode (hunchentoot:parameter "payment-mode"))
+	   (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
+	   (shipaddress (hunchentoot:parameter "shipaddress"))
+	   (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
+	   (cust (get-login-customer))
+	   (shopcart-total (get-shop-cart-total))
+	   (custcomp (get-login-customer-company))
+	   ;(vendor-list (get-shopcart-vendorlist odts))
+	   (order-cxt (format nil "hhubcustopy~A" (get-universal-time)))
+	   (shopcart-products (mapcar (lambda (odt)
+			       (let ((prd-id (slot-value odt 'prd-id)))
+				 (search-prd-in-list prd-id products ))) odts)))
+	  ; (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id)))
+      ; Save the customer order parameters. 
+      (save-cust-order-params (list odts products odate reqdate nil  shipaddress shopcart-total payment-mode nil cust custcomp order-cxt))
+      (with-standard-customer-page
+	(:div :class "row"
+	(str(ui-list-shopcart-readonly shopcart-products odts)))
+	(:hr)
+	  (:div :class "row" 
+		(:div :class "col-xs-12" :align "right" 
+		      (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" shopcart-total))))))
+	  (with-html-form "placeorderform" "dodmyorderaddaction"  
+	    (:div :class "row"
+		  (:div :class "input-group"
+			(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Place Order" )))))))))
+ 
 (defun hhub-cust-online-payment()
  (with-cust-session-check 
    (let* ((odts (hunchentoot:session-value :login-shopping-cart))
@@ -1221,17 +1249,10 @@
 	  (custcomp (get-login-customer-company))
 	  (vendor-list (get-shopcart-vendorlist odts))
 	  (order-cxt (format nil "hhubcustopy~A" (get-universal-time)))
-	  (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id))) 
-
-     (save-cust-order-params  odts products odate reqdate nil  shipaddress shopcart-total payment-mode comments cust custcomp order-cxt)
+	  (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id)))    
+     (save-cust-order-params (list odts products odate reqdate nil  shipaddress shopcart-total payment-mode comments cust custcomp order-cxt))
      (if (equal payment-mode "OPY") 
 	 (online-payment shopcart-total wallet-id custcomp order-cxt)))))
-
-
-(defun save-cust-order-params (shopcart products order-date request-date ship-date ship-address order-amt payment-mode comments customer company order-cxt)
-  (let ((params (list shopcart products order-date request-date ship-date ship-address order-amt payment-mode comments customer company order-cxt)))
-    (defun get-cust-order-params ()
-      params)))
 
 
 
@@ -1323,7 +1344,7 @@
 	  (if (and wallet (> prdqty 0)) 
 	      (progn (setf (hunchentoot:session-value :login-shopping-cart) (append (list odt)  myshopcart  ))
 		     (if (length (hunchentoot:session-value :login-shopping-cart)) (hunchentoot:redirect (format nil "/hhub/dodcustindex"))))
-	      ;else 
+	      ;else if wallet is not defined, create wallet first
 	      (hunchentoot:redirect (format nil "/hhub/createcustwallet?vendor-id=~A" vendor-id))))
 	))
 
@@ -1391,9 +1412,10 @@
 	      (with-standard-customer-page (:title "My Shopping Cart")
 	    				; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
 					; This function is responsible for displaying the shopping cart. 
-	   (:div :class "rowfluid"
+		 
+		(:div :class "rowfluid"
 			      (:div :class "col-xs-12" 
-				    (str (ui-list-shop-cart products lstshopcart))))
+				    (str (ui-list-shopcart products lstshopcart))))
 	  (:hr)
 	  (:div :class "row" 
 		(:div :class "col-xs-12" :align "right" 
@@ -1475,10 +1497,12 @@
 	  (setf (hunchentoot:session-value :login-shopping-cart) login-shopping-cart)
 					; There is no need for daily order preference, orders since this is a guest user. 
 					;(setf (hunchentoot:session-value :login-cusopf-cache) (get-opreflist-for-customer  customer)) 
-					; (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
+	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
 	  (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
+	  (hunchentoot:set-cookie "community-url" :value (format nil "https://www.highrisehub.com/hhub/dascustloginasguest?tenant-id=~A" (get-login-cust-tenant-id)) :expires (+ (get-universal-time) 10000000) :path "/")
 	 
+
 	 ))
       )
 
@@ -1532,7 +1556,8 @@
 	  (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer customer))
-	 ))
+	  (hunchentoot:set-cookie "community-url" :value (format nil "https://www.highrisehub.com/hhub/dascustloginasguest?tenant-id=~A" (get-login-cust-tenant-id)) :expires (+ (get-universal-time) 10000000) :path "/")
+	  ))
       )
 
         ; Handle this condition

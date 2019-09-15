@@ -26,13 +26,14 @@
     :DB-CONSTRAINTS :NOT-NULL
     :TYPE integer
     :initarg :prd-id)
-(productobject
- :ACCESSOR get-odt-product
- :db-kind :join
- :db-info (:join-class dod-prd-master
-		       :home-key prd-id
-		       :foreign-key row-id
-		       :set nil))
+
+   (productobject
+    :ACCESSOR get-odt-product
+    :db-kind :join
+    :db-info (:join-class dod-prd-master
+			  :home-key prd-id
+			  :foreign-key row-id
+			  :set nil))
 
 
 
