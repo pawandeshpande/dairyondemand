@@ -267,12 +267,12 @@ individual tiles. It also supports search functionality by including the searchr
      (:div :class "row" 
       (:div :class "col-lg-6 col-md-6 col-sm-12 col-xs-12" 
        (:div :class "input-group"
-	(:input :type "text" :name "livesearch" :id "livesearch"  :class "form-control" :placeholder ,search-placeholder)
+	(:input :type "text" :name "livesearch" :id "livesearch"  :class "form-control search-query" :placeholder ,search-placeholder)
 	,@body
-	(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Go!" ))))))))
+	(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" (:span :class " glyphicon glyphicon-search") " Go!" ))))))))
      
 (defmacro with-html-form ( form-name form-action  &body body) 
-:documentation "Arguments: form-action - the form's action, body - any additional hidden form input elements"  
+:documentation "Arguments: form-action - the form's action, body - any additional hidden form input elements. This macro supports validator.js"  
 `(cl-who:with-html-output (*standard-output* nil) 
     (:form :class ,form-name :id ,form-name :name ,form-name  :method "POST" :action ,form-action :data-toggle "validator" 
 ,@body)))

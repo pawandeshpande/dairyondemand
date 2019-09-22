@@ -81,7 +81,7 @@
 	      (:div :id "custom-search-input"
 		    (:div :class "input-group col-xs-12 col-sm-6 col-md-6 col-lg-6"
 			  (with-html-search-form "dodsyssearchtenantaction" "Search for an Apartment/Group"))))))
-	
+
 (defun com-hhub-transaction-create-company (&optional id)
   (let* ((company (if id (select-company-by-id id)))
 	 (cmpname (if company (slot-value company 'name)))
@@ -94,30 +94,66 @@
     	(cl-who:with-html-output (*standard-output* nil)
 	  (:div :class "row" 
 		(:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		      (:form :class "form-addcompany" :role "form" :method "POST" :action "company-added" 
-			     (if company (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
-			     (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
-			     (:h1 :class "text-center login-title"  "Add/Edit Group")
-			    (:div :class "form-group"
-				  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
-			    (:div :class "form-group"
-				  (:label :for "cmpaddress")
-				  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
-			    (:div :class "form-group" :id "charcount")
-			    (:div :class "form-group"
-				  (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
-			    (:div :class "form-group"
-				  (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
-			    (:div :class "form-group"
-				  (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
-			    (:div :class "form-group"
-				  (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
+		      (with-html-form "form-addcompany" "company-added"
+			(if company (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+			(:img :class "profile-img" :src "/img/logo.png" :alt "")
+			(:div :class "form-group"
+			      (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
+			(:div :class "form-group"
+			      (:label :for "cmpaddress")
+			      (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
+			(:div :class "form-group" :id "charcount")
+			(:div :class "form-group"
+			      (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
+			(:div :class "form-group"
+			      (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
+			(:div :class "form-group"
+			      (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
+			(:div :class "form-group"
+			      (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
 			    (:div :class "form-group"
 				  (:input :class "form-control" :type "text" :maxlength "256" :value cmpwebsite :placeholder "Website" :name "cmpwebsite" ))
 			    (:div :class "form-group"
 				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
 
 
+
+(defun com-hhub-transaction-request-new-company ()
+  (let* ((cmpname "")
+	 (cmpaddress "")
+	 (cmpcity "")
+	 (cmpstate "")
+	 (cmpwebsite "")
+	 (cmpzipcode ""))
+
+    (cl-who:with-html-output (*standard-output* nil)
+      (:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (with-html-form "form-addcompany" "company-added"
+		    (:img :class "profile-img" :src "/img/logo.png" :alt "")
+		    (:div :class "form-group"
+			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
+		    (:div :class "form-group"
+			  (:label :for "cmpaddress")
+			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
+		    (:div :class "form-group" :id "charcount")
+		    (:div :class "form-group"
+			  (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
+		    (:div :class "form-group"
+			  (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
+		    (:div :class "form-group"
+			  (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
+		    (:div :class "form-group"
+			      (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
+		    (:div :class "form-group"
+			  (:input :class "form-control" :type "text" :maxlength "256" :value cmpwebsite :placeholder "Website" :name "cmpwebsite" ))
+		    (:div :class "form-group"
+			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
+		
+		    (:div :class "form-group"
+			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+    
+    
 (defun dod-controller-company-search-for-sys-action ()
   (let*  ((qrystr (hunchentoot:parameter "livesearch"))
 	  (company-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr))))

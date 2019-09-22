@@ -707,12 +707,8 @@
 		      (:h2 "Search Apartment/Group")
 		      (:div :id "custom-search-input"
 			    (:div :class "input-group col-md-12"
-				  (:form :id "theForm" :action "companysearchaction" :OnSubmit "return false;" 
-					 (:input :type "text" :class "  search-query form-control" :id "livesearch" :name "livesearch" :placeholder "Name Starts With..."))
-				  (:span :class "input-group-btn" (:button :class "btn btn-danger" :type "button" 
-									    (:span :class " glyphicon glyphicon-search"))))))
-
-		(:div :id "searchresult")))
+				  (with-html-search-form "companysearchaction" "Name Starts With...")
+				    (:div :id "searchresult"))))))
 		      
     (clsql:sql-database-data-error (condition)
       (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
@@ -1207,9 +1203,9 @@
     (let* ((odts (hunchentoot:session-value :login-shopping-cart))
 	   (products (hunchentoot:session-value :login-prd-cache))
 	   (payment-mode (hunchentoot:parameter "payment-mode"))
-	   (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
+	   (odate  (hunchentoot:parameter "orddate"))
 	   (shipaddress (hunchentoot:parameter "shipaddress"))
-	   (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
+	   (reqdate (hunchentoot:parameter "reqdate"))
 	   (cust (get-login-customer))
 	   (shopcart-total (get-shop-cart-total))
 	   (custcomp (get-login-customer-company))
@@ -1220,18 +1216,33 @@
 				 (search-prd-in-list prd-id products ))) odts)))
 	  ; (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id)))
       ; Save the customer order parameters. 
-      (save-cust-order-params (list odts products odate reqdate nil  shipaddress shopcart-total payment-mode nil cust custcomp order-cxt))
+      (save-cust-order-params (list odts products (get-date-from-string odate) (get-date-from-string reqdate) nil  shipaddress shopcart-total payment-mode nil cust custcomp order-cxt))
       (with-standard-customer-page
+	(:title "Shopping cart finalize")
 	(:div :class "row"
-	(str(ui-list-shopcart-readonly shopcart-products odts)))
-	(:hr)
-	  (:div :class "row" 
-		(:div :class "col-xs-12" :align "right" 
-		      (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" shopcart-total))))))
-	  (with-html-form "placeorderform" "dodmyorderaddaction"  
-	    (:div :class "row"
-		  (:div :class "input-group"
-			(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" "Place Order" )))))))))
+	      (:div :class "col-xs-12"
+	      (:h4 (str (format nil "Order Date: ~A" odate)))))
+      (:div :class "row"
+	    (:div :class "col-xs-12"
+		  (:h4 (str (format nil "Request Date: ~A" reqdate)))))
+      (:div :class "row"
+	    (:div :class "col-xs-4"
+		  (:h4 (str (format nil "Payment Mode: ~A" payment-mode)))))
+      (:div :class "row"
+      (:div :class "col-xs-6"
+	    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" shopcart-total)))))
+      (:div :class "col-xs-6"
+		  (with-html-form "placeorderform" "dodmyorderaddaction"  
+		    (:span :class "input-group-btn" (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Place Order" )))))
+      
+      (:hr)
+      (:div :class "row"
+	    (str(ui-list-shopcart-readonly shopcart-products odts)))
+      (:hr)
+	
+      ))))
+				   
+			    
  
 (defun hhub-cust-online-payment()
  (with-cust-session-check 
@@ -1412,11 +1423,18 @@
 	      (with-standard-customer-page (:title "My Shopping Cart")
 	    				; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
 					; This function is responsible for displaying the shopping cart. 
-		 
-		(:div :class "rowfluid"
-			      (:div :class "col-xs-12" 
-				    (str (ui-list-shopcart products lstshopcart))))
-	  (:hr)
+
+					   (:div :class "row"
+						 (:div :class "col-xs-6" 
+						       (:h4 (str (format nil "Shopping Cart (~A Items)" (length products)))))
+						 (:div :class "col-sm-6" :align "right"
+						       (htm  (:a :class "btn btn-primary" :role "button" :href "/hhub/dodcustindex" "Back To Shopping"  ))))
+					   (:hr)
+
+					   (:div :class "rowfluid"
+						 (:div :class "col-xs-12" 
+						       (str (ui-list-shopcart products lstshopcart))))
+		(:hr)
 	  (:div :class "row" 
 		(:div :class "col-xs-12" :align "right" 
 				 (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))))

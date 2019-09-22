@@ -73,15 +73,15 @@
 	 (prd-vendor (product-vendor product-instance)))
     (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row"
-	    (:div  :class "col-xs-6" (:a :href "#" (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
+	    (:div  :class "col-xs-6" (:a :href "#" (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " "))))
 					;Product name and other details
-	    (:div :class "row"
-		  (:div :class "col-xs-12"
-			(:h5 :class "product-name"  (str prd-name) )
-			(:p  (str (format nil "  ~A. Fulfilled By: ~A" qty-per-unit (name prd-vendor)))))
-		  (:div :class "row"
-			(:div :class "col-sm-12"
-			      (:div  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$ X ~A = Rs. ~$"  unit-price prdqty subtotal))))))))))))
+      (:div :class "row"
+	    (:div :class "col-xs-12"
+		  (:h5 :class "product-name"  (str prd-name) )
+		  (:p  (str (format nil "  ~A. Fulfilled By: ~A" qty-per-unit (name prd-vendor))))))
+      (:div :class "row"
+	    (:div :class "col-sm-12"
+		  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$ X ~A = Rs. ~$"  unit-price prdqty subtotal)))))))))
 
 
 

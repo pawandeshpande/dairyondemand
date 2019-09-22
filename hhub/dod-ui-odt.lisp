@@ -94,13 +94,7 @@
     :documentation "A function used for rendering the shopping cart data in HTML format."
     (cl-who:with-html-output-to-string (*standard-output* nil)
 					; Header section.
-	      (:div :class "row"
-		  (:div :class "col-xs-6" 
-		      (:h4 (str (format nil "Shopping Cart (~A Items)" (length products)))))
-		  (:div :class "col-sm-6" :align "right"
-		      (htm  (:a :class "btn btn-primary" :role "button" :href "/hhub/dodcustindex" "Back To Shopping"  ))))
-	      (:hr)
-					; Data section.
+	   				; Data section.
 	      (:div :class "row-fluid"
 		    (mapcar (lambda (product odt)
 				    (htm (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-4" 
