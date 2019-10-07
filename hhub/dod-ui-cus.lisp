@@ -708,7 +708,13 @@
 		      (:div :id "custom-search-input"
 			    (:div :class "input-group col-md-12"
 				  (with-html-search-form "companysearchaction" "Name Starts With...")
-				    (:div :id "searchresult"))))))
+				  (:div :id "searchresult"))
+			    (:hr)
+			    
+			    
+			    (:a :class "btn btn-primary" :onclick "window.history.back();"  :role "button" :href "#"  (:span :class "glyphicon glyphicon-arrow-left"))
+			    (:a :class "btn btn-primary" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#" (:span :class "glyphicon glyphicon-plus") " New Store")
+			    (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company))))))
 		      
     (clsql:sql-database-data-error (condition)
       (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
@@ -830,7 +836,7 @@
 			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "email" :required "true")
 			    (:input :class "form-control" :name "user-type" :value "CUSTOMER"  :type "hidden" :required "true"))
 			    
-		      (:div :class "form-group"
+	 	     (:div :class "form-group"
 			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
 		      (:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Reset Password")))))))

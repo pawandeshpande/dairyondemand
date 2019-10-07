@@ -112,11 +112,17 @@
   (hhubsendmail email  "Your Password Reset Link" password-reset-email)))
 
 
-(defun send-temp-password  (object temp-pass url)
-  (let* ((temp-password-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-TEMP-PASSWORD-FILE* )))
-	 (email (slot-value object 'email))
-	 (temp-password-email (format nil temp-password-str temp-pass url ))) 
-  (hhubsendmail email  "Your Password Has Been Reset" temp-password-email)))
+(defun send-new-company-registration-email  (object)
+  (let* ((temp-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-NEW-COMPANY-REQUEST*)))
+	 (cmpname (slot-value object 'name))
+	 (cmpaddress (slot-value object 'address))
+	 (cmpcity (slot-value object 'city))
+	 (cmpstate (slot-value object 'state))
+	 (cmpzipcode (slot-value object 'zipcode))
+	 (cmpcountry (slot-value object 'country))
+	 (cmpwebsite (slot-value object 'website))
+	 (temp-str-email (format nil temp-str cmpname cmpaddress cmpcity cmpstate cmpzipcode cmpcountry cmpwebsite )))
+  (hhubsendmail "pawan.deshpande@gmail.com"  "Highrisehub - New company registration request" temp-str-email)))
 
 
 

@@ -71,9 +71,9 @@
 			)))  company-list)))
 					;else
       (htm (:div :class "col-sm-12 col-md-12 col-lg-12"
-		 (:h3 "Record Not Found. Want to add your store?")
-		 	(modal-dialog "requestcompany-modal" "Add/Edit Group" (com-hhub-transaction-request-new-company))
-		 (:a :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#" (:span :class "glyphicon glyphicon-plus") " Register New Community Store."))))))
+		 (:h3 "Record Not Found."))))))
+
+
 
 
 

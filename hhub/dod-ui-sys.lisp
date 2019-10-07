@@ -119,39 +119,31 @@
 
 
 (defun com-hhub-transaction-request-new-company ()
-  (let* ((cmpname "")
-	 (cmpaddress "")
-	 (cmpcity "")
-	 (cmpstate "")
-	 (cmpwebsite "")
-	 (cmpzipcode ""))
-
-    (cl-who:with-html-output (*standard-output* nil)
+  (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		  (with-html-form "form-addcompany" "company-added"
+		  (with-html-form "form-addcompany" "hhubnewcompreqemailaction"
 		    (:img :class "profile-img" :src "/img/logo.png" :alt "")
 		    (:div :class "form-group"
-			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
+			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value ""  :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
 		    (:div :class "form-group"
 			  (:label :for "cmpaddress")
-			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
+			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" "" ))
 		    (:div :class "form-group" :id "charcount")
 		    (:div :class "form-group"
-			  (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
+			  (:input :class "form-control" :type "text" :value "" :placeholder "City"  :name "cmpcity" ))
 		    (:div :class "form-group"
-			  (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
+			  (:input :class "form-control" :type "text" :value "" :placeholder "State"  :name "cmpstate" ))
 		    (:div :class "form-group"
 			  (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
 		    (:div :class "form-group"
-			      (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
+			      (:input :class "form-control" :type "text" :maxlength "6" :value "" :placeholder "Pincode" :name "cmpzipcode" ))
 		    (:div :class "form-group"
-			  (:input :class "form-control" :type "text" :maxlength "256" :value cmpwebsite :placeholder "Website" :name "cmpwebsite" ))
+			  (:input :class "form-control" :type "text" :maxlength "256" :value "" :placeholder "Website" :name "cmpwebsite" ))
 		    (:div :class "form-group"
-			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
-		
+			  (:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
 		    (:div :class "form-group"
-			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
     
     
 (defun dod-controller-company-search-for-sys-action ()
@@ -365,7 +357,7 @@
     (with-standard-admin-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
       (:div :class "row" 
 	 (:div :class "col-sm-6 col-md-4 col-md-offset-4"
-	       (:form :class "form-addcompany" :role "form" :method "POST" :action "company-added" 
+	       (:form :class "form-addcompany" :role "form" :method "POST" :action "hhubnewcompanyreq" 
 		      (if company 
 			  (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
 			  
@@ -397,9 +389,46 @@
 
 
 
+(defun dod-controller-new-company-request-email ()
+  (let*  ((cmpname (hunchentoot:parameter "cmpname"))
+	  (cmpaddress (hunchentoot:parameter "cmpaddress"))
+	  (cmpcity (hunchentoot:parameter "cmpcity"))
+	  (cmpstate (hunchentoot:parameter "cmpstate"))
+	  (cmpcountry (hunchentoot:parameter "cmpcountry"))
+	  (cmpzipcode (hunchentoot:parameter "cmpzipcode"))
+	  (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
+	  (paramname (list "secret" "response" ) ) 
+	 (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
+	 (param-alist (pairlis paramname paramvalue ))
+	 (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
+                       :method :POST
+                       :parameters param-alist  ))))
+     	  (cmpwebsite (hunchentoot:parameter "cmpwebsite"))
+	  (company (make-instance 'dod-company
+				  :name cmpname
+				  :address cmpaddress
+				  :city cmpcity
+				  :state cmpstate 
+				  :country cmpcountry
+				  :zipcode cmpzipcode
+				  :website cmpwebsite 
+				  :deleted-state "N"
+				  :created-by nil
+				  :updated-by nil)))
 
+	  
+	
+	(unless(and  ( or (null cmpname) (zerop (length cmpname)))
+		     ( or (null cmpaddress) (zerop (length cmpaddress)))
+		     ( or (null cmpzipcode) (zerop (length cmpzipcode))))
+	  (cond 
+	    ((null (cdr (car json-response))) (dod-response-captcha-error))
+	    (company (send-new-company-registration-email company))))
+	(hunchentoot:redirect "/hhub/hhubnewcompreqemailsent")))
+	    
+	  
 
-(defun dod-controller-company-added ()
+(defun dod-controller-new-company-request ()
   (if (is-dod-session-valid?)
       (let*  ((id (hunchentoot:parameter "id"))
 	      (company (if id (select-company-by-id id)))
@@ -436,7 +465,9 @@
      
 	(hunchentoot:create-regex-dispatcher "^/hhub/sadminhome" 'com-hhub-transaction-sadmin-home)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasabacsecurity" 'dod-controller-abac-security)
-	(hunchentoot:create-regex-dispatcher "^/hhub/company-added" 'dod-controller-company-added)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubnewcompanyreq" 'dod-controller-new-company-request)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubnewcompreqemailaction" 'dod-controller-new-company-request-email)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubnewcompreqemailsent" 'dod-controller-new-company-registration-email-sent) 
 	(hunchentoot:create-regex-dispatcher "^/hhub/new-company" 'dod-controller-new-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/editcompany" 'dod-controller-new-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/opr-login.html" 'dod-controller-loginpage)

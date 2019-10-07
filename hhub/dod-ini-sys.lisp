@@ -25,6 +25,7 @@
 (defvar *HHUB-CUST-REG-TEMPLATE-FILE* "cust-reg.html")
 (defvar *HHUB-CUST-PASSWORD-RESET-FILE* "cust-pass-reset.html")
 (defvar *HHUB-CUST-TEMP-PASSWORD-FILE* "temppass.html")
+(defvar *HHUB-NEW-COMPANY-REQUEST* "newcompanyrequest.html")
 
 (defvar *dod-db-instance*)
 (defvar *sitepass* (encrypt "P@ssword1" "highrisehub.com"))

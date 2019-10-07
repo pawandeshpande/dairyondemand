@@ -13,6 +13,14 @@
 
 
 
+(defun dod-controller-new-company-registration-email-sent ()
+(with-standard-customer-page 
+    (:div :class "row" 
+	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
+					;(:div :class "account-wall"
+		  (:h1 :class "text-center login-title"  "New Store details have been sent. You will be contacted soon. ")
+		  (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-home")))))))
 
 
 
@@ -22,7 +30,8 @@
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
 					;(:div :class "account-wall"
-		  (:h1 :class "text-center login-title"  "Password Reset Link Sent To Your Email."))))))
+		  (:h1 :class "text-center login-title"  "Password Reset Link Sent To Your Email.")
+		  (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-home")))))))
 
 
 (defun dod-controller-password-reset-mail-sent ()
@@ -31,7 +40,8 @@
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
 					;(:div :class "account-wall"
-		  (:h1 :class "text-center login-title"  "Password Reset Email Sent."))))))
+		  (:h1 :class "text-center login-title"  "Password Reset Email Sent.")
+		  (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-home")))))))
   
 
 (defun dod-controller-invalid-email-error ()
@@ -40,7 +50,8 @@
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
 					;(:div :class "account-wall"
-		  (:h1 :class "text-center login-title"  "Invalid Customer Email."))))))
+		  (:h1 :class "text-center login-title"  "Invalid Customer Email.")
+		  (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-home")))))))
 		  
 
 
@@ -50,7 +61,8 @@
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
 					;(:div :class "account-wall"
-		  (:h1 :class "text-center login-title"  "Your password reset time window has expired. Please try again." ))))))
+		  (:h1 :class "text-center login-title"  "Your password reset time window has expired. Please try again." )
+		  (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-home")))))))
 		  
 
 
@@ -265,7 +277,7 @@ individual tiles. It also supports search functionality by including the searchr
 `(cl-who:with-html-output (*standard-output* nil ) 
     (:form :id "theForm" :name "theForm" :method "POST" :action ,search-form-action :onSubmit "return false"
      (:div :class "row" 
-      (:div :class "col-lg-6 col-md-6 col-sm-12 col-xs-12" 
+      (:div :class "col-lg-12 col-md-12 col-sm-12 col-xs-12" 
        (:div :class "input-group"
 	(:input :type "text" :name "livesearch" :id "livesearch"  :class "form-control search-query" :placeholder ,search-placeholder)
 	,@body
