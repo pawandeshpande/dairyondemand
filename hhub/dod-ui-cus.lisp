@@ -622,57 +622,59 @@
 	 (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
 	 (param-alist (pairlis paramname paramvalue ))
 	 (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
-                       :method :POST
-                       :parameters param-alist  ))))
-       (name (hunchentoot:parameter "name"))
-       (email (hunchentoot:parameter "email"))
-       (housenum (hunchentoot:parameter "housenum"))
-       (groupname (hunchentoot:parameter "tenant-name"))
-       (address (hunchentoot:parameter "address"))
-       (fulladdress (concatenate 'string  housenum ", " groupname ", " address)) 
-       (phone (hunchentoot:parameter "phone"))
-       (password (hunchentoot:parameter "password"))
-       (confirmpass (hunchentoot:parameter "confirmpass"))
-       (salt-octet (secure-random:bytes 56 secure-random:*generator*))
-       (salt (flexi-streams:octets-to-string  salt-octet))
-       (encryptedpass (check&encrypt password confirmpass salt))
-       (tenant-name (hunchentoot:parameter "tenant-name"))
-       (company (select-company-by-name tenant-name)))
-  
-
+												   :method :POST
+												   :parameters param-alist  ))))
+	 (name (hunchentoot:parameter "name"))
+	 (email (hunchentoot:parameter "email"))
+	 (housenum (hunchentoot:parameter "housenum"))
+	 (groupname (hunchentoot:parameter "tenant-name"))
+	 (address (hunchentoot:parameter "address"))
+	 (fulladdress (concatenate 'string  housenum ", " groupname ", " address)) 
+	 (phone (hunchentoot:parameter "phone"))
+	 (password (hunchentoot:parameter "password"))
+	 (confirmpass (hunchentoot:parameter "confirmpass"))
+	 (salt-octet (secure-random:bytes 56 secure-random:*generator*))
+	 (salt (flexi-streams:octets-to-string  salt-octet))
+	 (encryptedpass (check&encrypt password confirmpass salt))
+	 (tenant-name (hunchentoot:parameter "tenant-name"))
+	 (company (select-company-by-name tenant-name)))
+    
+    
   ; If we receive a True from the google verifysite then, add the user to the backend. 
-  (cond
-    
-    ; Check for duplicate customer
-    ((duplicate-customerp phone company) (hunchentoot:redirect "/hhub/duplicate-cust.html"))
-    ; Check whether captcha has been solved 
-    ((null (cdr (car json-response))) (dod-response-captcha-error)  )
-    
-    ; Check whether password was entered correctly 
-    ((null encryptedpass) (dod-response-passwords-do-not-match-error)) 
-    
-    ((and encryptedpass (equal reg-type "VEN"))  
-	 (progn 
+    (cond
+      
+					; Check for duplicate customer
+      ((duplicate-customerp phone company) (hunchentoot:redirect "/hhub/duplicate-cust.html"))
+					; Check whether captcha has been solved 
+      ((null (cdr (car json-response))) (dod-response-captcha-error)  )
+      
+					; Check whether password was entered correctly 
+      ((null encryptedpass) (dod-response-passwords-do-not-match-error)) 
+      
+      ((and encryptedpass (equal reg-type "VEN"))  
+       (progn 
 					; 1 
-       (create-vendor name address phone email  encryptedpass salt nil nil nil company)
-       (sleep 1) ; Sleep for 1 second after creating the vendor record.  
-       (let ((vendor (select-vendor-by-name name company)))
-       (create-vendor-tenant vendor "Y" company))
+	 (create-vendor name address phone email  encryptedpass salt nil nil nil company)
+	 (sleep 1) ; Sleep for 1 second after creating the vendor record.  
+	 (let ((vendor (select-vendor-by-name name company)))
+	   (create-vendor-tenant vendor "Y" company))
 					; 2
-       
-       (with-standard-customer-page (:title "Welcome to HighriseHub platform")
-	 (:h3 (str(format nil "Your record has been successfully added" )))
-	 (:a :href "/hhub/vendor-login.html" "Login now"))))
-    
-    ((and encryptedpass (equal reg-type "CUS"))  
-	 (progn 
-       ; 1 
-       (create-customer name fulladdress phone email nil encryptedpass salt nil nil nil company)
-       ; 2
-       
-       (with-standard-customer-page (:title "Welcome to HighriseHub platform")
-	 (:h3 (str(format nil "Your record has been successfully added" )))
-	 (:a :href "/hhub/customer-login.html" "Login now")))))))
+	 (send-registration-email name email)
+					;3
+	 (with-standard-customer-page (:title "Welcome to HighriseHub platform")
+				      (:h3 (str(format nil "Your record has been successfully added" )))
+				      (:a :href "/hhub/vendor-login.html" "Login now"))))
+      
+      ((and encryptedpass (equal reg-type "CUS"))  
+       (progn 
+					; 1 
+	 (create-customer name fulladdress phone email nil encryptedpass salt nil nil nil company)
+					; 2
+	 (send-registration-email name email)
+					;3
+	 (with-standard-customer-page (:title "Welcome to HighriseHub platform")
+				      (:h3 (str(format nil "Your record has been successfully added" )))
+				      (:a :href "/hhub/customer-login.html" "Login now")))))))
 
 (defun dod-response-passwords-do-not-match-error ()
    (with-standard-customer-page (:title "Passwords do not match error.")
@@ -1181,18 +1183,28 @@
 
 
 
-
+ 
 (defun com-hhub-transaction-create-order ()
  (with-cust-session-check 
    (with-hhub-transaction "com-hhub-transaction-create-order" 
-       (multiple-value-bind (odts products odate reqdate ship-date shipaddress shopcart-total payment-mode comments cust custcomp order-cxt)
+       
+       (multiple-value-bind (odts products odate reqdate ship-date shipaddress shopcart-total payment-mode comments cust custcomp order-cxt phone email )
 		  (values-list (get-cust-order-params))
-	      (let ((vendor-list (get-shopcart-vendorlist odts)))
-		(if  (equal payment-mode "PRE")
+	 (let ((vendor-list (get-shopcart-vendorlist odts))
+	       (cust-type (slot-value cust 'cust-type))
+	       (guest-email (hunchentoot:session-value :guest-email-address)))
+	   (if  (equal payment-mode "PRE")
 					; at least one vendor wallet has low balance 
 		(if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
 								   (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts")))
-	   (create-order-from-shopcart  odts products odate reqdate ship-date  shipaddress shopcart-total payment-mode comments cust custcomp)
+	   (let ((order-id (create-order-from-shopcart  odts products odate reqdate ship-date  shipaddress shopcart-total payment-mode comments cust custcomp)))
+	     (if (equal cust-type "GUEST")
+					;SEND EMAIL TO THE GUEST CUSTOMER WITH ORDER DETAILS
+		 (let ((order-disp-str     (cl-who:with-html-output-to-string (*standard-output* nil)
+					     (str (ui-list-shopcart-for-email products odts)))))
+		   (send-order-mail-to-guest-customer guest-email order-id "dispatched" order-disp-str))))
+
+
 	   (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	   (setf (hunchentoot:session-value :login-shopping-cart ) nil)
 	   (hunchentoot:redirect "/hhub/dodcustordsuccess"))))))
@@ -1212,6 +1224,10 @@
 	   (odate  (hunchentoot:parameter "orddate"))
 	   (shipaddress (hunchentoot:parameter "shipaddress"))
 	   (reqdate (hunchentoot:parameter "reqdate"))
+	   (phone (hunchentoot:parameter "phone"))
+	   (email (hunchentoot:parameter "email"))
+		
+	   (comments (if phone (concatenate 'string phone "+++" email "+++" shipaddress)))
 	   (cust (get-login-customer))
 	   (shopcart-total (get-shop-cart-total))
 	   (custcomp (get-login-customer-company))
@@ -1220,9 +1236,12 @@
 	   (shopcart-products (mapcar (lambda (odt)
 			       (let ((prd-id (slot-value odt 'prd-id)))
 				 (search-prd-in-list prd-id products ))) odts)))
-	  ; (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id)))
-      ; Save the customer order parameters. 
-      (save-cust-order-params (list odts products (get-date-from-string odate) (get-date-from-string reqdate) nil  shipaddress shopcart-total payment-mode nil cust custcomp order-cxt))
+					; (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id)))
+					; Save the email address to send a mail in future if this is a guest customer.
+      (setf (hunchentoot:session-value :guest-email-address) email)
+
+					; Save the customer order parameters. 
+      (save-cust-order-params (list odts products (get-date-from-string odate) (get-date-from-string reqdate) nil  shipaddress shopcart-total payment-mode comments cust custcomp order-cxt phone email))
       (with-standard-customer-page
 	(:title "Shopping cart finalize")
 	(:div :class "row"

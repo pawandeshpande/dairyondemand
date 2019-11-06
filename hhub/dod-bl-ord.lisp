@@ -353,35 +353,36 @@
 
 (defun create-order-from-shopcart (order-items products  order-date request-date ship-date ship-address order-amt payment-mode  comments customer-instance company-instance)
   (let ((uuid (uuid:make-v1-uuid )))
-    
-    (progn (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt payment-mode comments  company-instance)
-	   (let 
-	           ((order (get-order-by-context-id (print-object uuid nil) company-instance))
-		    (cust-id (get-login-customer-id))
-		    (vendors (get-shopcart-vendorlist order-items))
-		    (tenant-id (slot-value company-instance 'row-id)))
+    ;Create an order in the database. 
+    (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt payment-mode comments  company-instance)
+    (let* ((order (get-order-by-context-id (print-object uuid nil) company-instance))
+	   (order-id (slot-value order 'row-id))
+	   (cust-id (get-login-customer-id))
+	   (vendors (get-shopcart-vendorlist order-items))
+	   (tenant-id (slot-value company-instance 'row-id)))
 
 	     ;Create the order-items and also update the current products in stock. 
-	       (mapcar (lambda (odt)
-			     (let* ((prd (search-prd-in-list (slot-value odt 'prd-id) products))
-				       (unit-price (slot-value odt 'unit-price))
-				       (prd-qty (slot-value odt 'prd-qty))
-				    (curr-units-in-stock  (- (slot-value prd 'units-in-stock) prd-qty)))
-			             (create-order-items order prd   prd-qty unit-price company-instance)
-				     (setf (slot-value prd 'units-in-stock) curr-units-in-stock)
-				     (update-prd-details prd))) order-items)
-	       
-
+      (mapcar (lambda (odt)
+		(let* ((prd (search-prd-in-list (slot-value odt 'prd-id) products))
+		       (unit-price (slot-value odt 'unit-price))
+		       (prd-qty (slot-value odt 'prd-qty))
+		       (curr-units-in-stock  (- (slot-value prd 'units-in-stock) prd-qty)))
+		  (create-order-items order prd   prd-qty unit-price company-instance)
+		  (setf (slot-value prd 'units-in-stock) curr-units-in-stock)
+		  (update-prd-details prd))) order-items)
+      
+      
 	         ; Create one row per vendor in the vendor_orders table. 
-		(mapcar (lambda (vendor) 
+      (mapcar (lambda (vendor) 
 			  (let* ((vitems (filter-order-items-by-vendor vendor order-items))
 				 (total (get-order-items-total-for-vendor vendor vitems))) 
 			    
 			    (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address payment-mode total )))  vendors)
 		; Update the Product's units-in-stock
-
-	 
-	       ))))
+		
+					; Return the order id
+      order-id
+      )))
 
 
 

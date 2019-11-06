@@ -63,6 +63,28 @@
 
 
 
+(defun product-card-for-email (product-instance odt-instance)
+  (let* ((prd-name (slot-value product-instance 'prd-name))
+	 (qty-per-unit (slot-value product-instance 'qty-per-unit))
+	 (prdqty (slot-value odt-instance 'prd-qty))
+	 (unit-price (slot-value product-instance 'unit-price))
+	 (prd-image-path (slot-value product-instance 'prd-image-path))
+	 (subtotal (* prdqty unit-price))
+	 (prd-vendor (product-vendor product-instance)))
+    (cl-who:with-html-output-to-string (*standard-output* nil)
+      (:tr 
+	    (:td  (:a :href "#" (:img :src  (str (format nil "https://www.highrisehub.com~A" prd-image-path)) :height "83" :width "100" :alt prd-name " "))))
+					;Product name and other details
+      (:tr
+	    (:td
+		  (:h5 :class "product-name"  (str prd-name) )
+		  (:p   (str (format nil "  ~A. Fulfilled By: ~A" qty-per-unit (name prd-vendor))))))
+      (:tr
+	    (:td
+		  (:h3(:span :class "label label-default" (str (format nil "Rs. ~$ X ~A = Rs. ~$"  unit-price prdqty subtotal)))))))))
+
+
+
 (defun product-card-shopcart-readonly (product-instance odt-instance)
   (let* ((prd-name (slot-value product-instance 'prd-name))
 	 (qty-per-unit (slot-value product-instance 'qty-per-unit))

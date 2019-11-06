@@ -122,7 +122,21 @@
 	 (cmpcountry (slot-value object 'country))
 	 (cmpwebsite (slot-value object 'website))
 	 (temp-str-email (format nil temp-str cmpname cmpaddress cmpcity cmpstate cmpzipcode cmpcountry cmpwebsite )))
-  (hhubsendmail "pawan.deshpande@gmail.com"  "Highrisehub - New company registration request" temp-str-email)))
+  (hhubsendmail *HHUBSUPERADMINEMAIL*  "Highrisehub - New company registration request" temp-str-email)))
+
+(defun send-registration-email (name email)
+  (let* ((reg-templ-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-REG-TEMPLATE-FILE*)))
+	 (cust-reg-email (format nil reg-templ-str name)))
+    (hhubsendmail email "Welcome to highrisehub" cust-reg-email)))
+
+(defun send-order-mail-to-guest-customer (email orderno status order-disp-str)
+(let* ((order-templ-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-GUEST-CUST-ORDER-TEMPLATE-FILE*)))
+	 (cust-order-email (format nil order-templ-str order-disp-str)))
+    (hhubsendmail email (format nil "Your HighriseHub order ~A ~A." orderno status) cust-order-email)))
+
+  
+
+
 
 
 

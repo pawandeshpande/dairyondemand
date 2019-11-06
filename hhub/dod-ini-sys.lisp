@@ -26,6 +26,8 @@
 (defvar *HHUB-CUST-PASSWORD-RESET-FILE* "cust-pass-reset.html")
 (defvar *HHUB-CUST-TEMP-PASSWORD-FILE* "temppass.html")
 (defvar *HHUB-NEW-COMPANY-REQUEST* "newcompanyrequest.html")
+(defvar *HHUB-GUEST-CUST-ORDER-TEMPLATE-FILE* "guestcustorder.html")
+
 
 (defvar *dod-db-instance*)
 (defvar *sitepass* (encrypt "P@ssword1" "highrisehub.com"))
@@ -55,6 +57,7 @@
 (defvar *HHUBCADLOGINPAGEURL* "/hhub/cad-login.html")
 (defvar *HHUBPASSRESETTIMEWINDOW* 20) ; 20 minutes. Depicts the reset password time window. 
 (defvar *HHUBGUESTCUSTOMERPHONE* "9999999999")
+(defvar *HHUBSUPERADMINEMAIL* "pawan.deshpande@gmail.com")
 
 (defun set-customer-page-title (name)
   (setf *customer-page-title* (format nil "Welcome to HighriseHub - ~A." name))) 
