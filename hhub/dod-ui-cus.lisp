@@ -1187,7 +1187,6 @@
 (defun com-hhub-transaction-create-order ()
  (with-cust-session-check 
    (with-hhub-transaction "com-hhub-transaction-create-order" 
-       
        (multiple-value-bind (odts products odate reqdate ship-date shipaddress shopcart-total payment-mode comments cust custcomp order-cxt phone email )
 		  (values-list (get-cust-order-params))
 	 (let ((vendor-list (get-shopcart-vendorlist odts))
@@ -1200,9 +1199,10 @@
 	   (let ((order-id (create-order-from-shopcart  odts products odate reqdate ship-date  shipaddress shopcart-total payment-mode comments cust custcomp)))
 	     (if (equal cust-type "GUEST")
 					;SEND EMAIL TO THE GUEST CUSTOMER WITH ORDER DETAILS
-		 (let ((order-disp-str     (cl-who:with-html-output-to-string (*standard-output* nil)
-					     (str (ui-list-shopcart-for-email products odts)))))
-		   (send-order-mail-to-guest-customer guest-email order-id "dispatched" order-disp-str))))
+		 (let ((order-disp-str (ui-list-shopcart-for-email products odts)))
+		   (format t  "~A" order-disp-str)
+		   (send-order-mail-to-guest-customer guest-email order-id "dispatched" order-disp-str)
+		   (reset-cust-order-params))))
 
 
 	   (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
@@ -1215,6 +1215,9 @@
 (defun get-cust-order-params()
   (hunchentoot:session-value :customer-clipboard))
 
+(defun reset-cust-order-params()
+  (setf (hunchentoot:session-value :customer-clipboard) nil))
+
 
 (defun dod-controller-cust-show-shopcart-readonly()
   (with-cust-session-check 
@@ -1226,7 +1229,6 @@
 	   (reqdate (hunchentoot:parameter "reqdate"))
 	   (phone (hunchentoot:parameter "phone"))
 	   (email (hunchentoot:parameter "email"))
-		
 	   (comments (if phone (concatenate 'string phone "+++" email "+++" shipaddress)))
 	   (cust (get-login-customer))
 	   (shopcart-total (get-shop-cart-total))
@@ -1234,14 +1236,13 @@
 	   ;(vendor-list (get-shopcart-vendorlist odts))
 	   (order-cxt (format nil "hhubcustopy~A" (get-universal-time)))
 	   (shopcart-products (mapcar (lambda (odt)
-			       (let ((prd-id (slot-value odt 'prd-id)))
-				 (search-prd-in-list prd-id products ))) odts)))
+					(let ((prd-id (slot-value odt 'prd-id)))
+					  (search-prd-in-list prd-id products ))) odts)))
 					; (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id)))
 					; Save the email address to send a mail in future if this is a guest customer.
       (setf (hunchentoot:session-value :guest-email-address) email)
-
-					; Save the customer order parameters. 
-      (save-cust-order-params (list odts products (get-date-from-string odate) (get-date-from-string reqdate) nil  shipaddress shopcart-total payment-mode comments cust custcomp order-cxt phone email))
+      					; Save the customer order parameters. 
+      (save-cust-order-params (list odts shopcart-products (get-date-from-string odate) (get-date-from-string reqdate) nil  shipaddress shopcart-total payment-mode comments cust custcomp order-cxt phone email))
       (with-standard-customer-page
 	(:title "Shopping cart finalize")
 	(:div :class "row"
@@ -1253,6 +1254,13 @@
       (:div :class "row"
 	    (:div :class "col-xs-4"
 		  (:h4 (str (format nil "Payment Mode: ~A" payment-mode)))))
+      (:div :class "row"
+	    (:div :class "col-xs-4"
+		  (:h4 (str (format nil "Phone: ~A" phone)))))
+      (:div :class "row"
+	    (:div :class "col-xs-4"
+		  (:h4 (str (format nil "Email: ~A" email)))))
+
       (:div :class "row"
       (:div :class "col-xs-6"
 	    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" shopcart-total)))))
@@ -1285,8 +1293,11 @@
 	  (custcomp (get-login-customer-company))
 	  (vendor-list (get-shopcart-vendorlist odts))
 	  (order-cxt (format nil "hhubcustopy~A" (get-universal-time)))
-	  (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id)))    
-     (save-cust-order-params (list odts products odate reqdate nil  shipaddress shopcart-total payment-mode comments cust custcomp order-cxt))
+	  (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id))
+	  (shopcart-products (mapcar (lambda (odt)
+					(let ((prd-id (slot-value odt 'prd-id)))
+					  (search-prd-in-list prd-id products ))) odts)))
+     (save-cust-order-params (list odts shopcart-products odate reqdate nil  shipaddress shopcart-total payment-mode comments cust custcomp order-cxt))
      (if (equal payment-mode "OPY") 
 	 (online-payment shopcart-total wallet-id custcomp order-cxt)))))
 
