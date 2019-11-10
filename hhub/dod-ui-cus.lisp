@@ -1199,9 +1199,12 @@
 	   (let ((order-id (create-order-from-shopcart  odts products odate reqdate ship-date  shipaddress shopcart-total payment-mode comments cust custcomp)))
 	     (if (equal cust-type "GUEST")
 					;SEND EMAIL TO THE GUEST CUSTOMER WITH ORDER DETAILS
-		 (let ((order-disp-str (ui-list-shopcart-for-email products odts)))
-		   (format t  "~A" order-disp-str)
-		   (send-order-mail-to-guest-customer guest-email order-id "dispatched" order-disp-str)
+		 (let ((order-disp-str (cl-who:with-html-output-to-string (*standard-output* nil)
+					 (str (ui-list-shopcart-for-email products odts))
+					 (:hr)
+					 (:tr (:td
+					       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" shopcart-total)))))))))
+		   (send-order-mail guest-email order-id "dispatched" order-disp-str)
 		   (reset-cust-order-params))))
 
 

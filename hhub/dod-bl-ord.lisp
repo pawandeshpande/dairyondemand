@@ -372,13 +372,25 @@
 		  (update-prd-details prd))) order-items)
       
       
-	         ; Create one row per vendor in the vendor_orders table. 
+	         ; Create one row per vendor in the vendor_orders table. Send an order received email to each vendor. 
       (mapcar (lambda (vendor) 
-			  (let* ((vitems (filter-order-items-by-vendor vendor order-items))
-				 (total (get-order-items-total-for-vendor vendor vitems))) 
+		(let* ((vitems (filter-order-items-by-vendor vendor order-items))
+		       (products (mapcar (lambda (odt)
+						    (let ((prd-id (slot-value odt 'prd-id)))
+					  (search-prd-in-list prd-id products ))) vitems))
+		       (total (get-order-items-total-for-vendor vendor vitems))
+		       (vendor-email (slot-value vendor 'email))
+		       (order-disp-str (cl-who:with-html-output-to-string (*standard-output* nil)
+					 (str (ui-list-shopcart-for-email products vitems))
+					 (:hr)
+					 (:tr (:td
+					       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))))
+		   
 			    
-			    (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address payment-mode total )))  vendors)
-		; Update the Product's units-in-stock
+			    (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address payment-mode total )
+					;Send a mail to the vendor
+			    (send-order-mail vendor-email (slot-value order 'row-id) "Received" order-disp-str)))  vendors)
+	
 		
 					; Return the order id
       order-id
