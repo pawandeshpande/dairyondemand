@@ -129,10 +129,10 @@
 	 (cust-reg-email (format nil reg-templ-str name)))
     (hhubsendmail email "Welcome to highrisehub" cust-reg-email)))
 
-(defun send-order-mail (email orderno status order-disp-str)
+(defun send-order-mail (email subject  order-disp-str)
 (let* ((order-templ-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-GUEST-CUST-ORDER-TEMPLATE-FILE*)))
 	 (cust-order-email (format nil order-templ-str order-disp-str)))
-    (hhubsendmail email (format nil "Your HighriseHub order ~A ~A." orderno status) cust-order-email)))
+    (hhubsendmail email subject cust-order-email)))
 
 
 

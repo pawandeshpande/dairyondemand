@@ -48,6 +48,20 @@
 
 
 
+(defun send-webpush-message (person message)
+  (let* ((title "HighriseHub")
+	 (subscriptions (cond ((equal 'DOD-CUST-PROFILE (type-of person)) (get-push-notify-subscription-for-customer person))
+			      ((equal 'DOD-VEND-PROFILE (type-of person)) (get-push-notify-subscription-for-vendor person))))
+	 (clickTarget "https://www.highrisehub.com"))
+    (mapcar (lambda (subscription)
+	      (let ((endpoint (slot-value subscription 'endpoint))
+		    (publickey (slot-value subscription 'publickey))
+		    (auth  (slot-value subscription 'auth)))
+		(send-webpush-notification title message clickTarget endpoint publickey auth))) subscriptions)))
+
+
+
+
 
 (defun test-webpush-notification-for-customer (customer)
   (let* ((title "HighriseHub")

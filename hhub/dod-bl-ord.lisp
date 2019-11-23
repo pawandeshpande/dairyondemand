@@ -389,7 +389,9 @@
 			    
 			    (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address payment-mode total )
 					;Send a mail to the vendor
-			    (send-order-mail vendor-email (slot-value order 'row-id) "Received" order-disp-str)))  vendors)
+			    (send-order-mail vendor-email (format nil "You have received new order ~A" order-id)  order-disp-str)
+					; Send a push notification on the vendor's browser
+			    (send-webpush-message vendor (format nil "You have received a new order ~A" order-id))))  vendors)
 	
 		
 					; Return the order id

@@ -1204,10 +1204,9 @@
 					 (:hr)
 					 (:tr (:td
 					       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" shopcart-total)))))))))
-		   (send-order-mail guest-email order-id "dispatched" order-disp-str)
+		   (send-order-mail guest-email (format nil "Your HighriseHub Order- ~A" order-id) order-disp-str)
 		   (reset-cust-order-params))))
-
-
+	
 	   (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	   (setf (hunchentoot:session-value :login-shopping-cart ) nil)
 	   (hunchentoot:redirect "/hhub/dodcustordsuccess"))))))

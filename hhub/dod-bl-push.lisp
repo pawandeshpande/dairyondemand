@@ -32,16 +32,6 @@
     (persist-push-notify-subscription nil vendor-id "VENDOR" endpoint publickey auth browser-name user-id tenant-id)))
 
 
-(defun get-push-notify-subscription-for-customer (customer)
-  (let ((cust-id (slot-value customer 'row-id))
-	(tenant-id (slot-value customer 'tenant-id)))
-    (clsql:select 'dod-webpush-notify :where
-		  [and
-		  [= [:deleted-state] "N"]
-		  [= [:active-flag] "Y"]
-		  [= [:cust-id] cust-id]
-		  [= [:person-type] "CUSTOMER"]
-		  [= [:tenant-id] tenant-id]] :caching *dod-database-caching* :flatp t)))
 
 (defun remove-webpush-subscription-for-customer (subscriptions-list)
   (delete-subscriptions subscriptions-list))
@@ -62,12 +52,22 @@
     (setf (slot-value push-subscription 'deleted-state) "Y")
     (clsql:update-record-from-slot push-subscription 'deleted-state)))
 
+(defun get-push-notify-subscription-for-customer (customer)
+  (let ((cust-id (slot-value customer 'row-id))
+	(tenant-id (slot-value customer 'tenant-id)))
+    (clsql:select 'dod-webpush-notify :where
+		  [and
+		  [= [:deleted-state] "N"]
+		  [= [:active-flag] "Y"]
+		  [= [:cust-id] cust-id]
+		  [= [:person-type] "CUSTOMER"]
+		  [= [:tenant-id] tenant-id]] :caching *dod-database-caching* :flatp t)))
 
 
 (defun get-push-notify-subscription-for-vendor (vendor)
   (let ((vendor-id (slot-value vendor 'row-id))
 	(tenant-id (slot-value vendor 'tenant-id)))
-    (clsql:select 'hhub-webpush-notify :where
+    (clsql:select 'dod-webpush-notify :where
 		  [and
 		  [= [:deleted-state] "N"]
 		  [= [:active-flag] "Y"]

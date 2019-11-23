@@ -1,7 +1,7 @@
 var subscribeurl =
-  "https://www.highrisehub.com/hhub/hhubcustsavepushsubscription";
+  "https://www.highrisehub.com/hhub/hhubvendsavepushsubscription";
 var unsubscribeurl =
-  "https://www.highrisehub.com/hhub/hhubcustremovepushsubscription";
+  "https://www.highrisehub.com/hhub/hhubvendOBremovepushsubscription";
 
 //Vapid public key.
 var applicationServerPublicKey =
