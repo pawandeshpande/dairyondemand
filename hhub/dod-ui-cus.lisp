@@ -235,7 +235,7 @@
 					;else
 	      (htm (:td :height "12px" (str (format nil "Rs. ~$ " balance)))))
 	  (:td :height "12px" 
-	       (:a  :class "btn btn-primary" :role "button" :data-toggle "modal" :href (format nil "/hhub/dasmakepaymentrequest?amount=20&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode )  "20")
+	       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=20&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode )  "20")
 	       
 					; Recharge 1500 
 	       
@@ -251,9 +251,10 @@
 	      (:tbody
 	       (mapcar (lambda (wallet order-item-total)
 			 (let* ((vendor (slot-value wallet 'vendor))
-			       (balance (slot-value wallet 'balance))
-			       (wallet-id (slot-value wallet 'row-id))
-			       (lowbalancep (or (if (check-low-wallet-balance wallet) t nil)
+				(balance (slot-value wallet 'balance))
+				(wallet-id (slot-value wallet 'row-id))
+				(pg-mode (slot-value vendor 'payment-gateway-mode))
+				(lowbalancep (or (if (check-low-wallet-balance wallet) t nil)
 						(< balance order-item-total))))
 			   (htm (:tr
 				 (:td  :height "12px" (str (slot-value vendor  'name)))
@@ -267,16 +268,11 @@
 				  (:td :height "12px" (str (format nil "Rs. ~$ " order-item-total)))
 				  
 				  (:td :height "12px" 
-				       (:a  :class "btn btn-primary" :role "button" :data-toggle "modal" :href (format nil "/hhub/dasmakepaymentrequest?amount=500&wallet-id=~A" wallet-id)  "500")
-				   
+				       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=500&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode )  "500")
 					; Recharge 1500 
 				        
-				       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=1000&wallet-id=~A" wallet-id) "1000"))
-
-				  
-				  
-				  
-				  )))) wallets order-items-totals))))))
+				       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=1000&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode )  "1000")
+				       (:a  :class "btn btn-primary" :role "button"  :href (format nil "/hhub/dasmakepaymentrequest?amount=1500&wallet-id=~A&order_id=hhub~A&mode=~A" wallet-id (get-universal-time) pg-mode )  "1500")))))) wallets order-items-totals))))))
 
 
 
@@ -1156,8 +1152,7 @@
 	(:div :class "row" 
 	      (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
 		    (:h3 (:span :class "label label-danger" "Low Wallet Balance."))))
-	(list-customer-low-wallet-balance   wallets order-items-totals)))
-      ))
+	(list-customer-low-wallet-balance   wallets order-items-totals)))))
 
 
 (defun dod-controller-cust-login-as-guest ()
