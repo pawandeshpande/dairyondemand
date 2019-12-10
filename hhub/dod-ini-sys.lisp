@@ -17,7 +17,7 @@
 
 
 (defvar *HHUB-CUSTOMER-ORDER-CUTOFF-TIME* NIL)
-
+(defvar *HHUB-DEMO-TENANT-ID* 2)
 
 (defvar *HHUB-EMAIL-CSS-FILE* "/data/www/highrisehub.com/public/css")
 (defvar *HHUB-EMAIL-CSS-CONTENTS* NIL)
