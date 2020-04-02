@@ -100,6 +100,7 @@
 				    :state state 
 				    :zipcode zipcode
 				    :tenant-id tenant-id
+				    :push-notify-subs-flag "N"
 				    :deleted-state "N"))))
  
 

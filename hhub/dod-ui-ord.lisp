@@ -138,11 +138,10 @@
 
 (defun ui-list-customer-orders (header data)
   (cl-who:with-html-output (*standard-output* nil)
-    
     (:h3 "Orders")
-  
-      (:table :class "table table-striped table-hover"  (:thead (:tr
-								 (mapcar (lambda (item) (htm (:th (str item)))) header)))
+    (:table :class "table table-striped table-hover"
+	    (:thead (:tr
+		     (mapcar (lambda (item) (htm (:th (str item)))) header)))
 	      (:tbody
 	       (mapcar (lambda (order)
 			 (htm (:tr (:td  :height "12px" (str (slot-value order 'row-id)))
@@ -163,7 +162,7 @@
     (mapcar (lambda (odt-ins)
 	      (concatenate 'string (slot-value (get-odt-product odt-ins) 'prd-name) ",")) odt)))
 
-
+; This is a pure function. 
 (defun vendor-order-card (order-instance)
   (let* ((customer (get-customer order-instance))
 	 (company (get-company order-instance))

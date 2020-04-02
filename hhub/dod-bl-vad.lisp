@@ -36,10 +36,10 @@
     (setf (slot-value object 'deleted-state) "Y")
     (clsql:update-record-from-slot object 'deleted-state)))
 
-(defmethod update-vendor-availability-day-instance (instance); This function has side effect of modifying the database record.
+(defun update-vendor-availability-day-instance (instance); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance instance))
 
-(defmethod delete-reset-password-instances  ( list )
+(defun delete-vendor-availability-day-instances (list) 
   (mapcar (lambda (id)  (let ((object (car (clsql:select 'dod-vendor-availability-day :where [= [:row-id] id] :flatp t :caching nil))))
 			  (setf (slot-value object 'deleted-state) "Y")
 			  (clsql:update-record-from-slot object  'deleted-state))) list ))

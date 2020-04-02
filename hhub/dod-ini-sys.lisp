@@ -163,15 +163,19 @@ the hunchentoot server with ssl settings"
   :documentation "These functions are list returning functions. The various lists are accessible throughout the application. For example, list of all the authorization policies, attributes, etc."
   (let ((policies (get-system-auth-policies))
 	(roles (get-system-roles))
-	(transactions (get-system-bus-transactions)))
+	(transactions (get-system-bus-transactions))
+	(busobjects (get-system-bus-objects))
+	(abacsubjects (get-system-abac-subjects)))
     (list (function (lambda () policies))
 	  (function (lambda () roles))
-	  (function (lambda () transactions)))))
+	  (function (lambda () transactions))
+	  (function (lambda () busobjects))
+	  (function (lambda () abacsubjects)))))
 
 
 (defun hhub-get-cached-auth-policies()
   :documentation "This function gets a list of all the globally cached policies."
-  (let ((policiesfunc (first *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+  (let ((policiesfunc (nth 0  *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
     (funcall policiesfunc)))
 
 (defun hhub-get-cached-roles ()
@@ -182,6 +186,16 @@ the hunchentoot server with ssl settings"
 
 (defun hhub-get-cached-transactions ()
   :documentation "This function gets a list of all the globally cached transactions."
-  (let ((rolesfunc (nth 3 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+  (let ((rolesfunc (nth 2 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
     (funcall rolesfunc)))
 
+
+(defun hhub-get-cached-bus-objects ()
+  :documentation "This function gets a list of all the globally cached bus objects for System"
+  (let ((busobjfunc (nth 3 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+    (funcall busobjfunc)))
+
+(defun hhub-get-cached-abac-subjects ()
+  :documentation "This function gets a list of all the globally cached ABAC Subjects for System"
+  (let ((abacsubjectfunc (nth 4 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+    (funcall abacsubjectfunc)))

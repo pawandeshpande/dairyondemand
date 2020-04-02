@@ -3,42 +3,40 @@
 
 
 
-(defun modal.customer-update-details ()
-  (let* ((customer (get-login-customer))
-	 (name (name customer))
+(defun modal.customer-update-details (customer)
+  (let* ((name (name customer))
 	 (address (address customer))
 	 (phone  (phone customer))
 	 (email (email customer)))
-
- (cl-who:with-html-output (*standard-output* nil)
-   (:div :class "row" 
-	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-	       (:form :id (format nil "form-customerupdate")  :role "form" :method "POST" :action "hhubcustupdateaction" :enctype "multipart/form-data" 
+    (cl-who:with-html-output (*standard-output* nil)
+      (:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (:form :id (format nil "form-customerupdate")  :role "form" :method "POST" :action "hhubcustupdateaction" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
-		 
+			 
 		 (:h1 :class "text-center login-title"  "Update Customer Details")
-		      (:div :class "form-group"
-			    (:input :class "form-control" :name "name" :value name :placeholder "Customer Name" :type "text"))
-		      (:div :class "form-group"
-			    (:label :for "address")
-			    (:textarea :class "form-control" :name "address"  :placeholder "Enter Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str (format nil "~A" address))))
-		      (:div :class "form-group" :id "charcount")
-		      (:div :class "form-group"
-			    (:input :class "form-control" :name "phone"  :value phone :placeholder "Phone"  :type "text" ))
-		      
-		      (:div :class "form-group"
-			    (:input :class "form-control" :name "email" :value email :placeholder "Email" :type "text"))
-			
-		      (:div :class "form-group"
-			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+		 (:div :class "form-group"
+		       (:input :class "form-control" :name "name" :value name :placeholder "Customer Name" :type "text"))
+		 (:div :class "form-group"
+		       (:label :for "address")
+		       (:textarea :class "form-control" :name "address"  :placeholder "Enter Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str (format nil "~A" address))))
+		 (:div :class "form-group" :id "charcount")
+		 (:div :class "form-group"
+		       (:input :class "form-control" :name "phone"  :value phone :placeholder "Phone"  :type "text" ))
+		 
+		 (:div :class "form-group"
+		       (:input :class "form-control" :name "email" :value email :placeholder "Email" :type "text"))
+		 
+		 (:div :class "form-group"
+		       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
 
 (defun dod-controller-customer-update-action ()
   (with-cust-session-check 
-    (let* ((name (hunchentoot:parameter "name"))
+    (let* ((customer (get-login-customer))
+	   (name (hunchentoot:parameter "name"))
 	   (address (hunchentoot:parameter "address"))
 	   (phone (hunchentoot:parameter "phone"))
-	   (email (hunchentoot:parameter "email"))
-	   (customer (get-login-customer)))
+	   (email (hunchentoot:parameter "email")))
       (setf (slot-value customer 'name) name)
       (setf (slot-value customer 'address) address)
       (setf (slot-value customer 'phone) phone)
@@ -71,13 +69,13 @@
 
 (defun dod-controller-customer-change-pin ()
   (with-cust-session-check 
-    (let* ((password (hunchentoot:parameter "password"))
+    (let* ((customer (get-login-customer))
+	   (password (hunchentoot:parameter "password"))
 	   (newpassword (hunchentoot:parameter "newpassword"))
 	   (confirmpassword (hunchentoot:parameter "confirmpassword"))
 	   (salt-octet (secure-random:bytes 56 secure-random:*generator*))
 	   (salt (flexi-streams:octets-to-string  salt-octet))
 	   (encryptedpass (check&encrypt newpassword confirmpassword salt))
-	   (customer (get-login-customer))
 	   (present-salt (if customer (slot-value customer 'salt)))
 	   (present-pwd (if customer (slot-value customer 'password)))
 	   (password-verified (if customer  (check-password password present-salt present-pwd))))
@@ -100,7 +98,7 @@
        (:hr)
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6 col-xs-12"
 	     (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodcustupdate-modal")  :href "#"  "Contact Info")
-	     (modal-dialog (format nil "dodcustupdate-modal") "Update Customer" (modal.customer-update-details)) 
+	     (modal-dialog (format nil "dodcustupdate-modal") "Update Customer" (modal.customer-update-details (get-login-customer))) 
 	     (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodcustchangepin-modal")  :href "#"  "Change Password")
 	     (modal-dialog (format nil "dodcustchangepin-modal") "Change Password" (modal.customer-change-pin)) 
 	     (:a :class "list-group-item" :href "#" "Settings")
@@ -1118,9 +1116,8 @@
       (let* ((odts (hunchentoot:session-value :login-shopping-cart))
 	     (vendor-list (get-shopcart-vendorlist odts))
 	     (company (get-login-customer-company)) 
-	     (customer (get-login-customer))
 	     (wallets (mapcar (lambda (vendor) 
-				(get-cust-wallet-by-vendor  customer vendor company)) vendor-list))
+				(get-cust-wallet-by-vendor  (get-login-customer) vendor company)) vendor-list))
 	     (order-items-totals (mapcar (lambda (vendor)
 					   (get-order-items-total-for-vendor vendor odts)) vendor-list)))
 	    	
@@ -1141,9 +1138,8 @@
 	     (odts  (list (get-order-item-by-id item-id)))
 	     (vendor-list (get-shopcart-vendorlist odts))
 	     (company (get-login-customer-company)) 
-	     (customer (get-login-customer))
 	     (wallets (mapcar (lambda (vendor) 
-				(get-cust-wallet-by-vendor  customer vendor company)) vendor-list))
+				(get-cust-wallet-by-vendor  (get-login-customer) vendor company)) vendor-list))
 	     (order-items-totals (mapcar (lambda (vendor)
 					   (if prd-qty (setf (slot-value (first odts) 'prd-qty) prd-qty))
 					   (get-order-items-total-for-vendor vendor odts)) vendor-list)))
@@ -1199,7 +1195,7 @@
 					 (:hr)
 					 (:tr (:td
 					       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" shopcart-total)))))))))
-		   (send-order-mail guest-email (format nil "Your HighriseHub Order- ~A" order-id) order-disp-str)
+		   (send-order-mail guest-email (format nil "HighriseHub order ~A" order-id) order-disp-str)
 		   (reset-cust-order-params))))
 	
 	   (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
@@ -1227,19 +1223,19 @@
 	   (phone (hunchentoot:parameter "phone"))
 	   (email (hunchentoot:parameter "email"))
 	   (comments (if phone (concatenate 'string phone "+++" email "+++" shipaddress)))
-	   (cust (get-login-customer))
 	   (shopcart-total (get-shop-cart-total))
+	   (customer (get-login-customer))
 	   (custcomp (get-login-customer-company))
 	   ;(vendor-list (get-shopcart-vendorlist odts))
 	   (order-cxt (format nil "hhubcustopy~A" (get-universal-time)))
 	   (shopcart-products (mapcar (lambda (odt)
 					(let ((prd-id (slot-value odt 'prd-id)))
 					  (search-prd-in-list prd-id products ))) odts)))
-					; (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id)))
+					; (wallet-id (slot-value (get-cust-wallet-by-vendor customer (first vendor-list) custcomp) 'row-id)))
 					; Save the email address to send a mail in future if this is a guest customer.
       (setf (hunchentoot:session-value :guest-email-address) email)
       					; Save the customer order parameters. 
-      (save-cust-order-params (list odts shopcart-products (get-date-from-string odate) (get-date-from-string reqdate) nil  shipaddress shopcart-total payment-mode comments cust custcomp order-cxt phone email))
+      (save-cust-order-params (list odts shopcart-products (get-date-from-string odate) (get-date-from-string reqdate) nil  shipaddress shopcart-total payment-mode comments customer custcomp order-cxt phone email))
       (with-standard-customer-page
 	(:title "Shopping cart finalize")
 	(:div :class "row"
@@ -1285,16 +1281,16 @@
 	  (phone (hunchentoot:parameter "phone"))
 	  (email (hunchentoot:parameter "email"))
 	  (comments (if phone (concatenate 'string phone "+++" email "+++" shipaddress)))
-	  (cust (get-login-customer))
 	  (shopcart-total (get-shop-cart-total))
+	  (customer (get-login-customer))
 	  (custcomp (get-login-customer-company))
 	  (vendor-list (get-shopcart-vendorlist odts))
 	  (order-cxt (format nil "hhubcustopy~A" (get-universal-time)))
-	  (wallet-id (slot-value (get-cust-wallet-by-vendor cust (first vendor-list) custcomp) 'row-id))
+	  (wallet-id (slot-value (get-cust-wallet-by-vendor customer (first vendor-list) custcomp) 'row-id))
 	  (shopcart-products (mapcar (lambda (odt)
 					(let ((prd-id (slot-value odt 'prd-id)))
 					  (search-prd-in-list prd-id products ))) odts)))
-     (save-cust-order-params (list odts shopcart-products odate reqdate nil  shipaddress shopcart-total payment-mode comments cust custcomp order-cxt))
+     (save-cust-order-params (list odts shopcart-products odate reqdate nil  shipaddress shopcart-total payment-mode comments customer custcomp order-cxt))
      (if (equal payment-mode "OPY") 
 	 (online-payment shopcart-total wallet-id custcomp order-cxt)))))
 

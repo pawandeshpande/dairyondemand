@@ -93,7 +93,10 @@
     :void-value "N"
     :initarg :active-flag)
    
-   
+   (email-add-verified
+    :type (string 1)
+    :void-value "N"
+    :initarg :email-add-verified)
    
    (tenant-id
     :type integer

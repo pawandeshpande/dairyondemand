@@ -1,4 +1,4 @@
-(in-package :dairyondemand)
+(In-package :dairyondemand)
 (clsql:file-enable-sql-reader-syntax)
 
 ;;;;;;;;;;;;;;;;;;;;; business logic for dod-bus-object ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -7,6 +7,8 @@
 (defun get-bus-object (id)
   (car (clsql:select 'dod-bus-object  :where [and [= [:deleted-state] "N"] [= [:row-id] id]]    :caching *dod-database-caching* :flatp t )))
 
+(defun get-system-bus-objects () 
+(select-bus-object-by-company (select-company-by-id 1)))
 
 (defun get-bus-object-by-name (name)
   (car (clsql:select 'dod-bus-object  :where [and [= [:deleted-state] "N"] [= [:name] name]]    :caching *dod-database-caching* :flatp t )))
@@ -33,6 +35,39 @@
 	      (persist-bus-object (string-upcase name) tenant-id)))
 
 
+
+;;;;;;;;;;;;;;;;;;;;; Functions for dod-abac-subject ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defun get-abac-subject (id)
+  (car (clsql:select 'dod-abac-subject  :where [and [= [:deleted-state] "N"] [= [:row-id] id]]    :caching *dod-database-caching* :flatp t )))
+
+(defun get-system-abac-subjects () 
+  (select-abac-subject-by-company (select-company-by-id 1)))
+
+(defun get-abac-subject-by-name (name)
+  (car (clsql:select 'dod-abac-subject  :where [and [= [:deleted-state] "N"] [= [:name] name]]    :caching *dod-database-caching* :flatp t )))
+
+(defun select-abac-subject-by-company (company-instance)
+  (let ((tenant-id (slot-value company-instance 'row-id)))
+    (clsql:select 'dod-abac-subject  :where
+		[and [= [:deleted-state] "N"]
+		[= [:tenant-id] tenant-id]] :ORDER-BY '([:name])
+		:caching *dod-database-caching* :flatp t )))
+
+  
+(defun persist-abac-subject(name tenant-id )
+ (clsql:update-records-from-instance (make-instance 'dod-abac-subject
+						    :name name
+						    :active-flg "Y" 
+						    :tenant-id tenant-id
+						    :deleted-state "N")))
+ 
+
+
+(defun create-abac-subject (name company-instance)
+  (let ((tenant-id (slot-value company-instance 'row-id))) 
+	      (persist-abac-subject (string-upcase name) tenant-id)))
 
 
 

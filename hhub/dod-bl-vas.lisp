@@ -31,7 +31,7 @@
 (defmethod update-vendor-appointment-instance (instance); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance instance))
 
-(defmethod delete-vendor-appointment-instances (list) 
+(defun delete-vendor-appointment-instances (list) 
   (mapcar (lambda (id)  (let ((object (car (clsql:select 'dod-vendor-appointment :where [= [:row-id] id] :flatp t :caching nil))))
 			  (setf (slot-value object 'deleted-state) "Y")
 			  (clsql:update-record-from-slot object  'deleted-state))) list ))

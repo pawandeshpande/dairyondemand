@@ -160,6 +160,7 @@
 		    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")
 		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Attributes  ")
 		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objects  ")
+		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listabacsubjects"  " Business Subjects  ")
 		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Transactions  ")))
 	(:hr)
 	(:div :class "row"
@@ -202,6 +203,19 @@
       (str (display-as-table (list "Name")  busobjs 'busobj-card))
       (:h4 "Note: To add new business objects to the system, follow these steps.")
       (:h4 "In the Lisp REPL call the function, (create-bus-object)")))))
+
+
+
+(defun dod-controller-list-abac-subjects () 
+:documentation "List all the business objects"
+(with-opr-session-check 
+  (let ((abacsubjects (select-abac-subject-by-company (get-login-company))))
+    (with-standard-admin-page (:title "ABAC Subjects ...")
+      (:div :class "row"
+	    (:div :class "col-md-12" (:h4 "ABAC Subjects")))
+      (str (display-as-table (list "Name")  abacsubjects 'busobj-card))
+      (:h4 "Note: To add new business objects to the system, follow these steps.")
+      (:h4 "In the Lisp REPL call the function, (create-abac-subject)")))))
 
 
 (defun dod-controller-list-bustrans ()
@@ -490,6 +504,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodsyssearchtenantaction" 'dod-controller-company-search-for-sys-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddattribute" 'dod-controller-add-attribute)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listbusobjects" 'dod-controller-list-busobjs)
+	(hunchentoot:create-regex-dispatcher "^/hhub/listabacsubjects" 'dod-controller-list-abac-subjects)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listbustrans" 'dod-controller-list-bustrans)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddpolicyaction" 'dod-controller-add-policy-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddtransactionaction" 'dod-controller-add-transaction-action)

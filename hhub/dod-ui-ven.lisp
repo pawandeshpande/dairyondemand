@@ -88,9 +88,11 @@
 			       (:input :class "form-control" :name "payment-api-salt"  :value payment-api-salt :placeholder "Payment API Salt"  :type "text" ))
 			 (:div :class "form-group"
 			       (:label :for "pg-mode" "Payment Gateway Mode"
-			       (payment-gateway-mode-options pg-mode)))
+				       (payment-gateway-mode-options pg-mode)))
+			 
 			 (:div :class "form-group"
 			       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+
 
 
 ;; @@ deprecated : start using with-html-dropdown instead. 
@@ -106,10 +108,12 @@
     (let* ((payment-api-key (hunchentoot:parameter "payment-api-key"))
 	   (payment-api-salt (hunchentoot:parameter "payment-api-salt"))
 	   (pg-mode (hunchentoot:parameter "pg-mode"))
+	   (vpushnotifysubs (hunchentoot:parameter "vpushnotifysubs"))
 	   (vendor (get-login-vendor)))
       (setf (slot-value vendor 'payment-api-key) payment-api-key)
       (setf (slot-value vendor 'payment-api-salt) payment-api-salt)
       (setf (slot-value vendor 'payment-gateway-mode) pg-mode)
+      (setf (slot-value vendor 'push-notify-subs-flag) (if (null vpushnotifysubs) "N" vpushnotifysubs))
       (update-vendor-details vendor)
       (hunchentoot:redirect "/hhub/dodvendprofile"))))
 
@@ -594,7 +598,8 @@
 		    
 		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendchangepin-modal")  :href "#"  "Change Password")
 		    (modal-dialog (format nil "dodvendchangepin-modal") "Change Password" (modal.vendor-change-pin))
-		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendsettings-modal")  :href "#"  "Payment Gateway Settings")
+		    (:a :class "list-group-item" :href "/pushsubscribe.html" "Push Notifications")
+		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendsettings-modal")  :href "#"  "Settings")
 		    (modal-dialog (format nil "dodvendsettings-modal") "Update Settings" (modal.vendor-update-settings))))
     (hunchentoot:redirect "/hhub/vendor-login.html")))
 
@@ -940,8 +945,7 @@
 
 
 (defun modal.vendor-order-details (order-id company)
-(with-vend-session-check 
-  (let* (( dodvenorder  (get-vendor-orders-by-orderid order-id  (get-login-vendor) company))
+  (let* ((dodvenorder  (get-vendor-orders-by-orderid order-id  (get-login-vendor) company))
 	 (customer (if dodvenorder (get-customer dodvenorder)))
 	 (wallet (if customer (get-cust-wallet-by-vendor customer (get-login-vendor) company)))
 	 (balance (if wallet (slot-value wallet 'balance) 0))
@@ -973,8 +977,7 @@
 
 	
 	 (if odtlst (ui-list-vend-orderdetails header odtlst) "No order details")
-	 (if order (display-order-header-for-vendor  order)) 
-	 ))))
+	 (if order (display-order-header-for-vendor  order)))))
 
 (defun dod-controller-vendor-orderdetails ()
  (if (is-dod-vend-session-valid?)

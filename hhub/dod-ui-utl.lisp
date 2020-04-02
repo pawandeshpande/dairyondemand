@@ -11,6 +11,10 @@
   (cdr (assoc field object)))
 
 
+(defun with-html-checkbox (stream name checked &optional value)
+    (with-html-output (stream)
+      (:input :type "checkbox" :name name :checked checked :value value)))
+
 
 
 (defun dod-controller-new-company-registration-email-sent ()
@@ -194,7 +198,7 @@
 	(list hour minute second)))
 
 (defmacro with-cust-session-check (&body body)
-   `(if hunchentoot:*session* ,@body 
+`(if hunchentoot:*session* ,@body 
 	;else 
   (hunchentoot:redirect *HHUBCUSTLOGINPAGEURL*)))
 

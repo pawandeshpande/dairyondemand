@@ -92,9 +92,21 @@
     :initarg :payment-api-salt)
    
    (active-flag
+    :accessor active-flag
     :type (string 1)
     :void-value "N"
     :initarg :active-flag ) 
+
+   (push-notify-subs-flag
+    :accessor push-notify-subs-flag 
+    :type (string 1)
+    :void-value "N"
+    :initarg :push-notify-subs-flag)
+
+   (email-add-verified
+    :type (string 1)
+    :void-value "N"
+    :initarg :email-add-verified)
    
    
    (deleted-state
@@ -102,6 +114,7 @@
     :void-value "N"
     :initarg :deleted-state)
    
+
    (tenant-id
     :type integer
     :initarg :tenant-id)
