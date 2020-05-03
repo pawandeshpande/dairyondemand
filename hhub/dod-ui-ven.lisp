@@ -72,7 +72,7 @@
 	 (payment-api-key (payment-api-key vendor))
 	 (payment-api-salt (payment-api-salt vendor))
 	 (pg-mode (slot-value vendor 'payment-gateway-mode)))
-	
+       
     (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"

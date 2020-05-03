@@ -1225,6 +1225,7 @@
 	   (comments (if phone (concatenate 'string phone "+++" email "+++" shipaddress)))
 	   (shopcart-total (get-shop-cart-total))
 	   (customer (get-login-customer))
+	   (cust-type (cust-type customer))
 	   (custcomp (get-login-customer-company))
 	   ;(vendor-list (get-shopcart-vendorlist odts))
 	   (order-cxt (format nil "hhubcustopy~A" (get-universal-time)))
@@ -1247,12 +1248,13 @@
       (:div :class "row"
 	    (:div :class "col-xs-4"
 		  (:h4 (str (format nil "Payment Mode: ~A" payment-mode)))))
-      (:div :class "row"
+      (if (equal cust-type "GUEST") 
+      (htm (:div :class "row"
 	    (:div :class "col-xs-4"
 		  (:h4 (str (format nil "Phone: ~A" phone)))))
       (:div :class "row"
 	    (:div :class "col-xs-4"
-		  (:h4 (str (format nil "Email: ~A" email)))))
+		  (:h4 (str (format nil "Email: ~A" email)))))))
 
       (:div :class "row"
       (:div :class "col-xs-6"
@@ -1290,7 +1292,8 @@
 	  (shopcart-products (mapcar (lambda (odt)
 					(let ((prd-id (slot-value odt 'prd-id)))
 					  (search-prd-in-list prd-id products ))) odts)))
-     (save-cust-order-params (list odts shopcart-products odate reqdate nil  shipaddress shopcart-total payment-mode comments customer custcomp order-cxt))
+     (setf (hunchentoot:session-value :guest-email-address) email)
+     (save-cust-order-params (list odts shopcart-products odate reqdate nil  shipaddress shopcart-total payment-mode comments customer custcomp order-cxt phone email))
      (if (equal payment-mode "OPY") 
 	 (online-payment shopcart-total wallet-id custcomp order-cxt)))))
 
