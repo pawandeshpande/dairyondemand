@@ -172,17 +172,20 @@
 		)))))
 
 (defun display-order-header-for-vendor (order-instance)
-    (let* ((customer (get-customer order-instance))
-	   (customer-type (slot-value customer 'cust-type))
-	   (payment-mode (slot-value order-instance 'payment-mode))
-	  (shipped-date (slot-value order-instance 'shipped-date)))
+  (let* ((customer (get-customer order-instance))
+	 (wallet (if customer (get-cust-wallet-by-vendor customer (get-login-vendor) (get-login-vendor-company))))
+	 (balance (if wallet (slot-value wallet 'balance) 0))
+	 (customer-type (slot-value customer 'cust-type))
+	 (payment-mode (slot-value order-instance 'payment-mode))
+	 (shipped-date (slot-value order-instance 'shipped-date)))
     (cl-who:with-html-output (*standard-output* nil)
-	(:div :class "jumbotron"
+      (:div :class "jumbotron"
 	    (:div :class "row" 
 		  (:div :class "col-md-4"
 			(:h5 "Order No:") (:h5 (str (slot-value order-instance 'row-id)))
 			(:h5 "Payment Mode:") (:h5 (str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
 							      ((equal payment-mode "COD") "Cash On Demand"))))
+			(if (equal payment-mode "PRE") (htm (:h5 "Wallet Balance:") (:h5 (str balance))))
 			(:h5 "Customer:") (:h5 (str (slot-value customer 'name)))
 			(if (equal customer-type "STANDARD") (htm (:h5 "Address:") (:h5 (str (slot-value customer 'address))))))
 		  (:div :class "col-md-4"
@@ -194,5 +197,5 @@
 		  (:div :class "col-md-4" 
 			(if (equal (slot-value order-instance 'order-fulfilled) "Y")
 			    (htm (:div :class "stampbox rotated" "FULFILLED")))
-		     (if (equal customer-type "GUEST") (htm (:h5 "Comments") (:h5 (str (slot-value order-instance 'comments)))))
-		     (:h5 "Customer Type:")(:h5 (str (slot-value customer 'cust-type)))))))))
+			(if (equal customer-type "GUEST") (htm (:h5 "Comments") (:h5 (str (slot-value order-instance 'comments)))))
+			(:h5 "Customer Type:")(:h5 (str (slot-value customer 'cust-type)))))))))

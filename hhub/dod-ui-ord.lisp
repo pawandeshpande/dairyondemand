@@ -35,7 +35,7 @@
       (mapcar (lambda (item) (str (format nil "~A," item ))) header)
       (str (format nil " ~C~C" #\return #\linefeed))
       (mapcar (lambda (ord )
-		(let* ((odtlst (dod-get-cached-order-items-by-order-id (slot-value ord 'order-id)))
+		(let* ((odtlst (dod-get-cached-order-items-by-order-id (slot-value ord 'order-id) (hunchentoot:session-value :order-func-list)  ))
 		       (total   (reduce #'+  (mapcar (lambda (odt)
 						       (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
 		       (customer (get-customer ord)))
@@ -100,7 +100,7 @@
    (:a :class "btn btn-primary btn-xs" :role "button" :onclick "window.print();" :href "#" "Print&nbsp;&nbsp;"(:span :class "glyphicon glyphicon-print"))
 					; For every vendor order
    (mapcar (lambda (ord )
-	     (let*  ((odtlst (dod-get-cached-order-items-by-order-id (slot-value ord 'order-id) ))
+	     (let*  ((odtlst (dod-get-cached-order-items-by-order-id (slot-value ord 'order-id) (hunchentoot:session-value :order-func-list) ))
 		     (total   (reduce #'+  (mapcar (lambda (odt)
 						     (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
 		     (customer (get-customer ord))
@@ -163,10 +163,10 @@
 	      (concatenate 'string (slot-value (get-odt-product odt-ins) 'prd-name) ",")) odt)))
 
 ; This is a pure function. 
-(defun vendor-order-card (order-instance)
-  (let* ((customer (get-customer order-instance))
-	 (company (get-company order-instance))
-	 (order-id (slot-value order-instance 'order-id))
+(defun vendor-order-card (vorder-instance)
+  (let* ((customer (get-customer vorder-instance))
+	 (company (get-company vorder-instance))
+	 (order-id (slot-value vorder-instance 'order-id))
 	 (name (if customer (slot-value customer 'name)))
 	 (address (if customer (slot-value customer 'address))))
     (cl-who:with-html-output (*standard-output* nil)
@@ -177,6 +177,6 @@
 		      (:div :class "col-sm-12" (str (if (> (length address) 20)  (subseq (slot-value customer 'address) 0 20) address))))
 		(:div :class "row"
 		      (:div :class "col-sm-12" (:a :data-toggle "modal" :data-target (format nil "#hhubvendorderdetails~A-modal" (str order-id))  :href "#"  (:span :class "label label-info" (str order-id))))
-		      (modal-dialog (format nil "hhubvendorderdetails~A-modal" (str order-id)) "Vendor Order Details" (modal.vendor-order-details order-id company)))))))
+		      (modal-dialog (format nil "hhubvendorderdetails~A-modal" (str order-id)) "Vendor Order Details" (modal.vendor-order-details vorder-instance company)))))))
 
 

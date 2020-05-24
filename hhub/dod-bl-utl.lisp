@@ -106,11 +106,12 @@ corresponding universal time."
 (defun mysql-now+days (numdays)
   (multiple-value-bind
         (second minute hour date month year day-of-week dst-p tz)
-      (date+ (get-date) (make-duration :day numdays))
+      (decode-date (date+ (get-date) (make-duration :day numdays)))
      (declare (ignore day-of-week dst-p tz))
     ;; ~2,'0d is the designator for a two-digit, zero-padded number
-    (format nil "~a-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d"
+(format nil "~a-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d"
                  year month date hour minute second)))
+
 
 
 
@@ -118,7 +119,7 @@ corresponding universal time."
 (defun get-date-string-mysql (dateobj) 
   "Returns current date as a string in DD-MM-YYYY format."
   (multiple-value-bind (yr mon day)
-                       (date-ymd dateobj)  (format nil "~4,'0d-~2,'0d-~2,'0d 00:00:00" yr mon day)))
+                       (date-ymd dateobj)  (format nil "~4,'0d-~2,'0d-~2,'0d" yr mon day)))
 
 
 (defun get-universal-time-from-date (dateobj)

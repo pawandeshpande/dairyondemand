@@ -94,15 +94,32 @@
 
 
 
-(defun get-orders-for-vendor (vendor-instance   rowcount company &optional  (fulfilled "N"))
+(defun get-orderids-for-vendor (vendor-instance  company &optional (fulfilled "N")  (recordsfordays 30))
   (let* ((tenant-id (slot-value company 'row-id))
+	 (strfromdate (get-date-string-mysql (date- (get-date) (make-duration :day recordsfordays))))
+	 (strtodate (get-date-string-mysql (date+ (get-date) (make-duration :day recordsfordays))))
+	 (vendor-id (slot-value vendor-instance 'row-id)))
+	 (clsql:select [order-id] :from  'dod-vendor-orders :where
+		       [and [= [:tenant-id] tenant-id]
+		       [between [:created] strfromdate strtodate ]
+		       [= [:vendor-id] vendor-id]
+		       [= [:deleted-state] "N"]
+		       [= [:fulfilled] fulfilled]]  :order-by '( ([row-id] :desc)) 
+		       :caching nil :flatp t)))
+
+
+(defun get-orders-for-vendor (vendor-instance   rowcount company &optional   (fulfilled "N")  (recordsfordays 30))
+  (let* ((tenant-id (slot-value company 'row-id))
+	 (strfromdate (get-date-string-mysql (date- (get-date) (make-duration :day recordsfordays))))
+	 (strtodate (get-date-string-mysql (date+ (get-date) (make-duration :day recordsfordays))))
 	 (vendor-id (slot-value vendor-instance 'row-id)))
 	 (clsql:select  'dod-vendor-orders :where
-	    [and [= [:tenant-id] tenant-id]
-		  [= [:vendor-id] vendor-id]
-		  [= [:deleted-state] "N"]
-		   [= [:fulfilled] fulfilled]] :limit rowcount :order-by '( ([row-id] :desc)) 
-			  :caching nil :flatp t)))
+			[and [= [:tenant-id] tenant-id]
+			[between [:created] strfromdate strtodate ]
+			[= [:vendor-id] vendor-id]
+			[= [:deleted-state] "N"]
+			[= [:fulfilled] fulfilled]] :limit rowcount :order-by '( ([row-id] :desc)) 
+			:caching nil :flatp t)))
     
 
 

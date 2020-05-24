@@ -759,13 +759,13 @@
 (defun dod-gen-order-functions (vendor company)
 (let ((pending-orders (get-orders-for-vendor vendor 500 company ))
       (completed-orders (get-orders-for-vendor vendor 500 company  "Y" ))
-      (top1000-order-items (get-order-items-for-vendor  vendor 1000 company)) ; get only the top 1000 order items for efficiency. 
+      (order-items (get-order-items-for-vendor  vendor  company)) ; Get order items for last 30 days and next 30 days. 
       (completed-orders-today (get-orders-for-vendor-by-shipped-date vendor (get-date-string-mysql (get-date)) company "Y"))) 
 
 
   (list (function (lambda () pending-orders ))
 	(function (lambda () completed-orders))
-	(function (lambda () top1000-order-items))
+	(function (lambda () order-items))
 	(function (lambda () completed-orders-today)))))
 
 
@@ -785,22 +785,24 @@
     (funcall vendor-products-func)))
 
 (defun dod-get-cached-pending-orders()
-  (let ((pending-orders-func (first (hunchentoot:session-value :order-func-list))))
+  (let ((pending-orders-func (nth 0 (hunchentoot:session-value :order-func-list))))
     (funcall pending-orders-func)))
 
 
 (defun dod-get-cached-completed-orders ()
-  (let ((completed-orders-func (second (hunchentoot:session-value :order-func-list))))
+  (let ((completed-orders-func (nth 1 (hunchentoot:session-value :order-func-list))))
     (funcall completed-orders-func)))
 
 (defun dod-get-cached-completed-orders-today ()
-  (let ((completed-orders-func (fourth (hunchentoot:session-value :order-func-list))))
+  (let ((completed-orders-func (nth 3 (hunchentoot:session-value :order-func-list))))
     (funcall completed-orders-func)))
 
-(defun dod-get-cached-order-items-by-order-id (order-id)
-(let* ((order-items-func (third (hunchentoot:session-value :order-func-list)))
-      (order-items (funcall order-items-func)))
- (remove nil (mapcar (lambda (item)
+(defun dod-get-cached-order-items-by-order-id (order-id order-func-list)
+  (let* ((order-items-func (nth 2 order-func-list))
+	 (order-items (funcall order-items-func)))
+					; Add the order item to a hash table. Key - order-id to improve performance.
+					; Discovered in May 2020
+    (remove nil (mapcar (lambda (item)
 	    (if (equal (slot-value item 'order-id) order-id) item)) order-items))))
 
 
@@ -848,12 +850,12 @@
 						    (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=pendingorders" "Export To Excel")
 						    (:hr))
 					       (str (display-as-tiles dodorders 'vendor-order-card))))
-				       ((equal context "completedorders") (let ((orders (dod-get-cached-completed-orders)))
+				       ((equal context "completedorders") (let ((vorders (dod-get-cached-completed-orders)))
 									    (progn (htm (str (format nil "Completed orders"))
-											(:span :class "badge" (str (format nil " ~d " (length orders)))) 
+											(:span :class "badge" (str (format nil " ~d " (length vorders)))) 
 											(:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=completedorders" "Export To Excel")
 											(:hr))
-										   (str(display-as-tiles orders 'vendor-order-card)))))
+										   (str(display-as-tiles vorders 'vendor-order-card)))))
 				       
 		 )))))
 
@@ -944,16 +946,15 @@
 		  
 
 
-(defun modal.vendor-order-details (order-id company)
-  (let* ((dodvenorder  (get-vendor-orders-by-orderid order-id  (get-login-vendor) company))
-	 (customer (if dodvenorder (get-customer dodvenorder)))
+(defun modal.vendor-order-details (vorder-instance company)
+  (let* ((customer (if vorder-instance (get-customer vorder-instance)))
 	 (wallet (if customer (get-cust-wallet-by-vendor customer (get-login-vendor) company)))
 	 (balance (if wallet (slot-value wallet 'balance) 0))
-	 (venorderfulfilled (if dodvenorder (slot-value dodvenorder 'fulfilled)))
-	 (order (get-order-by-id order-id company))
-	 (payment-mode (if order (slot-value order 'payment-mode)))
+	 (venorderfulfilled (if vorder-instance (slot-value vorder-instance 'fulfilled)))
+	 (mainorder (get-order-by-id (slot-value vorder-instance 'order-id) company))
+	 (payment-mode (if mainorder (slot-value mainorder 'payment-mode)))
 	 (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
-	 (odtlst (if order (dod-get-cached-order-items-by-order-id (slot-value order 'row-id))) )
+	 (odtlst (if mainorder (dod-get-cached-order-items-by-order-id (slot-value mainorder 'row-id) (hunchentoot:session-value :order-func-list) )) )
 	 (total   (reduce #'+  (mapcar (lambda (odt)
 					 (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
 	 (lowwalletbalance (< balance total)))
@@ -970,14 +971,14 @@
 					;ELSE
 					; Convert the complete button to a submit button and introduce a form here. 
 			 (htm (with-html-form "form-vendordercomplete" "dodvenordfulfilled"
-				(:input :type "hidden" :name "id" :value (slot-value order 'row-id))
+				(:input :type "hidden" :name "id" :value (slot-value mainorder 'row-id))
 					; (:a :onclick "return CancelConfirm();" :href (format nil "dodvenordcancel?id=~A" (slot-value order 'row-id) ) (:span :class "btn btn-primary"  "Cancel")) "&nbsp;&nbsp;"  
 				(:div :class "form-group" 
 				      (:input :type "submit"  :class "btn btn-primary" :value "Complete")))))))
 
 	
 	 (if odtlst (ui-list-vend-orderdetails header odtlst) "No order details")
-	 (if order (display-order-header-for-vendor  order)))))
+	 (if mainorder (display-order-header-for-vendor mainorder)))))
 
 (defun dod-controller-vendor-orderdetails ()
  (if (is-dod-vend-session-valid?)
@@ -990,7 +991,7 @@
 	      (order (get-order-by-id (hunchentoot:parameter "id") (get-login-vendor-company)))
 	      (payment-mode (slot-value order 'payment-mode))
 	      (header (list "Product" "Product Qty" "Unit Price"  "Sub-total"))
-	      (odtlst (if order (dod-get-cached-order-items-by-order-id (slot-value order 'row-id))) )
+	      (odtlst (if order (dod-get-cached-order-items-by-order-id (slot-value order 'row-id) (hunchentoot:session-value :order-func-list)  )) )
 	      (total   (reduce #'+  (mapcar (lambda (odt)
 					      (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odtlst)))
 	      (lowwalletbalance (< balance total)))

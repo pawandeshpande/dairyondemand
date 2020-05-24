@@ -62,14 +62,14 @@
                           </li>
 			 			  
 			  <li>
-                               <a href="http://highrisehub.com/hhub/custsignup1.html" class="btn btn-default btn-lg"> <span class="network-name">Get Started!</span></a>
+                               <a href="http://www.highrisehub.com/hhub/custsignup1.html" class="btn btn-default btn-lg"> <span class="network-name">Get Started!</span></a>
                           </li>
 			  <hr>
 			  <li>
-                                <a href="http://highrisehub.com/hhub/customer-login.html" class="btn btn-default btn-lg"> <span class="network-name">Customer Login</span></a>
+                                <a href="http://www.highrisehub.com/hhub/customer-login.html" class="btn btn-default btn-lg"> <span class="network-name">Customer Login</span></a>
                             </li>
                             <li>
-                                <a href="http://highrisehub.com/hhub/vendor-login.html" class="btn btn-default btn-lg"> <span class="network-name">Vendor Login</span></a>
+                                <a href="http://www.highrisehub.com/hhub/vendor-login.html" class="btn btn-default btn-lg"> <span class="network-name">Vendor Login</span></a>
                             </li>
 			  
 
@@ -122,15 +122,18 @@
       function create_community_store_link()
       {
 	  var community_store = getCookie('community-url');
-	  if(null != community_store )
+	  var community_name = getCookie('community-name');   
+	if(null != community_store )
 	  {
 	      var mydiv = document.getElementById("community_store");
 	      var aTag = document.createElement("a");            
 	      aTag.setAttribute('href',community_store);
 	      aTag.setAttribute('class',"btn btn-default btn-lg");
-	      aTag.innerText = "My Community Store";
+	      aTag.innerText = community_name + " Store"; 
 	      mydiv.appendChild(aTag);
 	  }
+
+
 	
       }
       
