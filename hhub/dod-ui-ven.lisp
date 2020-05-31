@@ -697,6 +697,7 @@
    ;set vendor related params 
    (if vendor (setf (hunchentoot:session-value :login-vendor-tenants) (get-vendor-tenants-as-companies vendor)))
    (if vendor (setf (hunchentoot:session-value :order-func-list) (dod-gen-order-functions vendor company)))
+   (if vendor (setf (hunchentoot:session-value :vendor-order-items-hashtable) (make-hash-table)))
    (if vendor (setf (hunchentoot:session-value :login-vendor-products-functions) (dod-gen-vendor-products-functions vendor company)))))
    
    
@@ -798,12 +799,19 @@
     (funcall completed-orders-func)))
 
 (defun dod-get-cached-order-items-by-order-id (order-id order-func-list)
-  (let* ((order-items-func (nth 2 order-func-list))
-	 (order-items (funcall order-items-func)))
-					; Add the order item to a hash table. Key - order-id to improve performance.
+  					; Add the order item to a hash table. Key - order-id to improve performance.
 					; Discovered in May 2020
-    (remove nil (mapcar (lambda (item)
-	    (if (equal (slot-value item 'order-id) order-id) item)) order-items))))
+					; If the order-items are not found in the hash table, search them and add them to hash table.
+  (let ((order-items-from-ht (get-ht-val order-id (hunchentoot:session-value :vendor-order-items-hashtable))))
+    (if (null order-items-from-ht)
+	  (let* ((order-items-func (nth 2 order-func-list))
+		 (order-items (funcall order-items-func)))
+	    (setf (gethash order-id (hunchentoot:session-value :vendor-order-items-hashtable))
+		  (remove nil (mapcar (lambda (item)
+					(if (equal (slot-value item 'order-id) order-id) item)) order-items))))
+	  
+	;otherwise, return the retrieved item from the hash table. 
+	order-items-from-ht)))
 
 
 
