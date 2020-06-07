@@ -1552,7 +1552,7 @@
 	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
 	  (unless (equal customer-tenant-id *HHUB-DEMO-TENANT-ID*)
 	    (hunchentoot:set-cookie "community-url" :value (format nil "https://www.highrisehub.com/hhub/dascustloginasguest?tenant-id=~A" (get-login-cust-tenant-id)) :expires (+ (get-universal-time) 10000000) :path "/")
-	    (hunchentoot:set-cookie "community-name" :value customer-company-name :path "/")) 
+	    (hunchentoot:set-cookie "community-name" :value customer-company-name :path "/" :expires (+ (get-universal-time) 10000000))) 
 	  ))
       )
 

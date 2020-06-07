@@ -52,8 +52,10 @@
                         <ul class="list-inline intro-social-buttons">
 
 			  <li>
-                                <a href="https://www.highrisehub.com/hhub/dascustloginasguest?tenant-id=2" class="btn btn-default btn-lg"> <span class="network-name">Demo Login</span></a>
-                          </li>
+			    <div id="demo_link">
+			      <a href="https://www.highrisehub.com/hhub/dascustloginasguest?tenant-id=2" class="btn btn-default btn-lg"> <span class="network-name">Demo Login</span></a>
+			    </div>
+			  </li>
 			 
 			  <li>
                             <div id="community_store" >
@@ -123,7 +125,7 @@
       {
 	  var community_store = getCookie('community-url');
 	  var community_name = getCookie('community-name');   
-	if(null != community_store )
+	if(null != community_store &&  null != community_name )
 	  {
 	      var mydiv = document.getElementById("community_store");
 	      var aTag = document.createElement("a");            
@@ -131,11 +133,15 @@
 	      aTag.setAttribute('class',"btn btn-default btn-lg");
 	      aTag.innerText = community_name + " Store"; 
 	      mydiv.appendChild(aTag);
+	      var demo_link = document.getElementById("demo_link");
+	      demo_link.setAttribute('style', "display: none;"); 
+
 	  }
-
-
 	
       }
+
+	 	  
+
       
       function getCookie(k)
       {
@@ -145,6 +151,7 @@
 
       $(document).ready(function(){
 	  create_community_store_link();
+
       }); 
       </script>
     
