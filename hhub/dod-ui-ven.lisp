@@ -498,7 +498,7 @@
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
 					     (:form :class "form-vendorsignin" :role "form" :method "POST" :action "dodvendlogin"
-					     (:img :class "profile-img" :src "/img/logo.png" :alt "")
+					     (:a :href "https://www.highrisehub.com" (:img :class "profile-img" :src "/img/logo.png" :alt ""))
 					     (:h1 :class "text-center login-title"  "Vendor - Login to DAS")
 					     (:div :class "form-group"
 						   (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex:9999999990" :type "text" ))

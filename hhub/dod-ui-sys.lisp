@@ -542,7 +542,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustaddorderpref" 'dod-controller-cust-add-orderpref-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustaddopfaction" 'dod-controller-cust-add-orderpref-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/delopref" 'dod-controller-del-opref)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorderaddpage" 'dod-controller-cust-add-order-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustorderaddpage" 'dod-controller-cust-add-order-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorderaddaction" 'com-hhub-transaction-create-order)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorderdetailaddpage" 'dod-controller-cust-add-order-detail-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodmyorderdetailaddaction" 'dod-controller-cust-add-order-detail-action)
