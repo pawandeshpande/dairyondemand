@@ -849,7 +849,7 @@
 		    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 			   (:div :class "account-wall"
 				 (:form :class "form-custsignin" :role "form" :method "POST" :action "dodcustlogin" :data-toggle "validator"
-					(:img :class "profile-img" :src "/img/logo.png" :alt "")
+					(:a :href "https://www.highrisehub.com" (:img :class "profile-img" :src "/img/logo.png" :alt ""))
 				       (:h1 :class "text-center login-title"  "Customer - Login to HighriseHub")
 				       (:div :class "form-group"
 					     (:input :class "form-control" :name "phone" :placeholder "Enter RMN. Ex: 9999999999" :type "number" :required "true" ))
@@ -989,39 +989,69 @@
 
 
 
+;;;;;;; Add order page for Standard customer ;;;;;;;;;;;;
+;;;;;;; We are going to use INVERSION OF CONTROL and
+;;;;;;; let the caller make the decision of deciding
+;;;;;;; whether to call the STANDARD customer function
+;;;;;;; or GUEST customer function. Also, we have more choices to make
+;;;;;;; 1) Online payment page redirection for Standard Customer
+;;;;;;; 2) Read only shopping cart for COD orders,
+;;;;;;;  which could be for both Standard & Guest customers.
 
-(defun dod-controller-cust-add-order-page ()
-    (with-cust-session-check
-	(let ((customer-type (get-login-customer-type))
-	      (paymentmode (hunchentoot:parameter "paymentmode")))
-	      (with-standard-customer-page (:title "Welcome to HighriseHub- Add Customer Order")
-		(:div :class "row" 
-		      (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
-			(:h1 :class "text-center login-title"  "Customer - Add order ")
-			(:form :class "form-order" :role "form" :method "POST" :action (if (equal paymentmode "OPY") "hhubcustonlinepayment" "dodcustshopcartro") :data-toggle "validator"
-			    (:div  :class "form-group" (:label :for "orddate" "Order Date" )
-				(:input :class "form-control" :name "orddate" :value (str (get-date-string (clsql::get-date))) :type "text"  :readonly "true"  ))
-			    (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
-				(:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1))))) :type "text" :value (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1)))))
-			    
-			    (if (equal customer-type "GUEST")
-			    (htm 
-			     (:div :class "form-group" (:label :for "phone" "Phone" )
+(defun standard-cust-add-order-page (&optional paymentmode)
+  (cl-who:with-html-output-to-string  (*standard-output* nil)
+	  (:div :class "row" 
+		(:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+		      (:h1 :class "text-center login-title"  "Customer - Add order ")
+		      (:form :class "form-order" :role "form" :method "POST" :action "dodcustshopcartro" :data-toggle "validator"
+			     (:div  :class "form-group" (:label :for "orddate" "Order Date" )
+				    (:input :class "form-control" :name "orddate" :value (str (get-date-string (clsql::get-date))) :type "text"  :readonly "true"  ))
+			     (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
+				   (:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1))))) :type "text" :value (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1)))))
+			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
+				    (std-cust-payment-mode-dropdown))
+			     (:input :type "submit"  :class "btn btn-primary" :value "Confirm"))))))
+
+
+
+(defun guest-cust-add-order-page (&optional paymentmode)
+  (cl-who:with-html-output-to-string (*standard-output* nil)
+      (:div :class "row" 
+		(:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+		      (:h1 :class "text-center login-title"  "Customer - Add order ")
+		      (:form :class "form-order" :role "form" :method "POST" :action (if (equal paymentmode "OPY") "hhubcustonlinepayment" "dodcustshopcartro") :data-toggle "validator"
+			     (:div  :class "form-group" (:label :for "orddate" "Order Date" )
+				    (:input :class "form-control" :name "orddate" :value (str (get-date-string (clsql::get-date))) :type "text"  :readonly "true"  ))
+			     (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
+				   (:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1))))) :type "text" :value (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1)))))
+			       (:div :class "form-group" (:label :for "phone" "Phone" )
 				   (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Phone" :required "true" ))
 			     (:div :class "form-group" (:label :for "email" "Email" )
 				   (:input :class "form-control" :type "email" :class "form-control" :name "email" :placeholder "Email" :data-error "That email address is invalid"  :required "true" ))
 			     (:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
 				   (:textarea :class "form-control" :name "shipaddress" :rows "4" :required "true" ))
 			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
-				    (guest-payment-mode-dropdown paymentmode )))
-			    ;else
-			    (htm 
-			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
-				    (payment-mode-dropdown))))
-			     (:input :type "submit"  :class "btn btn-primary" :value "Confirm"))))))
-	))
+				    (guest-cust-payment-mode-dropdown paymentmode))
+		      (:input :type "submit"  :class "btn btn-primary" :value "Confirm"))))))
 
 
+
+(defun dod-controller-cust-add-order-page()
+  (let ((cust-type (get-login-customer-type))
+	(paymentmode (hunchentoot:parameter "paymentmode")))
+    (with-cust-session-check
+      (with-standard-customer-page (:title "Add Customer Order")
+				   (str (cust-add-order-page cust-type paymentmode))))))
+
+;;; This function has been separated from the controller function because it is independently testable.
+
+(defun cust-add-order-page(cust-type paymentmode)
+					;We are using a hash table to store the function references to call them later.
+					; This is a good practice to avoid IF condition.
+  (let ((temp-ht (make-hash-table :test 'equal)))
+    (setf (gethash "STANDARD"  temp-ht) (symbol-function 'standard-cust-add-order-page))
+    (setf (gethash "GUEST" temp-ht) (symbol-function 'guest-cust-add-order-page))
+    (funcall (gethash cust-type temp-ht) paymentmode)))
 
 
 (defun dod-controller-cust-add-order-detail-page ()
@@ -1041,8 +1071,7 @@
 			    (products-dropdown "product-id" (select-products-by-company (hunchentoot:session-value :login-customer-company ))))
 			(:div :class "form-group" (:label :for "prdqty" "Product Quantity")
 			    (:input :class "form-control" :name "prdqty" :placeholder "Enter a number" :type "text"))
-			(:input :type "submit"  :class "btn btn-primary" :value "Add      ")))))
-	))
+			(:input :type "submit"  :class "btn btn-primary" :value "Add      ")))))))
 
 
 
@@ -1076,17 +1105,16 @@
 
   
 ;; This is payment-mode dropdown
-(defun  payment-mode-dropdown ()
-(let ((customer-type (get-login-customer-type)))
+(defun  std-cust-payment-mode-dropdown ()
   (cl-who:with-html-output (*standard-output* nil)
-     (htm (:select :class "form-control"  :name "payment-mode"
-		   (if (equal customer-type "STANDARD") (htm (:option :value  "PRE" :selected "true"  (str "Prepaid Wallet"))))
-		  ; (:option :value "OPY" (str "Online Payment"))
-		   (:option :value "COD" (str "Cash On Delivery")))))))
+    (:select :class "form-control"  :name "payment-mode"
+     (:option :value  "PRE" :selected "true"  (str "Prepaid Wallet"))
+					; (:option :value "OPY" (str "Online Payment"))
+     (:option :value "COD" (str "Cash On Delivery")))))
 
 
 ;; This is payment-mode dropdown
-(defun  guest-payment-mode-dropdown (paymentmode)
+(defun  guest-cust-payment-mode-dropdown (paymentmode)
   (cl-who:with-html-output (*standard-output* nil)
     (:select :class "form-control"  :name "payment-mode"
 	     (if (equal paymentmode "OPY") 
@@ -1164,43 +1192,67 @@
 	    (if (equal (dod-cust-login  :phone phone :password password) NIL) (hunchentoot:redirect "/hhub/customer-login.html") (hunchentoot:redirect  "/hhub/dodcustindex")))))
 
 (defun dod-controller-cust-ordersuccess ()
-(with-cust-session-check 
-  (let ((cust-type  (slot-value (get-login-customer) 'cust-type)))
-  (with-standard-customer-page (:title "Welcome to HighriseHub- Add Customer Order")
-    (:div :class "row"
-	  (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12"
-		(htm (:h1 "Your order has been successfully placed"))
-		(when (equal cust-type "STANDARD") (htm (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorders") " My Orders Page")))))))))
+  (with-cust-session-check 
+    (let ((cust-type  (slot-value (get-login-customer) 'cust-type)))
+      (with-standard-customer-page
+	(:title "Welcome to HighriseHub- Add Customer Order")
+	(:div :class "row"
+	      (:div :class "col-sm-12" 
+		    (:h1 "Your order has been successfully placed")))
+	(:div :class "row"
+	      (:div :class "col-sm-4"
+		    (:a :class "btn btn-primary" :role "button" :href "/hhub/dodcustindex" "Back To Shopping"  )))
+	(:div :class "row"
+	     (:div :class "col-sm-4" (:hr) ))
+	(when (equal cust-type "STANDARD")
+	  (htm
+	   (:div :class "row"
+		 (:div :class "col-sm-6 col-xs-6 col-md-6 col-lg-6"
+		       (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorders") " My Orders Page")))))))))
+  
+  
+(defun send-order-email-guest-customer(order-id email products shopcart) 
+  (let* ((shopcart-total (get-shop-cart-total shopcart))
+	(order-disp-str
+	 (cl-who:with-html-output-to-string (*standard-output* nil)
+	   (str (ui-list-shopcart-for-email products shopcart))
+	   (:hr)
+	   (:tr (:td
+		 (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" shopcart-total)))))))))
+    (send-order-mail email (format nil "HighriseHub order ~A" order-id) order-disp-str)))
+
+(defun send-order-email-standard-customer(order-id email products shopcart)
+  :Documentation "We are not sending any email to standard customer Today. We will check his settings and then decide whether to send email or not. Future")
+
+(defun check-all-vendors-wallet-balance(vendor-list shopcart customer custcomp)
+  :documentation "At least one vendor wallet has low balance, then return nil"
+  (unless (every #'(lambda (x) (if x T))
+		  (mapcar (lambda (vendor) 
+			    (check-wallet-balance (get-order-items-total-for-vendor vendor shopcart) (get-cust-wallet-by-vendor customer vendor custcomp))) vendor-list))
+    T))
 
 
-
- 
 (defun com-hhub-transaction-create-order ()
  (with-cust-session-check 
    (with-hhub-transaction "com-hhub-transaction-create-order" 
        (multiple-value-bind (odts products odate reqdate ship-date shipaddress shopcart-total payment-mode comments cust custcomp order-cxt phone email )
 		  (values-list (get-cust-order-params))
-	 (let ((vendor-list (get-shopcart-vendorlist odts))
-	       (cust-type (slot-value cust 'cust-type))
-	       (guest-email (hunchentoot:session-value :guest-email-address)))
-	   (if  (equal payment-mode "PRE")
-					; at least one vendor wallet has low balance 
-		(if (not (every #'(lambda (x) (if x T))  (mapcar (lambda (vendor) 
-								   (check-wallet-balance (get-order-items-total-for-vendor vendor odts) (get-cust-wallet-by-vendor cust vendor custcomp))) vendor-list))) (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts")))
+	 (let* ((temp-ht (make-hash-table :test 'equal))
+		(vendor-list (get-shopcart-vendorlist odts))
+		(cust-type (slot-value cust 'cust-type))
+		(guest-email (hunchentoot:session-value :guest-email-address)))
+	   (setf (gethash "PRE" temp-ht) (symbol-function 'check-all-vendors-wallet-balance))
+	   (let ((func (gethash payment-mode temp-ht)))
+	     (if func (if (funcall (gethash payment-mode temp-ht) vendor-list odts cust custcomp)	 (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts"))))
 	   (let ((order-id (create-order-from-shopcart  odts products odate reqdate ship-date  shipaddress shopcart-total payment-mode comments cust custcomp)))
-	     (if (equal cust-type "GUEST")
-					;SEND EMAIL TO THE GUEST CUSTOMER WITH ORDER DETAILS
-		 (let ((order-disp-str (cl-who:with-html-output-to-string (*standard-output* nil)
-					 (str (ui-list-shopcart-for-email products odts))
-					 (:hr)
-					 (:tr (:td
-					       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" shopcart-total)))))))))
-		   (send-order-mail guest-email (format nil "HighriseHub order ~A" order-id) order-disp-str)
-		   (reset-cust-order-params))))
-	
-	   (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
-	   (setf (hunchentoot:session-value :login-shopping-cart ) nil)
-	   (hunchentoot:redirect "/hhub/dodcustordsuccess"))))))
+	     (setf (gethash "GUEST" temp-ht) (symbol-function 'send-order-email-guest-customer))
+	     (setf (gethash "STANDARD" temp-ht) (symbol-function 'send-order-email-standard-customer))
+	     ;Send order email to the customer. 
+	     (funcall (gethash cust-type temp-ht) order-id guest-email products odts)
+	     (reset-cust-order-params)
+	     (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
+	     (setf (hunchentoot:session-value :login-shopping-cart ) nil)
+	     (hunchentoot:redirect "/hhub/dodcustordsuccess")))))))
 
 (defun save-cust-order-params (list) 
   (setf (hunchentoot:session-value :customer-clipboard) list))
@@ -1223,7 +1275,7 @@
 	   (phone (hunchentoot:parameter "phone"))
 	   (email (hunchentoot:parameter "email"))
 	   (comments (if phone (concatenate 'string phone "+++" email "+++" shipaddress)))
-	   (shopcart-total (get-shop-cart-total))
+	   (shopcart-total (get-shop-cart-total odts))
 	   (customer (get-login-customer))
 	   (cust-type (cust-type customer))
 	   (custcomp (get-login-customer-company))
@@ -1283,7 +1335,7 @@
 	  (phone (hunchentoot:parameter "phone"))
 	  (email (hunchentoot:parameter "email"))
 	  (comments (if phone (concatenate 'string phone "+++" email "+++" shipaddress)))
-	  (shopcart-total (get-shop-cart-total))
+	  (shopcart-total (get-shop-cart-total odts))
 	  (customer (get-login-customer))
 	  (custcomp (get-login-customer-company))
 	  (vendor-list (get-shopcart-vendorlist odts))
@@ -1306,7 +1358,7 @@
 	;else
 	(hunchentoot:redirect (format nil "/hhub/dasmakepaymentrequest?amount=~A&wallet-id=~A&mode=test&order_id=~A" amount wallet-id order-cxt)))))
 
-
+; This is a pure function. 
 (defun get-order-items-total-for-vendor (vendor order-items) 
  (let ((vendor-id (slot-value vendor 'row-id)))
   (reduce #'+ (remove nil (mapcar (lambda (item) (if (equal vendor-id (slot-value item 'vendor-id)) 
@@ -1333,9 +1385,8 @@
 			      (if (equal vendor-id (slot-value vendor 'row-id)) item))) opref-items))))
 
 
-(defun get-shop-cart-total ()
-  (let* ((odts (hunchentoot:session-value :login-shopping-cart))
-       (total (reduce #'+  (mapcar (lambda (odt)
+(defun get-shop-cart-total (odts)
+  (let* ((total (reduce #'+  (mapcar (lambda (odt)
 	  (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odts))))
     total ))
 	
@@ -1447,7 +1498,7 @@
 	       (singlevendor-p (if (= (length vendor-list) 1) T NIL))
 	       (vendor-payment-api-key (if singlevendor-p  (let ((vendor (first vendor-list)))
 							     (slot-value vendor 'payment-api-key))))
-	       (total  (get-shop-cart-total))
+	       (total  (get-shop-cart-total lstshopcart))
 	       (products (mapcar (lambda (odt)
 				   (let ((prd-id (slot-value odt 'prd-id)))
 				     (search-prd-in-list prd-id prd-cache ))) lstshopcart)))
@@ -1475,7 +1526,7 @@
 	      (htm 
 	       (:div :class "row"
 		     (:div :class "col-xs-12" :align "right"
-			   (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage?paymentmode=PRE") "Checkout"))))
+			   (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustorderaddpage?paymentmode=PRE") "Checkout"))))
 			 ;else
 	     
 	      (progn
@@ -1483,13 +1534,13 @@
 		  (htm
 		   (:div :class "row"
 			 (:div :class "col-xs-12" :align "right"
-			       (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage?paymentmode=OPY") "Online Payment")))
+			       (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustorderaddpage?paymentmode=OPY") "Online Payment")))
 		   (:div :class "row"
 			 (:div :class "col-xs-12" :align "right" 
 			       (:h5 "OR")))))
 		(htm (:div :class "row"
 		     (:div :class "col-xs-12" :align "right"
-			   (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorderaddpage?paymentmode=COD") "Cash On Delivery")))
+			   (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustorderaddpage?paymentmode=COD") "Cash On Delivery")))
 		     (:hr)))))
 	      ;else
 	      (with-standard-customer-page (:title "My Shopping Cart")
