@@ -31,7 +31,7 @@
 		   (hunchentoot:log-message* :info "Inside set-order-fulfilled function - now completing vendor order with status CMP..order id= ~A " (slot-value vendor-order 'order-id))
 		   (setf (slot-value vendor-order 'status) "CMP")
 		   (setf (slot-value vendor-order 'fulfilled) value)
-		   (setf (slot-value vendor-order 'shipped-date) (get-date))
+		   (setf (slot-value vendor-order 'shipped-date) (clsql-sys:get-date))
 		   (update-order vendor-order)))
 					; Complete the main order only if all other vendor-order-items have been completed. 
 	    
@@ -39,7 +39,7 @@
 	     (hunchentoot:log-message* :info "Inside set-order-fulfilled function - now completing the customer order ")
 	     (if (equal (count-order-items-pending order-instance company-instance) 0 ) 
 		 (progn (setf (slot-value order-instance 'order-fulfilled) value)
-			(setf (slot-value order-instance 'shipped-date) (get-date))
+			(setf (slot-value order-instance 'shipped-date) (clsql-sys:get-date))
 			(setf (slot-value order-instance 'status ) "CMP")
 			(update-order order-instance)))
 	     (hunchentoot:log-message* :info "Inside set-order-fulfilled function - now resetting order functions. ")
@@ -96,8 +96,8 @@
 
 (defun get-orderids-for-vendor (vendor-instance  company &optional (fulfilled "N")  (recordsfordays 30))
   (let* ((tenant-id (slot-value company 'row-id))
-	 (strfromdate (get-date-string-mysql (date- (get-date) (make-duration :day recordsfordays))))
-	 (strtodate (get-date-string-mysql (date+ (get-date) (make-duration :day recordsfordays))))
+	 (strfromdate (get-date-string-mysql (clsql-sys:date- (clsql-sys:get-date) (clsql-sys:make-duration :day recordsfordays))))
+	 (strtodate (get-date-string-mysql (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day recordsfordays))))
 	 (vendor-id (slot-value vendor-instance 'row-id)))
 	 (clsql:select [order-id] :from  'dod-vendor-orders :where
 		       [and [= [:tenant-id] tenant-id]
@@ -110,8 +110,8 @@
 
 (defun get-orders-for-vendor (vendor-instance   rowcount company &optional   (fulfilled "N")  (recordsfordays 30))
   (let* ((tenant-id (slot-value company 'row-id))
-	 (strfromdate (get-date-string-mysql (date- (get-date) (make-duration :day recordsfordays))))
-	 (strtodate (get-date-string-mysql (date+ (get-date) (make-duration :day recordsfordays))))
+	 (strfromdate (get-date-string-mysql (clsql-sys:date- (clsql-sys:get-date) (clsql-sys:make-duration :day recordsfordays))))
+	 (strtodate (get-date-string-mysql (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day recordsfordays))))
 	 (vendor-id (slot-value vendor-instance 'row-id)))
 	 (clsql:select  'dod-vendor-orders :where
 			[and [= [:tenant-id] tenant-id]
@@ -228,15 +228,20 @@
 		[= [:tenant-id] tenant-id]
 		[=[:context-id] context-id]]    :caching nil :flatp t ))))
 
+    
 
-(defun get-orders-for-customer (customer)
-(let ((tenant-id (slot-value customer 'tenant-id))
+
+(defun get-orders-for-customer (customer &optional (recordsfordays 30))
+  (let ((tenant-id (slot-value customer 'tenant-id))
+	(strfromdate (get-date-string-mysql (clsql-sys:date- (clsql-sys:get-date) (clsql-sys:make-duration :day recordsfordays))))
+	(strtodate (get-date-string-mysql (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day recordsfordays))))
 	(cust-id (slot-value customer 'row-id)))
-(clsql:select 'dod-order  :where
-		[and [= [:deleted-state] "N"]
-		[= [:tenant-id] tenant-id]
-		[=[:cust-id] cust-id ]] :order-by '(([row-id] :desc))
-		:caching nil :flatp t )))
+    (clsql:select 'dod-order  :where
+		  [and [= [:deleted-state] "N"]
+		  [between [:created] strfromdate strtodate ]
+		  [= [:tenant-id] tenant-id]
+		  [=[:cust-id] cust-id ]] :order-by '(([row-id] :desc))
+		  :caching nil :flatp t )))
 
 (defun get-orders-by-req-date (req-date company-instance)
 (let ((tenant-id (slot-value company-instance 'row-id)))
@@ -345,7 +350,7 @@
 			  (let* ((prd (get-opf-product preference))
 				 (unit-price (slot-value prd 'unit-price))
 				 (prd-qty (slot-value preference 'prd-qty)))
-			    (if (prefpresent-p preference (date-dow request-date)) (create-order-items order prd  prd-qty unit-price company-instance)))) order-pref-list)
+			    (if (prefpresent-p preference (clsql-sys:date-dow request-date)) (create-order-items order prd  prd-qty unit-price company-instance)))) order-pref-list)
 		
 					; Create one row per vendor in the vendor_orders table. 
 		(mapcar (lambda (vendor) 
@@ -452,7 +457,7 @@
 										 (if (equal (slot-value preference 'thu) "Y") 4)
 										 (if (equal (slot-value preference 'fri) "Y") 5) 
 										 (if (equal (slot-value preference 'sat) "Y") 6))))
-								(if (member (date-dow requestdate) lst) t nil)))
+								(if (member (clsql-sys:date-dow requestdate) lst) t nil)))
 							    (get-opreflist-for-customer customer))))
 			    (if custopflist  (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) nil   customer dodcompany)) )) customers)))
 
@@ -463,4 +468,7 @@
   (let ((cmplist (list-dod-companies)))
     (loop for i from 1 to numdays do (mapcar (lambda (cmp) 
 	      (let ((id (slot-value cmp 'row-id)))
-		(create-daily-orders-for-company :company-id id :odtstr (get-date-string (get-date)) :reqstr (get-date-string (date+ (get-date) (make-duration :day i)))))) cmplist)))) 
+		(create-daily-orders-for-company :company-id id :odtstr (get-date-string (clsql-sys:get-date)) :reqstr (get-date-string (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day i)))))) cmplist)))) 
+
+
+

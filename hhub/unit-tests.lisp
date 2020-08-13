@@ -53,10 +53,6 @@
 ; (apply #'create-product NandiniPurple)
 
 
-
-
-
-
 (defparameter *product-params* nil)
 (setf *product-params* (list (format nil "Test Product ~a" (random 200)) TestVendor1 "1 Litre" 20.00 "/resources/test-product.png" nil dod-company))
 ;Create the customer now.
@@ -110,23 +106,10 @@
 ;(apply #'create-product *product-params*)
 ;Get the customer which we have created in the above steps. 
 (defparameter Testproduct (select-product-by-name (car *product-params*) dod-company ))
-
-
-  (defparameter OrderDate (make-date :year 2016 :month 8 :day 17))
-  (defparameter RequestDate (make-date :year 2016 :month 8 :day 17))
+(defparameter OrderDate (make-date :year 2016 :month 8 :day 17))
+(defparameter RequestDate (make-date :year 2016 :month 8 :day 17))
 
  
 
 
-(defun create-daily-orders (&key company-id odtstr reqstr)
-    :documentation "odtstr and reqstr are of the format \"dd/mm/yyyy\" "
-    (let* ((orderdate (get-date-from-string odtstr))
-	      (requestdate (get-date-from-string reqstr))
-	      (dodcompany (select-company-by-id company-id))
-	      (customers (list-cust-profiles dodcompany)))
-					;Get a list of all the customers belonging to the current company. 
-					; For each customer, get the order preference list and pass to the below function.
-	      (mapcar (lambda (customer)
-			  (let ((custopflist (get-opreflist-for-customer customer)))
-			    (if (> 0 (length custopflist))  (create-order-from-pref custopflist orderdate requestdate nil (slot-value customer 'address) nil customer dodcompany)) )) customers)))
 
