@@ -111,6 +111,12 @@
 	 (password-reset-email (format nil password-reset-str url url)))
   (hhubsendmail email  "Your Password Reset Link" password-reset-email)))
 
+(defun send-temp-password  (object temp-pass url)
+  (let* ((temp-password-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-TEMP-PASSWORD-FILE* )))
+	 (email (slot-value object 'email))
+	 (temp-password-email (format nil temp-password-str temp-pass url ))) 
+  (hhubsendmail email  "Your Password Has Been Reset" temp-password-email)))
+
 
 (defun send-new-company-registration-email  (object)
   (let* ((temp-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-NEW-COMPANY-REQUEST*)))
