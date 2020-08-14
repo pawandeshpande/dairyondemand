@@ -6,6 +6,9 @@
 (defun get-auth-attrs (tenant-id)
   (clsql:select 'dod-auth-attr-lookup  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
 
+(defun get-system-abac-attributes () 
+  (select-auth-attrs-by-company (select-company-by-id 1)))
+
 (defun select-auth-attrs-by-company (company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
  (clsql:select 'dod-auth-attr-lookup  :where
