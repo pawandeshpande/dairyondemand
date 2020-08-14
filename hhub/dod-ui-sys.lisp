@@ -39,7 +39,7 @@
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/sadminhome"  (:span :class "glyphicon glyphicon-home")  " Home"))
-			 (:li  (:a :href "/hhub/dasabacsecurity" "ABAC Security"))
+			 (:li  (:a :href "/hhub/dasabacsecurity" "IAM Security"))
 			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 		     
 		     (:ul :class "nav navbar-nav navbar-right"
@@ -94,7 +94,7 @@
     	(cl-who:with-html-output (*standard-output* nil)
 	  (:div :class "row" 
 		(:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		      (with-html-form "form-addcompany" "company-added"
+		      (with-html-form "form-addcompany" "hhubnewcompanyreq"
 			(if company (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
 			(:img :class "profile-img" :src "/img/logo.png" :alt "")
 			(:div :class "form-group"
@@ -152,43 +152,45 @@
     (display-as-tiles company-list 'company-card)))
 
 (defun dod-controller-abac-security ()
-  (with-opr-session-check 
-    (let ((policies (get-auth-policies (get-login-tenant-id))))
+  (let ((policies (hhub-get-cached-auth-policies)))
+    (with-opr-session-check 
       (with-standard-admin-page (:title "Welcome to Highrisehub")
-	(:div :class "row" 
-	      (:div :class "col-xs-6" 
-		    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")
-		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Attributes  ")
-		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objects  ")
-		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listabacsubjects"  " Business Subjects  ")
-		    (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Transactions  ")))
-	(:hr)
-	(:div :class "row"
-	      (:div :class "col-md-12" (:h4 "Business Policies")))
-	(str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
-	(modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create))))))
+				(:div :class "row"
+				      (:h3 "Note: Any changes saved will not get reflected when you refresh the screen. Please stop and start HighriseHub system using (stop-das) followed by (start-das) in the Lisp REPL."))
+				(:div :class "row" 
+				      (:div :class "col-xs-6" 
+					    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")
+					    (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Attributes  ")
+					    (:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objects  ")
+					    (:a :class "btn btn-primary" :role "button" :href "/hhub/listabacsubjects"  " Business Personas  ")
+					    (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Transactions  ")))
+				(:hr)
+				(:div :class "row"
+				      (:div :class "col-md-12" (:h4 "Business Policies")))
+				(str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
+				(modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create))))))
 
 
 
 (defun com-hhub-transaction-sadmin-home () 
   (with-opr-session-check
     (with-hhub-transaction "com-hhub-transaction-sadmin-home" nil 
-      (let (( companies (list-dod-companies)))
-	    (with-standard-admin-page (:title "Welcome to Highrisehub.")
-	  (:div :class "container"
-		(:div :id "row"
-		      (:div :id "col-xs-6" 
-			    (:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
-		(company-search-html)
-		(:div :id "row"
-		      (:div :id "col-xs-6"
+      (let (( companies (hhub-get-cached-companies)))
+	(with-standard-admin-page (:title "Welcome to Highrisehub.")
+				  (:div :class "container"
+					(:div :id "row"
+					      (:div :id "col-xs-6" 
+						    (:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+					(company-search-html)
+					(:div :id "row"
+					      (:div :id "col-xs-6"
 					;  (:a :class "btn btn-primary" :role "button" :href "new-company" :data-toggle "modal" :data-target "#editcompany-modal" (:span :class "glyphicon glyphicon-shopping-plus") " Add New Group  ")
-	       (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group"))
-		      (:div :id "col-xs-6" :align "right" 
-			    (:span :class "badge" (str (format nil "~A" (length companies))))))
-		(:hr)
-		(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
-		(str (display-as-tiles companies 'company-card))))))))
+						    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group"))
+					      (:div :id "col-xs-6" :align "right" 
+						    (:span :class "badge" (str (format nil "~A" (length companies))))))
+					(:hr)
+					(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
+					(str (display-as-tiles companies 'company-card))))))))
 
 
 (setq *logged-in-users* (make-hash-table :test 'equal))
@@ -196,7 +198,7 @@
 (defun dod-controller-list-busobjs () 
 :documentation "List all the business objects"
 (with-opr-session-check 
-  (let ((busobjs (select-bus-object-by-company (get-login-company))))
+  (let ((busobjs (hhub-get-cached-bus-objects)))
     (with-standard-admin-page (:title "Business Objects ...")
       (:div :class "row"
 	    (:div :class "col-md-12" (:h4 "Business Objects")))
@@ -209,19 +211,19 @@
 (defun dod-controller-list-abac-subjects () 
 :documentation "List all the business objects"
 (with-opr-session-check 
-  (let ((abacsubjects (select-abac-subject-by-company (get-login-company))))
-    (with-standard-admin-page (:title "ABAC Subjects ...")
+  (let ((abacsubjects (hhub-get-cached-abac-subjects)))
+    (with-standard-admin-page (:title "Business Personas ...")
       (:div :class "row"
-	    (:div :class "col-md-12" (:h4 "ABAC Subjects")))
+	    (:div :class "col-md-12" (:h4 "Business Personas")))
       (str (display-as-table (list "Name")  abacsubjects 'busobj-card))
-      (:h4 "Note: To add new business objects to the system, follow these steps.")
+      (:h4 "Note: To add new Business Persona to the system, follow these steps.")
       (:h4 "In the Lisp REPL call the function, (create-abac-subject)")))))
 
 
 (defun dod-controller-list-bustrans ()
 :documentation "List all the business transactions" 
 (with-opr-session-check 
-  (let ((bustrans (select-bus-trans-by-company (get-login-company))))
+  (let ((bustrans (hhub-get-cached-transactions)))
     (with-standard-admin-page (:title "Business Transactions...")
       (:div :class "row"
 	    (:div :class "col-md-12" 
@@ -234,7 +236,7 @@
 (defun dod-controller-list-attrs ()
 :documentation "This function lists the attributes used in policy making"
  (with-opr-session-check 
-   (let ((lstattributes (select-auth-attrs-by-company (get-login-company))))
+   (let ((lstattributes (hhub-get-cached-abac-attributes)))
      (with-standard-admin-page (:title "attributes ...")
        (:div :class "row"
 	     (:div :class "col-md-12" (:h4 "Attributes"))
@@ -629,12 +631,14 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodupdatewalletbalance" 'dod-controller-update-wallet-balance)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvendororderdetails" 'dod-controller-vendor-orderdetails)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenaddprodpage" 'dod-controller-vendor-add-product-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenbulkaddprodpage" 'dod-controller-vendor-bulk-add-products-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenaddproductaction" 'dod-controller-vendor-add-product-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenuploadproductsimagesaction" 'dod-controller-vendor-upload-products-images-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenuploadproductscsvfileaction" 'dod-controller-vendor-upload-products-csvfile-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenordcancel" 'dod-controller-vendor-order-cancel)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendupdateaction" 'dod-controller-vendor-update-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendupdatesettings" 'dod-controller-vendor-update-settings)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendchangepin" 'dod-controller-vendor-change-pin)
-	
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendforgotpassactionlink" 'dod-controller-vendor-reset-password-action-link)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendpassreset.html" 'dod-controller-vendor-password-reset-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendgentemppass"   'dod-controller-vendor-generate-temp-password) 

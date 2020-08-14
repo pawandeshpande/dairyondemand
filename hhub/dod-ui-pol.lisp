@@ -6,6 +6,12 @@
 	 (transbo (get-bus-tran-busobject transaction)))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; HERE WE DEFINE ALL THE POLICIES FOR HIGHRISEHUB ;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
 (defun com-hhub-policy-cad-login-page (&optional transaction params)
 :documentation "Company Administrator login page is open to all. This policy is dummy as the request is initiated by the Browser."
 T)
@@ -95,34 +101,36 @@ T)
 (defun com-hhub-policy-create (&optional transaction params)
   (if (equal (get-login-user-name) "superadmin") T NIL)) 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; END DEFINE POLICIES ;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun dod-controller-add-transaction-action ()
- (if (is-dod-session-valid?)
-     (let* ((company (get-login-company))
-	    (id (hunchentoot:parameter "id"))
-	    (boname (hunchentoot:parameter "busobject"))
-	    (abacsubject (hunchentoot:parameter "abacsubject"))
-	    (abacsubjectobj (get-abac-subject-by-name abacsubject))
-	    (transbo (get-bus-object-by-name boname))
-	    (transaction (get-bus-transaction id))
-	    (transname (hunchentoot:parameter "transname"))
-	    (transuri (hunchentoot:parameter "transuri"))
-	    (transfunc (hunchentoot:parameter "transfunc"))
-	    (transtype (hunchentoot:parameter "transtype")))
-       (if transaction 
-	   (progn 
-	     (setf (slot-value transaction 'bo-id) (slot-value transbo 'row-id))
-	     (setf (slot-value transaction 'abac-subject-id) (slot-value abacsubjectobj 'row-id)) 
-	     (setf (slot-value transaction 'name) (concatenate 'string *ABAC-TRANSACTION-NAME-PREFIX* transname))
-	     (setf (slot-value transaction 'uri) transuri)
-	     (setf (slot-value transaction 'trans-func) (concatenate 'string *ABAC-TRANSACTION-FUNC-PREFIX* transfunc))
-	     (setf (slot-value transaction 'trans-type) transtype)
-	     (update-bus-transaction transaction))
-	   ;else
+(with-opr-session-check 
+  (let* ((company (get-login-company))
+	 (id (hunchentoot:parameter "id"))
+	 (boname (hunchentoot:parameter "busobject"))
+	 (abacsubject (hunchentoot:parameter "abacsubject"))
+	 (abacsubjectobj (get-abac-subject-by-name abacsubject))
+	 (transbo (get-bus-object-by-name boname))
+	 (transaction (get-bus-transaction id))
+	 (transname (hunchentoot:parameter "transname"))
+	 (transuri (hunchentoot:parameter "transuri"))
+	 (transfunc (hunchentoot:parameter "transfunc"))
+	 (transtype (hunchentoot:parameter "transtype")))
+    (if transaction 
+	(progn 
+	  (setf (slot-value transaction 'bo-id) (slot-value transbo 'row-id))
+	  (setf (slot-value transaction 'abac-subject-id) (slot-value abacsubjectobj 'row-id)) 
+	  (setf (slot-value transaction 'name) (concatenate 'string *ABAC-TRANSACTION-NAME-PREFIX* transname))
+	  (setf (slot-value transaction 'uri) transuri)
+	  (setf (slot-value transaction 'trans-func) (concatenate 'string *ABAC-TRANSACTION-FUNC-PREFIX* transfunc))
+	  (setf (slot-value transaction 'trans-type) transtype)
+	  (update-bus-transaction transaction))
+					;else
 	(create-bus-transaction (concatenate 'string *ABAC-TRANSACTION-NAME-PREFIX* transname)  transuri  transbo transtype (concatenate 'string *ABAC-TRANSACTION-FUNC-PREFIX* transfunc) company))
-	(hunchentoot:redirect "/hhub/listbustrans"))
-     ;else
-   (hunchentoot:redirect "/hhub/opr-login.html")))
-	     
+    (hunchentoot:redirect "/hhub/listbustrans"))))
 
 
 (defun dod-controller-add-policy-action ()
@@ -169,16 +177,11 @@ T)
   (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
-
-
-
 (defun busobj-card (busobj-instance)
   (let ((name (slot-value busobj-instance 'name)))
 	(cl-who:with-html-output (*standard-output* nil)
 	  (:td :height "10px" 
 	   (:h6 :class "busobj-name"  (str (format nil " ~A" name)))))))
-	  
-		    
 
 (defun bustrans-card (bustrans-instance)
   (let ((name (slot-value bustrans-instance 'name))
@@ -195,8 +198,8 @@ T)
       (:td :height "10px" 
 	   (:a  :data-toggle "modal" :data-target (format nil "#editbustrans-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
 	   (:a  :data-toggle "modal"  :data-target (format nil "#linkbustrans-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-link"))
-	   (modal-dialog (format nil "linkbustrans-modal~a" row-id) "Add/Edit Business Transaction" (link-bus-transaction-to-policy row-id))
-	   (modal-dialog (format nil "editbustrans-modal~a" row-id) "Add/Edit Business Transaction" (new-transaction-html  row-id))))))
+	   (modal-dialog (format nil "linkbustrans-modal~a" row-id) "Add/Edit Business Transaction" (link-bus-transaction-to-policy bustrans-instance))
+	   (modal-dialog (format nil "editbustrans-modal~a" row-id) "Add/Edit Business Transaction" (new-transaction-html  bustrans-instance))))))
 
 (defun attribute-card (attribute-instance)
  (let (;(attr-id (slot-value attribute-instance 'row-id))
@@ -217,7 +220,7 @@ T)
 	 (:h6 :class "attribute-type" (str  (format nil "~A"  attr-type))))
     (:td :height "10px" 
 	 (:a  :data-toggle "modal" :data-target (format nil "#editattribute-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
-	 (modal-dialog (format nil "editattribute-modal~a" row-id) "Add/Edit Attribute" (com-hhub-transaction-create-attribute row-id))))))
+	 (modal-dialog (format nil "editattribute-modal~a" row-id) "Add/Edit Attribute" (com-hhub-transaction-create-attribute attribute-instance))))))
 
 
 (defun policy-card (policy-instance)
@@ -235,7 +238,7 @@ T)
        	 (:h6 :class "policy-func-name"  (str policy-func) ))
       (:td :height "10px" 
        (:a  :data-toggle "modal" :data-target (format nil "#editpolicy-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
-	(modal-dialog (format nil "editpolicy-modal~a" row-id) "Add/Edit Policy" (com-hhub-transaction-policy-create row-id))))))
+	(modal-dialog (format nil "editpolicy-modal~a" row-id) "Add/Edit Policy" (com-hhub-transaction-policy-create policy-instance))))))
 
 ;; @@ deprecated : start using with-html-dropdown instead. 
 (defun  attribute-type-dropdown (selectedkey)
@@ -259,22 +262,21 @@ T)
 	(bonameslist (mapcar (lambda (item) 
 			       (slot-value item 'name)) bolist))
 	(bohash (make-hash-table)))
-	(mapcar (lambda (key) (setf (gethash key bohash) key)) bonameslist)
-	(with-html-dropdown "busobject" bohash  (if (not selectedkey) (car bonameslist) selectedkey))))
-		     
+    (mapcar (lambda (key) (setf (gethash key bohash) key)) bonameslist)
+    (with-html-dropdown "busobject" bohash  (if (not selectedkey) (car bonameslist) selectedkey))))
+
 (defun  abac-subject-dropdown (&optional selectedkey)
   (let* ((abac-subject-list (select-abac-subject-by-company (get-login-company)))
-	(subjectnameslist (mapcar (lambda (item) 
-			       (slot-value item 'name)) abac-subject-list ))
-	(subjecthash (make-hash-table)))
-	(mapcar (lambda (key) (setf (gethash key subjecthash) key)) subjectnameslist)
-	(with-html-dropdown "abacsubject" subjecthash  (if (not selectedkey) (car subjectnameslist) selectedkey))))
+	 (subjectnameslist (mapcar (lambda (item) 
+				     (slot-value item 'name)) abac-subject-list ))
+	 (subjecthash (make-hash-table)))
+    (mapcar (lambda (key) (setf (gethash key subjecthash) key)) subjectnameslist)
+    (with-html-dropdown "abacsubject" subjecthash  (if (not selectedkey) (car subjectnameslist) selectedkey))))
 
 
-(defun link-bus-transaction-to-policy (&optional id)
-  (let* ((transaction (if id (get-bus-transaction id)))
-	(policy (if transaction (get-bus-tran-policy transaction))))
-	
+(defun link-bus-transaction-to-policy (&optional transaction)
+  (let ((policy (if transaction (get-bus-tran-policy transaction))))
+    
     (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row"
 	    (:div :class "col-xs-12"
@@ -298,7 +300,9 @@ T)
 		(:h4 (str (format nil "Currently linked policy:   ~A" (slot-value policy 'name))))))
 
     (with-html-search-form "dassearchpolicies" "Enter Policy Name..." 
-      (:input :class "form-control" :name "trans-id" :type "hidden" :value trans-id)))))
+      (:input :class "form-control" :name "trans-id" :type "hidden" :value trans-id))
+    (:div :id "searchresult"))))
+
     
 
 (defun dod-controller-policy-search-action ()
@@ -317,7 +321,7 @@ T)
   (if policy-list 
       (htm (:div :class "row-fluid"	  
 	    (mapcar (lambda (pol)
-		      (htm (:form :method "POST" :action "transtopolicylinkaction" 
+		      (htm (:form :method "POST" :action "transtopolicylinkaction" :id "transtopolicylinkform"  
 			   (:div :class "col-sm-4 col-lg-3 col-md-4"
 			    (:div :class "form-group"
 			     (:input :class "form-control" :name "trans-id" :type "hidden" :value trans-id ))
@@ -338,12 +342,8 @@ T)
     (update-bus-transaction transaction)
     (hunchentoot:redirect "/hhub/listbustrans")))
 
-	
-    
-    
-
-(defun new-transaction-html (&optional id)
-  (let* ((transaction (if id (get-bus-transaction id)))
+(defun new-transaction-html (&optional transaction)
+  (let* ((id (if transaction (slot-value transaction 'row-id)))
 	 (transname (if transaction (slot-value transaction 'name)))
 	 (transuri (if transaction (slot-value transaction 'uri)))
 	 (transbo (if transaction (get-bus-tran-busobject transaction)))
@@ -360,7 +360,7 @@ T)
      (:form :class "form-addtransaction" :role "form" :method "POST" :action "dasaddtransactionaction"
        (if transaction (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
        ;(if transbo (htm (:input :class "form-control" :type "hidden" :value bo-id :name "bo-id")))
-       (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+       (:img :class "profile-img" :src "/img/logo.png" :alt "")
        (:h1 :class "text-center login-title"  "Add/Edit Transaction")
        (:div :class "form-group input-group"
 	     (:span :class "input-group-addon"  "Business Object") 
@@ -391,8 +391,8 @@ T)
 
 
 
-(defun com-hhub-transaction-create-attribute (&optional id)
-  (let* ((attribute (if id (select-auth-attr-by-id id)))
+(defun com-hhub-transaction-create-attribute (&optional attribute)
+  (let* ((id (if attribute (slot-value attribute 'row-id)))
 	 (attrname (if attribute (slot-value attribute 'name)))
 	 (attrdesc (if attribute (slot-value attribute 'description)))
 	 (attrtype (if attribute (slot-value attribute 'attr-type)))
@@ -404,7 +404,7 @@ T)
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		  (:form :class "form-addattribute" :role "form" :method "POST" :action "dasaddattribute"
 			 (if attribute (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
-			 (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+			 (:img :class "profile-img" :src "/img/logo.png" :alt "")
 			    (:h1 :class "text-center login-title"  "Add/Edit Attribute")
 			    (:div :class "form-group input-group"
 				  (:span :class "input-group-addon" :id "attrnameprefix" (str *ABAC-ATTRIBUTE-NAME-PREFIX*)) 
@@ -424,19 +424,18 @@ T)
 				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
 
 
-(defun com-hhub-transaction-policy-create (&optional id)
-  (let* ((policy (if id (select-auth-policy-by-id id)))
+(defun com-hhub-transaction-policy-create (&optional policy)
+  (let* ((id (if policy (slot-value policy 'row-id)))
 	 (policyname (if policy (slot-value policy 'name)))
 	 (policydesc (if policy (slot-value policy 'description)))
-	 (policyfunc (if policy (slot-value policy 'policy-func)))
-	 (transaction (select-bus-trans-by-trans-func "com-hhub-transaction-policy-create")))
-    (if (has-permission transaction)
-	(cl-who:with-html-output (*standard-output* nil)
+	 (policyfunc (if policy (slot-value policy 'policy-func))))
+    (with-hhub-transaction "com-hhub-transaction-policy-create" 
+    	(cl-who:with-html-output (*standard-output* nil)
 	  (:div :class "row" 
 		(:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		      (:form :class "form-addpolicy" :role "form" :method "POST" :action "dasaddpolicyaction"
 			     (if policy (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
-			     (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
+			     (:img :class "profile-img" :src "/img/logo.png" :alt "")
 			     (:h1 :class "text-center login-title"  "Add/Edit Policy")
 			     (:div :class "form-group input-group"
 				   (:span :class "input-group-addon" :id "attrnameprefix" (str *ABAC-POLICY-NAME-PREFIX*) ) 
@@ -449,7 +448,4 @@ T)
 				   (:span :class "input-group-addon" :id "policyfuncprefix" (str *ABAC-POLICY-FUNC-PREFIX*)) 
 				   (:input :class "form-control" :name "policyfunc" :maxlength "30"  :value (if policy (subseq  policyfunc (length *ABAC-POLICY-FUNC-PREFIX*))) :placeholder "Declare Policy Function Name ( max 100 characters) " :aria-describedby "policyfuncprefix"  :type "text" ))
 			     (:div :class "form-group"
-				   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
-	(cl-who:with-html-output (*standard-output* nil)
-	  (:div :class "row" 
-		(:h3 "Permission Denied"))))))
+				   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))

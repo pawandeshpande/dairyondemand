@@ -165,12 +165,18 @@ the hunchentoot server with ssl settings"
 	(roles (get-system-roles))
 	(transactions (get-system-bus-transactions))
 	(busobjects (get-system-bus-objects))
-	(abacsubjects (get-system-abac-subjects)))
+	(abacsubjects (get-system-abac-subjects))
+	(abacattributes (get-system-abac-attributes))
+	(transactions-ht (get-system-bus-transactions-ht))
+	(companies (get-system-companies)))
     (list (function (lambda () policies))
 	  (function (lambda () roles))
 	  (function (lambda () transactions))
 	  (function (lambda () busobjects))
-	  (function (lambda () abacsubjects)))))
+	  (function (lambda () abacsubjects))
+	  (function (lambda () abacattributes))
+	  (function (lambda () companies))
+	  (function (lambda () transactions-ht)))))
 
 
 (defun hhub-get-cached-auth-policies()
@@ -186,8 +192,8 @@ the hunchentoot server with ssl settings"
 
 (defun hhub-get-cached-transactions ()
   :documentation "This function gets a list of all the globally cached transactions."
-  (let ((rolesfunc (nth 2 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
-    (funcall rolesfunc)))
+  (let ((transfunc (nth 2 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+    (funcall transfunc)))
 
 
 (defun hhub-get-cached-bus-objects ()
@@ -199,3 +205,23 @@ the hunchentoot server with ssl settings"
   :documentation "This function gets a list of all the globally cached ABAC Subjects for System"
   (let ((abacsubjectfunc (nth 4 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
     (funcall abacsubjectfunc)))
+
+
+(defun hhub-get-cached-abac-attributes ()
+  :documentation "This function gets a list of all the globally cached ABAC Attrributes for the system"
+  (let ((abacattributesfunc (nth 5  *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+    (funcall abacattributesfunc)))
+
+
+(defun hhub-get-cached-companies ()
+  :documentation "This function gets a list of all the globally cached transactions in a Hashtable."
+ (let ((companies-func (nth 6 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+   (funcall companies-func)))
+
+(defun hhub-get-cached-transactions-ht ()
+  :documentation "This function gets a list of all the globally cached transactions in a Hashtable."
+ (let ((transfunc-ht (nth 7 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+    (funcall transfunc-ht)))
+
+
+

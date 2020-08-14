@@ -140,7 +140,7 @@
 		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
 		 (:script :src "/js/spin.min.js")
 		 (:script :src "https://www.google.com/recaptcha/api.js")
-		 (:script :src "https://cdnjs.com/libraries/1000hz-bootstrap-validator")
+		 (:script :src "https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.8/validator.min.js")
 		 ) ;; header completes here.
 	     (:body
 		 (:div :id "dod-main-container"
@@ -219,7 +219,7 @@
 
 
 (defmacro with-hhub-transaction (name &optional params &body body)
-`(let ((transaction (select-bus-trans-by-trans-func ,name)))
+`(let ((transaction (get-ht-val ,name (hhub-get-cached-transactions-ht))))
    (if (has-permission transaction ,params) 
        (progn 
 	 (hunchentoot:log-message* :info "Got permission for transaction ~A" (slot-value transaction 'name))
@@ -286,6 +286,7 @@ individual tiles. It also supports search functionality by including the searchr
 	(:input :type "text" :name "livesearch" :id "livesearch"  :class "form-control search-query" :placeholder ,search-placeholder)
 	,@body
 	(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" (:span :class " glyphicon glyphicon-search") " Go!" ))))))))
+
      
 (defmacro with-html-form ( form-name form-action  &body body) 
 :documentation "Arguments: form-action - the form's action, body - any additional hidden form input elements. This macro supports validator.js"  
@@ -297,7 +298,7 @@ individual tiles. It also supports search functionality by including the searchr
 (defun copy-hash-table (hash-table)
   (let ((ht (make-hash-table 
              :test (hash-table-test hash-table)
-             :rehash-size (hash-table-rehash-size hash-table)
+	     :rehash-size (hash-table-rehash-size hash-table)
              :rehash-threshold (hash-table-rehash-threshold hash-table)
              :size (hash-table-size hash-table))))
     (loop for key being each hash-key of hash-table

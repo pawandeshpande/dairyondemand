@@ -2,6 +2,15 @@
 (in-package :hhub)
 
 
+
+
+(defun search-in-hashtable (search-string hashtable)
+  :documentation "Search for a string in hashtable. Returns a list of all the values where the key contains the substring" 
+  (let ((retlist '()))
+    (maphash (lambda (key value)
+	       (if (search search-string key) (setf retlist (append retlist (list value))))) hashtable)
+  retlist))
+
 (defun hhub-function-memoize (function-symbol)
   (let ((original-function (symbol-function function-symbol))
         (values            (make-hash-table)))
@@ -10,10 +19,6 @@
             (or (gethash arg values)
                 (setf (gethash arg values)
                       (apply original-function arg args)))))))
-
-
-
-
 
 (defun hhub-random-password (length)
   (with-output-to-string (stream)
@@ -28,6 +33,7 @@
       (read-sequence contents stream)
       contents)))
 
+
 (defun hhub-write-file-for-css-inlining (contents) 
   (with-open-file (str "/data/www/highrisehub.com/public/emailtemplate.html"
                      :direction :output
@@ -35,15 +41,17 @@
                      :if-does-not-exist :create)
   (format str "~A" contents)))
 
- 
-(defun process-image (image)
- (let* ((tempfilewithpath (first image))
-       (file-name (format nil "~A-~A" (get-universal-time) (second image))))
-   (if tempfilewithpath 
-	(progn 
-	  (probe-file tempfilewithpath)
-	  (rename-file tempfilewithpath (make-pathname :directory *HHUBRESOURCESDIR*  :name file-name))))
-file-name))
+
+(defun process-image (image move-to)
+  (let* ((tempfilewithpath (nth 0 image))
+	 (tempfilename (nth 1 image))
+	 (final-file-name (format nil "~A-~A" (get-universal-time) tempfilename)))
+   ;; Only if the file size is less than 1 mb do the operation. 
+   (when (and (probe-file  tempfilewithpath) (with-open-file (s tempfilewithpath) (< (/ (file-length s) 1000000.0) 1)))  
+     (rename-file tempfilewithpath (make-pathname :directory move-to  :name final-file-name)))
+   final-file-name))
+
+
 
 
 (defun get-ht-val (key hash-table)
@@ -80,7 +88,7 @@ corresponding universal time."
 (let ((date (parse-integer datestr :start 0 :end 2))
         (month (parse-integer datestr :start 3 :end 5))
         (year (parse-integer datestr :start 6 :end 10)))
-    (make-date :year year :month month :day date :hour 0 :minute 0 :second 0 ))))
+    (clsql-sys:make-date :year year :month month :day date :hour 0 :minute 0 :second 0 ))))
 
 (defun current-date-string ()
   "Returns current date as a string in YYYY/MM/DD format"
@@ -92,7 +100,7 @@ corresponding universal time."
 (defun get-date-string (dateobj)
   "Returns current date as a string in DD/MM/YYYY format."
   (multiple-value-bind (yr mon day)
-                       (date-ymd dateobj)  (format nil "~2,'0d/~2,'0d/~4,'0d" day mon yr)))
+                       (clsql-sys:date-ymd dateobj)  (format nil "~2,'0d/~2,'0d/~4,'0d" day mon yr)))
 
 (defun mysql-now ()
   (multiple-value-bind
@@ -106,7 +114,7 @@ corresponding universal time."
 (defun mysql-now+days (numdays)
   (multiple-value-bind
         (second minute hour date month year day-of-week dst-p tz)
-      (decode-date (date+ (get-date) (make-duration :day numdays)))
+      (clsql-sys:decode-date (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day numdays)))
      (declare (ignore day-of-week dst-p tz))
     ;; ~2,'0d is the designator for a two-digit, zero-padded number
 (format nil "~a-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d"
@@ -119,12 +127,12 @@ corresponding universal time."
 (defun get-date-string-mysql (dateobj) 
   "Returns current date as a string in DD-MM-YYYY format."
   (multiple-value-bind (yr mon day)
-                       (date-ymd dateobj)  (format nil "~4,'0d-~2,'0d-~2,'0d" yr mon day)))
+                       (clsql-sys:date-ymd dateobj)  (format nil "~4,'0d-~2,'0d-~2,'0d" yr mon day)))
 
 
 (defun get-universal-time-from-date (dateobj)
   (multiple-value-bind (day mon year) 
-	  (decode-date dateobj) 
+	  (clsql-sys:decode-date dateobj) 
 	    (encode-universal-time  0 0 0 day mon year)))
 
 
