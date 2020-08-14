@@ -37,3 +37,5 @@
        (slot-value role 'name)))
 
 
+(defun com-hhub-attribute-vendor-bulk-product-count ()
+  100)

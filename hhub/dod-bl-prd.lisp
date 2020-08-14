@@ -39,7 +39,7 @@
 		:caching *dod-database-caching* :flatp t ))
 
 (defun get-products-for-approval-by-company (tenant-id)
-  :documentation "This function will be userd by the company administrator"
+  :documentation "This function will be used by the company administrator"
   (clsql:select 'dod-prd-master  :where 
 		[and 
 		[= [:deleted-state] "N"] 
@@ -75,6 +75,7 @@
 		[= [:tenant-id] tenant-id]
 		[=[:vendor-id] vendor-id]]
 		:caching *dod-database-caching* :flatp t )))
+
 
 
 
@@ -133,6 +134,10 @@
 
 
 
+
+
+
+
 (defun update-prd-details (prd-instance); This function has side effect of modifying the database record.
   (clsql:update-records-from-instance prd-instance))
 
@@ -176,8 +181,16 @@
 				    :approved-flag "N"
 				    :approval-status "PENDING"
 				    :deleted-state "N")))
- 
 
+(defun create-bulk-products (products)
+  (mapcar (lambda (product)
+	    (let ((price (with-input-from-string (in (slot-value product 'unit-price))
+			   (read in)))
+		  (units-in-stock (parse-integer (slot-value product 'units-in-stock))))
+	      
+	      (setf (slot-value product 'unit-price) price)
+	      (setf (slot-value product 'units-in-stock) units-in-stock)
+	      (clsql:update-records-from-instance product))) products))
 
 (defun create-product (prdname description  vendor-instance category qty-per-unit unit-price units-in-stock img-file-path subscribe-flag company-instance)
   (let ((vendor-id (slot-value vendor-instance 'row-id))
