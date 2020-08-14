@@ -45,7 +45,6 @@
       (hunchentoot:redirect "/hhub/dodcustprofile"))))
 
       
-
 (defun modal.customer-change-pin ()
   (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
@@ -492,7 +491,8 @@
 			      (:span :class "icon-bar")
 			      (:span :class "icon-bar")
 			      (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "highrisehub" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" )  ))
+		     (:a :class "navbar-brand" :href "#" :title "highrisehub" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" ))
+		     (:a :class "navbar-brand" :onclick "window.history.back();"  :href "#"  (:span :class "glyphicon glyphicon-arrow-left")))
 		 (:div :class "collapse navbar-collapse" :id "navheadercollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "/hhub/dodcustindex" (:span :class "glyphicon glyphicon-home")  " Home"))
@@ -706,8 +706,6 @@
 				  (with-html-search-form "companysearchaction" "Name Starts With...")
 				  (:div :id "searchresult"))
 			    (:hr)
-			    
-			    
 			    (:a :class "btn btn-primary" :onclick "window.history.back();"  :role "button" :href "#"  (:span :class "glyphicon glyphicon-arrow-left"))
 			    (:a :class "btn btn-primary" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#" (:span :class "glyphicon glyphicon-plus") " New Store")
 			    (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company))))))
@@ -737,7 +735,7 @@
        ((or  (not password-verified)  (null encryptedpass)) (dod-response-passwords-do-not-match-error)) 
        ;Token has expired
        ((and (equal user-type "CUSTOMER")
-		 (duration> (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+		 (clsql-sys:duration> (clsql-sys:time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (clsql-sys:make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
        ((and password-verified encryptedpass) (progn 
        (setf (slot-value customer 'password) encryptedpass)
        (setf (slot-value customer 'salt) salt) 
@@ -779,14 +777,14 @@
     
 	 (cond 
 	   ((and (equal user-type "CUSTOMER")
-		 (duration< (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*)))
+		 (clsql-sys:duration< (clsql-sys:time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (clsql-sys:make-duration :minute *HHUBPASSRESETTIMEWINDOW*)))
 	    (let* ((customer (select-customer-by-email email))
 		   (newpassword (reset-customer-password customer)))
 					;send mail to the customer with new password 
 	      (send-temp-password customer newpassword url)
 	      (hunchentoot:redirect "/hhub/hhubpassresetmailsent.html")))	  
 	   ((and (equal user-type "CUSTOMER")
-		 (duration> (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+		 (clsql-sys:duration> (clsql-sys:time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (clsql-sys:make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
 	   ((equal user-type "VENDOR") ())
 	   ((equal user-type "EMPLOYEE") ()))))
 
@@ -1023,7 +1021,7 @@
 			     (:div  :class "form-group" (:label :for "orddate" "Order Date" )
 				    (:input :class "form-control" :name "orddate" :value (str (get-date-string (clsql::get-date))) :type "text"  :readonly "true"  ))
 			     (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
-				   (:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1))))) :type "text" :value (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1)))))
+				   (:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1))))) :type "text" :value (get-date-string (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day 1)))))
 			       (:div :class "form-group" (:label :for "phone" "Phone" )
 				   (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Phone" :required "true" ))
 			     (:div :class "form-group" (:label :for "email" "Email" )
@@ -1224,11 +1222,11 @@
 (defun send-order-email-standard-customer(order-id email products shopcart)
   :Documentation "We are not sending any email to standard customer Today. We will check his settings and then decide whether to send email or not. Future")
 
-(defun check-all-vendors-wallet-balance(vendor-list shopcart customer custcomp)
-  :documentation "At least one vendor wallet has low balance, then return nil"
+(defun check-all-vendors-wallet-balance(vendor-list wallet-list shopcart)
+  :documentation "At least one vendor wallet has low balance, then return nil. Pure function."
   (unless (every #'(lambda (x) (if x T))
-		  (mapcar (lambda (vendor) 
-			    (check-wallet-balance (get-order-items-total-for-vendor vendor shopcart) (get-cust-wallet-by-vendor customer vendor custcomp))) vendor-list))
+		 (mapcar (lambda (vendor wallet)
+			   (check-wallet-balance (get-order-items-total-for-vendor vendor shopcart) wallet)) vendor-list wallet-list))
     T))
 
 
@@ -1239,11 +1237,16 @@
 		  (values-list (get-cust-order-params))
 	 (let* ((temp-ht (make-hash-table :test 'equal))
 		(vendor-list (get-shopcart-vendorlist odts))
+		(wallet-list (mapcar (lambda (vendor) (get-cust-wallet-by-vendor cust vendor custcomp)) vendor-list))
 		(cust-type (slot-value cust 'cust-type))
+		; This function call is not pure. Try to make it pure. 
 		(guest-email (hunchentoot:session-value :guest-email-address)))
+
+	   ;; If the payment mode is PREPAID, then check whether we have enough balance first. If not, then redirect to the low wallet balance. 
+	   ;; Redirecting to some other place is not a pure function behavior. Is there a better way to handle this? 
 	   (setf (gethash "PRE" temp-ht) (symbol-function 'check-all-vendors-wallet-balance))
 	   (let ((func (gethash payment-mode temp-ht)))
-	     (if func (if (funcall (gethash payment-mode temp-ht) vendor-list odts cust custcomp)	 (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts"))))
+	     (if func (if (funcall (gethash payment-mode temp-ht) vendor-list wallet-list odts)	 (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts"))))
 	   (let ((order-id (create-order-from-shopcart  odts products odate reqdate ship-date  shipaddress shopcart-total payment-mode comments cust custcomp)))
 	     (setf (gethash "GUEST" temp-ht) (symbol-function 'send-order-email-guest-customer))
 	     (setf (gethash "STANDARD" temp-ht) (symbol-function 'send-order-email-standard-customer))
@@ -1390,7 +1393,7 @@
 	  (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty))) odts))))
     total ))
 	
-
+;This is a pure function without any side effects.
 (defun get-shopcart-vendorlist (shopcart-items)
 (remove-duplicates  (mapcar (lambda (odt) 
 	   (select-vendor-by-id (slot-value odt 'vendor-id)))  shopcart-items)
@@ -1436,7 +1439,7 @@
 		  (wallet (get-cust-wallet-by-vendor (get-login-customer) vendor (get-login-customer-company)))
 		  (odt (create-odtinst-shopcart nil product  prdqty (slot-value product 'unit-price) (hunchentoot:session-value :login-customer-company))))
 	  (if (and wallet (> prdqty 0)) 
-	      (progn (setf (hunchentoot:session-value :login-shopping-cart) (append (list odt)  myshopcart  ))
+	      (progn (setf (hunchentoot:session-value :login-shopping-cart) (append myshopcart (list odt)))
 		     (if (length (hunchentoot:session-value :login-shopping-cart)) (hunchentoot:redirect (format nil "/hhub/dodcustindex"))))
 	      ;else if wallet is not defined, create wallet first
 	      (hunchentoot:redirect (format nil "/hhub/createcustwallet?vendor-id=~A" vendor-id))))
