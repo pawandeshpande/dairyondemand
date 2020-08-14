@@ -18,10 +18,10 @@
 	   
 (defun ui-list-prod-catg (catglist)
   (cl-who:with-html-output (*standard-output* nil :prologue t :indent t)
-	(:div :class "row-fluid"	  (mapcar (lambda (prdcatg)
-						      (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
-							       (:div :class "prdcatg-box"   (prdcatg-card prdcatg )))))
-					     catglist))))
+    (:div :class "row-fluid"	  (mapcar (lambda (prdcatg)
+					    (htm (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-4" 
+						       (:div :class "prdcatg-box"   (prdcatg-card prdcatg )))))
+					  catglist))))
 
 
   
@@ -30,9 +30,9 @@
   (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
     (:div :id "searchresult"  :class "container" 
 	  (:div :class "row-fluid"  (mapcar (lambda (product)
-					            (htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-4" 
-							              (:div :class "product-box"   (product-card product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))))
-					          data)))))
+					      (htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-4" 
+							 (:div :class "product-box"   (product-card product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))))
+					    data)))))
 
 
 (defun product-card-shopcart (product-instance odt-instance)
@@ -44,7 +44,6 @@
 	   (prd-id (slot-value product-instance 'row-id))
 	   (subtotal (* prdqty unit-price))
 	   (prd-vendor (product-vendor product-instance)))
-
       (cl-who:with-html-output (*standard-output* nil)
 	(with-html-form "form-shopcart" "dodcustupdatecart"    
 	  (:div :class "row"
