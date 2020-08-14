@@ -5,6 +5,116 @@
 
 
 
+(defun modal.upload-product-images  ()
+  (cl-who:with-html-output (*standard-output* nil)
+    (:form :class "hhub-formprodimagesupload"  :role "form" :method "POST" :action "dodvenuploadproductsimagesaction" :data-toggle "validator" :enctype "multipart/form-data" 
+	   (:div :class "row"
+		 (:div :class "form-group"
+		       (:input :type "file" :multiple "true" :name "uploadedimagefiles"))
+		 (:div :class "form-group"
+		       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
+
+(defun dod-controller-vendor-upload-products-images-action ()
+  :documentation "Upload the product images in the form of jpeg, png files which are less than 1 MB in size"
+(with-vend-session-check
+  (let* ((images  (remove "uploadedimagefiles" (hunchentoot:post-parameters hunchentoot:*request*) :test (complement #'equal) :key #'car)))
+    ;; Asynchronously start the upload of images. 
+    (as:start-event-loop
+     (lambda ()
+       (async-upload-images images)))
+    (hunchentoot:redirect "/hhub/dodvenbulkaddprodpage"))))
+
+
+
+(defun async-upload-images (images)
+  (let* ((header (list "Product Name " "Description" "Qty Per Unit" "Unit Price" "Units In Stock" "Subscription Flag" "Image Path" "Image Hash"))
+	 (vendor-id (slot-value (get-login-vendor) 'row-id))
+	 (filepaths (mapcar (lambda (image)
+			     (let* ((newimageparams (remove "uploadedimagefiles" image :test #'equal ))
+				    (filename (process-image  newimageparams (format nil "~A" *HHUBRESOURCESDIR*))))
+			       (format nil "/img/~A" filename))) images))
+	 (image-path-hashes (mapcar (lambda (filepath)
+				 (string-upcase (ironclad:byte-array-to-hex-string (ironclad:digest-sequence :MD5 (ironclad:ascii-string-to-byte-array filepath))))) filepaths)))
+	 (with-open-file (stream (format nil "/data/www/highrisehub.com/public/img/temp/products-ven-~a.csv" vendor-id)  
+			 :direction :output
+			 :if-exists :supersede
+			 :if-does-not-exist :create)
+      (format stream "~A"  (create-products-csv header filepaths image-path-hashes)))))
+
+(defun create-products-csv (header imagepaths image-path-hashes)
+  (cl-who:with-html-output-to-string (*standard-output* nil)
+      (mapcar (lambda (item) (cl-who:str (format nil "~A," item ))) header)
+      (cl-who:str (format nil " ~C~C" #\return #\linefeed))
+      (mapcar (lambda (imagepath imagehash)
+		(cl-who:str (format nil ",,,,,,~a,~a~C~C" imagepath imagehash #\return #\linefeed)))  imagepaths image-path-hashes)))
+
+
+(defun modal.upload-csv-file ()
+  (cl-who:with-html-output (*standard-output* nil)
+    (:form :class "hhub-formcsvfileupload"  :role "form" :method "POST" :action "dodvenuploadproductscsvfileaction" :data-toggle "validator" :enctype "multipart/form-data" 
+	   (:div :class "row"
+	    (:div :class "form-group"
+		  (:input :type "file" :name "uploadedcsvfile"))
+	    (:div :class "form-group"
+		  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
+
+(defun dod-controller-vendor-upload-products-csvfile-action ()
+  (let* ((csvfileparams (hunchentoot:post-parameter "uploadedcsvfile"))
+	 (tempfilewithpath (nth 0 csvfileparams))
+	 ;(final-file-name (process-image  csvfileparams (format nil "~A/temp" *HHUBRESOURCESDIR*)))
+	 (prdlist (cl-csv:read-csv tempfilewithpath ;(pathname (format nil "~A/temp/~A" *HHUBRESOURCESDIR* final-file-name))
+				   :skip-first-p T  :map-fn #'(lambda (row)
+							      (when (equal (nth 7 row) (string-upcase (ironclad:byte-array-to-hex-string (ironclad:digest-sequence :MD5 (ironclad:ascii-string-to-byte-array (nth 6 row))))))
+							       (make-instance 'dod-prd-master
+									      :prd-name (nth 0 row)
+									      :description (nth 1 row)
+									      :vendor-id (slot-value (get-login-vendor) 'row-id)
+									      :catg-id nil
+									      :qty-per-unit (nth 2 row)
+									      :unit-price (nth 3 row)
+									      :units-in-stock (nth 4 row)
+									      :subscribe-flag (nth 5 row)
+									      :prd-image-path (nth 6 row)
+									      :tenant-id (get-login-vendor-tenant-id)
+									      :active-flag "Y"
+									      :approved-flag "N"
+									      :approval-status "PENDING"
+									      :deleted-state "N"))))))
+    (if prdlist (create-bulk-products prdlist))
+    (hunchentoot:redirect "/hhub/dodvenproducts")))
+
+
+
+  
+(defun dod-controller-vendor-bulk-add-products-page ()
+:documentation "Here we are going to add products in bulk using CSV file. This page will display options of adding CSV files in two phases. 
+Phase1: Temporary Image URLs creation using image files upload.
+Phase2: User should copy those URLs in Products.csv and then upload that file."
+(let ((vendor-id (slot-value (get-login-vendor) 'row-id)))
+ (with-vend-session-check
+  (with-standard-vendor-page (:title "Bulk Add Products using CSV File")
+			     (:div :class "row"
+				   (:div :class "col-xs-12 col-sm-6 col-md-6 col-lg-6"
+					 (:ul :class "list-group"
+					      (:li :class "list-group-item" "Step 1: Upload product images,  which will then  be converted to URLs.")
+					      (:li :class "list-group-item" "Step 2: Download Products.csv Template")
+					      (:li :class "list-group-item" "Step 3: Fill up other required columns of Products.csv file")
+					      (:li :class "list-group-item" "Step 4: Upload the Products.csv file")))
+						
+				   (:div :class "list-group col-xs-12 col-sm-6 col-md-6 col-lg-6" 
+					 (:a :class "list-group-item list-group-item-action" :data-toggle "modal" :data-target (format nil "#hhubvendprodimagesupload-modal")  :href "#" " Upload Product Images")
+					 ;; This download will be enabled when the file is ready for download. 
+					 (if (probe-file (format nil "/data/www/highrisehub.com/public/img/temp/products-ven-~a.csv" vendor-id))
+					     (htm (:a :href (format nil "/img/temp/products-ven-~a.csv" vendor-id) :class "list-group-item list-group-item-action" "Products.csv"))) 
+				   (:a :class "list-group-item list-group-item-action"  :data-toggle "modal" :data-target (format nil "#hhubvendprodcsvupload-modal")  :href "#"  " Upload CSV File"))
+				   ;; Modal dialog for Uploading  product images
+				   (modal-dialog (format nil "hhubvendprodimagesupload-modal") " Upload Product Images " (modal.upload-product-images))
+				   ;; Modal dialog for CSV file upload
+				   (modal-dialog (format nil "hhubvendprodcsvupload-modal") " Upload CSV File " (modal.upload-csv-file)))))))
+					 
+
+
+
 (defun modal.vendor-update-details ()
   (let* ((vendor (get-login-vendor))
 	 (name (name vendor))
@@ -51,10 +161,8 @@
 	   (vendor (get-login-vendor))
 	   (prodimageparams (hunchentoot:post-parameter "picturepath"))
 	   (tempfilewithpath (first prodimageparams))
-	   (file-name (format nil "~A-~A" (get-universal-time) (second prodimageparams))))
-     
-      (process-image prodimageparams)
-    
+	   (file-name (if tempfilewithpath (process-image prodimageparams *HHUBRESOURCESDIR*))))
+      
       (setf (slot-value vendor 'name) name)
       (setf (slot-value vendor 'address) address)
       (setf (slot-value vendor 'phone) phone)
@@ -192,9 +300,9 @@
     (with-standard-vendor-page (:title "Welcome to DAS Platform- Vendor")
       (:div :class "row"
 	    (:div :class "col-xs-12 col-sm-4 col-md-4 col-lg-4" 
-		   "Completed orders "
+		  "Completed orders "
 		  (:span :class "badge" (str (format nil " ~d " (length todaysorders))))) 
-	(:div :class  "col-xs-12 col-sm-4 col-md-4 col-lg-4"  :align "right" (:h1(:span :class "label label-default" "Todays Revenue")))	  
+	    (:div :class  "col-xs-12 col-sm-4 col-md-4 col-lg-4"  :align "right" (:h1(:span :class "label label-default" "Todays Revenue")))	  
       (:div :class  "col-xs-12 col-sm-4 col-md-4 col-lg-4"  :align "right" 
 	    (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total))))))
       (:hr)
@@ -362,6 +470,10 @@
      (hunchentoot:redirect "/hhub/dodvenproducts"))))
 
 
+
+
+
+
 (defun dod-controller-vendor-password-reset-action ()
   (let* ((pwdresettoken (hunchentoot:parameter "token"))
 	 (rstpassinst (get-reset-password-instance-by-token pwdresettoken))
@@ -381,7 +493,7 @@
        ((or  (not password-verified)  (null encryptedpass)) (dod-response-passwords-do-not-match-error)) 
        ;Token has expired
        ((and (equal user-type "VENDOR")
-		 (duration> (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+		 (clsql-sys:duration> (clsql-sys:time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (clsql-sys:make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
        ((and password-verified encryptedpass) (progn 
        (setf (slot-value vendor 'password) encryptedpass)
        (setf (slot-value vendor 'salt) salt) 
@@ -423,14 +535,14 @@
     
 	 (cond 
 	   ((and (equal user-type "VENDOR")
-		 (duration< (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*)))
+		 (clsql-sys:duration< (clsql-sys:time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (clsql-sys:make-duration :minute *HHUBPASSRESETTIMEWINDOW*)))
 	    (let* ((vendor (select-vendor-by-email email))
 		   (newpassword (reset-vendor-password vendor)))
 					;send mail to the vendor with new password 
 	      (send-temp-password vendor newpassword url)
 	      (hunchentoot:redirect "/hhub/hhubpassresetmailsent.html")))	  
 	   ((and (equal user-type "VENDOR")
-		 (duration> (time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
+		 (clsql-sys:duration> (clsql-sys:time-difference (clsql-sys:get-time) (slot-value rstpassinst 'created))  (clsql-sys:make-duration :minute *HHUBPASSRESETTIMEWINDOW*))) (hunchentoot:redirect "/hhub/hhubpassresettokenexpired.html"))
 	   ((equal user-type "CUSTOMER") ())
 	   ((equal user-type "EMPLOYEE") ()))))
 
@@ -577,6 +689,8 @@
 	(current-balance (slot-value wallet 'balance))
 	(latest-balance (+ current-balance amount)))
     (set-wallet-balance latest-balance wallet)
+					; We need to clear this memoized function and again memoize it.
+   ; (memoize 'get-cust-wallet-by-vendor)
     (hunchentoot:redirect (format nil "/hhub/dodsearchcustwalletaction?phone=~A" phone)))
   ;else 
   (hunchentoot:redirect "/hhub/vendor-login.html")))
@@ -618,7 +732,8 @@
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar")
 			 (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "HHUB" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" )  ))
+		     (:a :class "navbar-brand" :href "#" :title "HHUB" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" ))
+		     (:a :class "navbar-brand" :onclick "window.history.back();"  :href "#"  (:span :class "glyphicon glyphicon-arrow-left")))
 		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 		     (:ul :class "nav navbar-nav navbar-left"
 			 (:li :class "active" :align "center" (:a :href "dodvendindex?context=home"  (:span :class "glyphicon glyphicon-home")  " Home"))
@@ -689,7 +804,9 @@
 (defun set-vendor-session-params ( company  vendor)
  (progn 
 
-   					;set vendor company related params 
+   ;; Set the vendor session  timeout to 1 hour
+   (setf (hunchentoot:session-max-time hunchentoot:*session*) 3600)
+					;set vendor company related params 
    (setf (hunchentoot:session-value :login-vendor-tenant-id) (slot-value company 'row-id ))
    (setf (hunchentoot:session-value :login-vendor-company-name) (slot-value company 'name))
    (setf (hunchentoot:session-value :login-vendor-company) company)
@@ -745,11 +862,18 @@
 
 
 (defun dod-controller-vendor-products ()
-(with-vend-session-check 
-  (with-standard-vendor-page (:title "Welcome to HighriseHub  - Vendor")
-			     (:a :class "btn btn-primary" :role "button" :href "dodvenaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Product  ")
-			     (:hr)
-			     (str (display-as-tiles (hhub-get-cached-vendor-products)  'product-card-for-vendor)))))
+  (let ((vendor-products (hhub-get-cached-vendor-products)))
+    (with-vend-session-check 
+      (with-standard-vendor-page (:title "Welcome to HighriseHub  - Vendor")
+				 (:div :class "row" 
+				       (:div :class "col-xs-4 col-sm-4 col-md-4 col-lg-4" 
+					     (:a :class "btn btn-primary" :role "button" :href "dodvenaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Product  "))
+				       (:div :class "col-xs-4 col-sm-4 col-md-4 col-lg-4" 
+					     (:a :class "btn btn-primary" :role "button" :href "dodvenbulkaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Bulk Add Products "))
+				       (:div :class "col-xs-4 col-sm-4 col-md-4 col-lg-4" :align "right" 
+					     (:span :class "badge" (str (format nil " ~d " (length vendor-products)))))) 
+				   (:hr)
+				   (str (display-as-tiles vendor-products  'product-card-for-vendor))))))
    
 
 
@@ -761,7 +885,7 @@
 (let ((pending-orders (get-orders-for-vendor vendor 500 company ))
       (completed-orders (get-orders-for-vendor vendor 500 company  "Y" ))
       (order-items (get-order-items-for-vendor  vendor  company)) ; Get order items for last 30 days and next 30 days. 
-      (completed-orders-today (get-orders-for-vendor-by-shipped-date vendor (get-date-string-mysql (get-date)) company "Y"))) 
+      (completed-orders-today (get-orders-for-vendor-by-shipped-date vendor (get-date-string-mysql (clsql-sys:get-date)) company "Y"))) 
 
 
   (list (function (lambda () pending-orders ))
@@ -896,9 +1020,9 @@
     (if (is-dod-vend-session-valid?)
 	(let ((type (hunchentoot:parameter "type"))
 	      (header (list "Product " "Quantity" "Qty per unit" "Unit Price" ""))
-	      (today (get-date-string (get-date))))
+	      (today (get-date-string (clsql-sys:get-date))))
 	      (setf (hunchentoot:content-type*) "application/vnd.ms-excel")
-	      (setf (header-out "Content-Disposition" ) (format nil "inline; filename=Orders_~A.csv" today))
+	      (setf (hunchentoot:header-out "Content-Disposition" ) (format nil "inline; filename=Orders_~A.csv" today))
 	      (cond ((equal type "pendingorders") (ui-list-orders-for-excel header (dod-get-cached-pending-orders)))
 		    ((equal type "completedorders") (ui-list-orders-for-excel header (dod-get-cached-completed-orders)))))
 	(hunchentoot:redirect "/hhub/vendor-login.html")))
