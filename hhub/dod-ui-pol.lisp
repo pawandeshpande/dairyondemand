@@ -202,12 +202,12 @@ T)
 	   (modal-dialog (format nil "editbustrans-modal~a" row-id) "Add/Edit Business Transaction" (new-transaction-html  bustrans-instance))))))
 
 (defun attribute-card (attribute-instance)
- (let (;(attr-id (slot-value attribute-instance 'row-id))
-       (name (slot-value attribute-instance 'name))
-       (description (slot-value attribute-instance 'description))
-       (attr-func (slot-value attribute-instance 'attr-func))
-       (row-id (slot-value attribute-instance 'row-id))
-       (attr-type (slot-value attribute-instance 'attr-type)))
+  (let* ((name (slot-value attribute-instance 'name))
+	 (description (slot-value attribute-instance 'description))
+	 (attr-func (slot-value attribute-instance 'attr-func))
+	 (row-id (slot-value attribute-instance 'row-id))
+	 (attr-type (slot-value attribute-instance 'attr-type))
+	 (copystr (parenscript:ps (copy-To-Clipboard (parenscript:lisp  attr-func)))))
    
   (cl-who:with-html-output (*standard-output* nil)
     (:td :height "10px" 
@@ -215,11 +215,13 @@ T)
     (:td :height "10px" 
 	 (:h6 :class "attribute-desc"  (str description) ))
     (:td :height "10px" 
-	 (:h6 :class "attribute-name"  (str attr-func) ))
+	 (:h6 :class "attribute-name"  (str attr-func))
+	 (:a :class ""  :onclick copystr :href "#" (:span :class "glyphicon glyphicon-copy")))
     (:td :height "10px" 
 	 (:h6 :class "attribute-type" (str  (format nil "~A"  attr-type))))
     (:td :height "10px" 
 	 (:a  :data-toggle "modal" :data-target (format nil "#editattribute-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
+	 
 	 (modal-dialog (format nil "editattribute-modal~a" row-id) "Add/Edit Attribute" (com-hhub-transaction-create-attribute attribute-instance))))))
 
 
