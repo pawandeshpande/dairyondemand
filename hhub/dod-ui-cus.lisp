@@ -560,7 +560,8 @@
     (with-standard-customer-page (:title "Welcome to HighriseHub Platform- Your Demand And Supply destination.")
       	(:form :class "form-custregister" :role "form" :data-toggle "validator"  :method "POST" :action "dodcustregisteraction"
 	   (:div :class "row"
-			(:img :class "profile-img" :src "/img/logo.png" :alt "")
+		 (:a :class "btn btn-primary" :onclick "window.history.back();"  :role "button" :href "#"  (:span :class "glyphicon glyphicon-arrow-left"))
+		 (:img :class "profile-img" :src "/img/logo.png" :alt "")
 				(:h1 :class "text-center login-title"  "New Registration to HighriseHub")
 				(:hr)) 
 	       (:div :class "row" 
@@ -1589,7 +1590,8 @@
 		    (null (hunchentoot:session-value :login-customer-name))) ;; customer should not be logged-in in the first place.
 	(progn
 	  (hunchentoot:log-message* :info "Login successful for customer  ~A" customer-name)
-	  (setf *current-customer-session* (hunchentoot:start-session))
+	  (hunchentoot:start-session)
+	  (setf hunchentoot:*session-max-time* (* 3600 8))
 	  (setf (hunchentoot:session-value :login-customer ) customer)
 	  (setf (hunchentoot:session-value :login-customer-name) customer-name)
 	  (setf (hunchentoot:session-value :login-customer-id) customer-id)

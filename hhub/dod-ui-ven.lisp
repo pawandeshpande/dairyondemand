@@ -1,8 +1,6 @@
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
-(defvar *current-vendor-session* nil)
-
 
 
 (defun modal.upload-product-images  ()
@@ -719,9 +717,6 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 
 
 
-
-
-
 (defmacro with-vendor-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
     `(cl-who:with-html-output (*standard-output* nil)
@@ -777,8 +772,8 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 		    password-verified
 		    (null (hunchentoot:session-value :login-vendor-name))) ;; vendor should not be logged-in in the first place.
 	  (progn
-	    (format T "Starting session")
-	    (setf *current-vendor-session* (hunchentoot:start-session))
+	    (hunchentoot:start-session)
+	    (setf hunchentoot:*session-max-time* (* 3600 8))
 	    (if vendor (setf (hunchentoot:session-value :login-vendor ) vendor))
 	    (if vendor (setf (hunchentoot:session-value :login-vendor-name) (slot-value vendor 'name)))
 	    (if vendor (setf (hunchentoot:session-value :login-vendor-id) (slot-value vendor 'row-id)))
@@ -804,9 +799,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 (defun set-vendor-session-params ( company  vendor)
  (progn 
 
-   ;; Set the vendor session  timeout to 1 hour
-   (setf (hunchentoot:session-max-time hunchentoot:*session*) 3600)
-					;set vendor company related params 
+ 					;set vendor company related params 
    (setf (hunchentoot:session-value :login-vendor-tenant-id) (slot-value company 'row-id ))
    (setf (hunchentoot:session-value :login-vendor-company-name) (slot-value company 'name))
    (setf (hunchentoot:session-value :login-vendor-company) company)
