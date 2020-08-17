@@ -140,7 +140,7 @@
 		 (:script :src "https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")
 		 (:script :src "/js/spin.min.js")
 		 (:script :src "https://www.google.com/recaptcha/api.js")
-		 (:script :src "https://cdnjs.com/libraries/1000hz-bootstrap-validator")
+		 (:script :src "https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.8/validator.min.js")
 		 ) ;; header completes here.
 	     (:body
 		 (:div :id "dod-main-container"
