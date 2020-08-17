@@ -155,21 +155,19 @@
   (let ((policies (hhub-get-cached-auth-policies)))
     (with-opr-session-check 
       (with-standard-admin-page (:title "Welcome to Highrisehub")
-				(:div :class "row"
-				      (:h3 "Note: Any changes saved will not get reflected when you refresh the screen. Please stop and start HighriseHub system using (stop-das) followed by (start-das) in the Lisp REPL."))
-				(:div :class "row" 
-				      (:div :class "col-xs-6" 
-					    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")
-					    (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Attributes  ")
-					    (:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objects  ")
-					    (:a :class "btn btn-primary" :role "button" :href "/hhub/listabacsubjects"  " Business Personas  ")
-					    (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Transactions  ")))
-				(:hr)
-				(:div :class "row"
-				      (:div :class "col-md-12" (:h4 "Business Policies")))
-				(str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
-				(modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create))))))
 
+				(iam-security-page-header)
+		
+	 (:hr)
+	 (:div :class "row"
+	       (:div :class "col-xs-3" (:h4 "Business Policies"))
+	       (:div :class "col-xs-3" 
+		     (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")))
+
+	 (str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
+	 (modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create))))))
+
+			
 
 
 (defun com-hhub-transaction-sadmin-home () 
@@ -195,24 +193,45 @@
 
 (setq *logged-in-users* (make-hash-table :test 'equal))
 
+(defun IAM-security-page-header ()
+(cl-who:with-html-output (*standard-output* nil)
+      (:div :class "row"
+	       (:div :class "col-sm-12"
+		     (:h5 (:span :class "label label-warning" "Note: Any changes saved will not get reflected  when you refresh the screen. Please stop and start HighriseHub system 
+using (stop-das) followed by (start-das) in the Lisp REPL."))))
+	 (:div :class "row"
+	       (:div :class "col-xs-2"
+		     (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Business Attributes  "))
+	       (:div :class "col-xs-2"
+		     (:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objects  "))
+	       (:div :class "col-xs-2"
+		     (:a :class "btn btn-primary" :role "button" :href "/hhub/listabacsubjects"  " Business Personas  "))
+	       (:div :class "col-xs-2"
+		     (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Business Transactions  ")))
+	 (:div :class "row" )))
+	
+
+
 (defun dod-controller-list-busobjs () 
 :documentation "List all the business objects"
 (with-opr-session-check 
   (let ((busobjs (hhub-get-cached-bus-objects)))
     (with-standard-admin-page (:title "Business Objects ...")
-      (:div :class "row"
-	    (:div :class "col-md-12" (:h4 "Business Objects")))
-      (str (display-as-table (list "Name")  busobjs 'busobj-card))
-      (:h4 "Note: To add new business objects to the system, follow these steps.")
-      (:h4 "In the Lisp REPL call the function, (create-bus-object)")))))
+			      (IAM-security-page-header)
+			      (:div :class "row"
+				    (:div :class "col-md-12" (:h4 "Business Objects")))
+			      (str (display-as-table (list "Name")  busobjs 'busobj-card))
+			      (:h4 "Note: To add new business objects to the system, follow these steps.")
+			      (:h4 "In the Lisp REPL call the function, (create-bus-object)")))))
 
 
 
 (defun dod-controller-list-abac-subjects () 
 :documentation "List all the business objects"
 (with-opr-session-check 
-  (let ((abacsubjects (hhub-get-cached-abac-subjects)))
+  (let ((abacsubjects (select-abac-subject-by-company (get-login-company))))
     (with-standard-admin-page (:title "Business Personas ...")
+			      (IAM-security-page-header)
       (:div :class "row"
 	    (:div :class "col-md-12" (:h4 "Business Personas")))
       (str (display-as-table (list "Name")  abacsubjects 'busobj-card))
@@ -225,19 +244,22 @@
 (with-opr-session-check 
   (let ((bustrans (hhub-get-cached-transactions)))
     (with-standard-admin-page (:title "Business Transactions...")
-      (:div :class "row"
-	    (:div :class "col-md-12" 
-		  (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addtransaction-modal" "New Transaction"))
-	    (:div :class "col-md-12" 
-		  (:div :class "col-md-12" (:h4 "Business Transactions"))))
-      (str (display-as-table (list "Name" "URI" "Function" "Action")  bustrans 'bustrans-card))
-      (modal-dialog "addtransaction-modal" "Add/Edit Transaction" (new-transaction-html))))))
+			      (IAM-security-page-header)
+			      (:div :class "row"
+				    (:div :class "col-md-12" 
+					  (:div :class "col-md-12" (:h4 "Business Transactions"))))
+			      (:div :class "col-md-12" 
+				    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addtransaction-modal" "New Transaction"))
+			      
+			      (str (display-as-table (list "Name" "URI" "Function" "Action")  bustrans 'bustrans-card))
+			      (modal-dialog "addtransaction-modal" "Add/Edit Transaction" (new-transaction-html))))))
 
 (defun dod-controller-list-attrs ()
 :documentation "This function lists the attributes used in policy making"
  (with-opr-session-check 
    (let ((lstattributes (hhub-get-cached-abac-attributes)))
      (with-standard-admin-page (:title "attributes ...")
+			       (iam-security-page-header)
        (:div :class "row"
 	     (:div :class "col-md-12" (:h4 "Attributes"))
 	     (:div :class "col-md-12" 
@@ -316,20 +338,15 @@
     (when (and   
 	   (equal  login-company-name company-name)
 	   login-user 
-	   (null (hunchentoot:session-value :login-username)) ;; User should not be logged-in in the first place.
-	      )  (progn (add-login-user username  login-user)
-				      (setf *current-user-session* (hunchentoot:start-session))
-				      (setf (hunchentoot:session-value :login-username) username)
-				      (setf (hunchentoot:session-value :login-userid) login-userid)
-				      (setf (hunchentoot:session-value :login-attribute-cart) login-attribute-cart)
-				      (setf (hunchentoot:session-value :login-tenant-id) login-tenant-id)
-				      (setf (hunchentoot:session-value :login-company-name) company-name)
-				      (setf (hunchentoot:session-value :login-company) login-company))
-		 
-       	 )))
-
-
-  
+	   (null (hunchentoot:session-value :login-username))) ;; User should not be logged-in in the first place.
+      (progn (add-login-user username  login-user)
+	     (setf *current-user-session* (hunchentoot:start-session))
+	     (setf (hunchentoot:session-value :login-username) username)
+	     (setf (hunchentoot:session-value :login-userid) login-userid)
+	     (setf (hunchentoot:session-value :login-attribute-cart) login-attribute-cart)
+	     (setf (hunchentoot:session-value :login-tenant-id) login-tenant-id)
+	     (setf (hunchentoot:session-value :login-company-name) company-name)
+	     (setf (hunchentoot:session-value :login-company) login-company)))))  
   
 
 
