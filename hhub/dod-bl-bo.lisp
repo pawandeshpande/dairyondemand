@@ -79,11 +79,21 @@
 (defun get-system-bus-transactions () 
 (select-bus-trans-by-company (select-company-by-id 1)))
 
+(defun get-system-bus-transactions-ht ()
+  (let ((ht (make-hash-table :test 'equal))
+	(transactions (get-system-bus-transactions)))
+    (loop for tran in transactions do
+	 (let ((key (slot-value tran 'trans-func)))
+	   (setf (gethash key ht) tran)))
+    ht))
+
+
 (defun select-bus-trans-by-trans-func (name)
   (car (clsql:select 'dod-bus-transaction  :where
 		[and [= [:deleted-state] "N"]
 		[= [:trans-func] name]]
      :caching *dod-database-caching* :flatp t )))
+
 
 
 (defun select-bus-trans-by-company (company-instance)

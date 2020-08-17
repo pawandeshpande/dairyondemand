@@ -187,15 +187,15 @@
 
 (defun print-web-session-timeout ()
     (let ((weseti ( get-web-session-timeout)))
-	(if weseti (format t "Session will end at  ~2,'0d:~2,'0d:~2,'0d"
-		       (nth 0  weseti)(nth 1 weseti) (nth 2 weseti)))))
+	(if weseti (format t "~2,'0d:~2,'0d"
+		       (nth 0  weseti)(nth 1 weseti)))))
 
 
 (defun get-web-session-timeout ()
     (multiple-value-bind
-	(second minute hour)
+	(seconds minute hour)
 	(decode-universal-time (+ (get-universal-time) hunchentoot:*session-max-time*))
-	(list hour minute second)))
+	(list hour minute seconds)))
 
 (defmacro with-cust-session-check (&body body)
 `(if hunchentoot:*session* ,@body 
@@ -219,7 +219,7 @@
 
 
 (defmacro with-hhub-transaction (name &optional params &body body)
-`(let ((transaction (select-bus-trans-by-trans-func ,name)))
+`(let ((transaction (get-ht-val ,name (hhub-get-cached-transactions-ht))))
    (if (has-permission transaction ,params) 
        (progn 
 	 (hunchentoot:log-message* :info "Got permission for transaction ~A" (slot-value transaction 'name))
@@ -286,6 +286,7 @@ individual tiles. It also supports search functionality by including the searchr
 	(:input :type "text" :name "livesearch" :id "livesearch"  :class "form-control search-query" :placeholder ,search-placeholder)
 	,@body
 	(:span :class "input-group-btn" (:button :class "btn btn-primary" :type "submit" (:span :class " glyphicon glyphicon-search") " Go!" ))))))))
+
      
 (defmacro with-html-form ( form-name form-action  &body body) 
 :documentation "Arguments: form-action - the form's action, body - any additional hidden form input elements. This macro supports validator.js"  
@@ -297,7 +298,7 @@ individual tiles. It also supports search functionality by including the searchr
 (defun copy-hash-table (hash-table)
   (let ((ht (make-hash-table 
              :test (hash-table-test hash-table)
-             :rehash-size (hash-table-rehash-size hash-table)
+	     :rehash-size (hash-table-rehash-size hash-table)
              :rehash-threshold (hash-table-rehash-threshold hash-table)
              :size (hash-table-size hash-table))))
     (loop for key being each hash-key of hash-table

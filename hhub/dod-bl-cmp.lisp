@@ -18,12 +18,12 @@
 
 
 
-(defun get-count-company-customers (company) 
-  (let ((old-func (symbol-function 'count-company-customers))
-	(previous (make-hash-table)))
-    (defun count-company-customers (company)
-      (or (gethash company previous)
-	  (setf (gethash company previous) (funcall old-func company))))))
+;(defun get-count-company-customers (company) 
+;  (let ((old-func (symbol-function 'count-company-customers))
+;	(previous (make-hash-table)))
+;    (defun count-company-customers (company)
+;      (or (gethash company previous)
+;	  (setf (gethash company previous) (funcall old-func company))))))
 
 (defun count-company-customers (company) 
  (let ((tenant-id (slot-value company 'row-id))) 
@@ -66,7 +66,8 @@
 		:caching *dod-database-caching* :flatp t)))
 
 
-(defun list-dod-companies ()
+
+(defun get-system-companies ()
   (clsql:select 'dod-company  :where [and [= [:deleted-state] "N"]
 		[<> [:name] "super"] ; Avoid super company in any list. 
 		]   :caching *dod-database-caching* :flatp t ))

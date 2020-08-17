@@ -92,8 +92,8 @@
 
 (defun get-order-items-for-vendor (vendor-instance  company &optional  (recordsfordays 30))
   (let* ((tenant-id (slot-value company 'row-id))
-	 (strfromdate (get-date-string-mysql (date- (get-date) (make-duration :day recordsfordays))))
-	 (strtodate (get-date-string-mysql (date+ (get-date) (make-duration :day recordsfordays))))
+	 (strfromdate (get-date-string-mysql (clsql-sys:date- (clsql-sys:get-date) (clsql-sys:make-duration :day recordsfordays))))
+	 (strtodate (get-date-string-mysql (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day recordsfordays))))
 	 (vendor-id (slot-value vendor-instance 'row-id)))
  (clsql:select 'dod-order-items  :where
 	       [and [= [:deleted-state] "N"]
