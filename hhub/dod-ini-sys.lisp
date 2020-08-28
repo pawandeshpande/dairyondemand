@@ -168,15 +168,17 @@ the hunchentoot server with ssl settings"
 	(abacsubjects (get-system-abac-subjects))
 	(abacattributes (get-system-abac-attributes))
 	(transactions-ht (get-system-bus-transactions-ht))
+	(policies-ht (get-system-auth-policies-ht))
 	(companies (get-system-companies)))
-    (list (function (lambda () policies))
-	  (function (lambda () roles))
-	  (function (lambda () transactions))
-	  (function (lambda () busobjects))
-	  (function (lambda () abacsubjects))
-	  (function (lambda () abacattributes))
-	  (function (lambda () companies))
-	  (function (lambda () transactions-ht)))))
+    (list (function (lambda () policies)) ;0
+	  (function (lambda () roles)) ;1
+	  (function (lambda () transactions)) ;2
+	  (function (lambda () busobjects)) ;3
+	  (function (lambda () abacsubjects)) ;4
+ 	  (function (lambda () abacattributes)) ;5
+	  (function (lambda () companies)) ;6
+	  (function (lambda () transactions-ht)) ;7
+	  (function (lambda () policies-ht))))) ;8
 
 
 (defun hhub-get-cached-auth-policies()
@@ -223,5 +225,8 @@ the hunchentoot server with ssl settings"
  (let ((transfunc-ht (nth 7 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
     (funcall transfunc-ht)))
 
-
+(defun hhub-get-cached-auth-policies-ht ()
+  :documentation "This function gets a list of all the globally cached ABAC policies in a hashtable."
+  (let ((policiesfunc-ht (nth 8 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
+    (funcall policiesfunc-ht)))
 

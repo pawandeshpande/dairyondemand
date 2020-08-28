@@ -82,7 +82,7 @@
 		    (:div :class "input-group col-xs-12 col-sm-6 col-md-6 col-lg-6"
 			  (with-html-search-form "dodsyssearchtenantaction" "Search for an Apartment/Group"))))))
 
-(defun com-hhub-transaction-create-company (&optional id)
+(defun com-hhub-transaction-create-company-dialog (&optional id)
   (let* ((company (if id (select-company-by-id id)))
 	 (cmpname (if company (slot-value company 'name)))
 	 (cmpaddress (if company(slot-value company 'address)))
@@ -90,31 +90,30 @@
 	 (cmpstate (if company (slot-value company 'state)))
 	 (cmpwebsite (if company (slot-value company 'website)))
 	 (cmpzipcode (if company (slot-value company 'zipcode))))
-    (with-hhub-transaction "com-hhub-transaction-create-company" nil
-    	(cl-who:with-html-output (*standard-output* nil)
-	  (:div :class "row" 
-		(:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		      (with-html-form "form-addcompany" "hhubnewcompanyreq"
-			(if company (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
-			(:img :class "profile-img" :src "/img/logo.png" :alt "")
-			(:div :class "form-group"
-			      (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
-			(:div :class "form-group"
-			      (:label :for "cmpaddress")
-			      (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
-			(:div :class "form-group" :id "charcount")
-			(:div :class "form-group"
-			      (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
-			(:div :class "form-group"
-			      (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
-			(:div :class "form-group"
-			      (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
-			(:div :class "form-group"
-			      (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
-			    (:div :class "form-group"
-				  (:input :class "form-control" :type "text" :maxlength "256" :value cmpwebsite :placeholder "Website" :name "cmpwebsite" ))
-			    (:div :class "form-group"
-				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+    (cl-who:with-html-output (*standard-output* nil)
+      (:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (with-html-form "form-addcompany" "hhubnewcompanyreq"
+		    (if company (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+		    (:img :class "profile-img" :src "/img/logo.png" :alt "")
+		    (:div :class "form-group"
+			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
+		    (:div :class "form-group"
+			  (:label :for "cmpaddress")
+			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
+		    (:div :class "form-group" :id "charcount")
+		    (:div :class "form-group"
+			  (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
+		    (:div :class "form-group"
+			  (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
+		    (:div :class "form-group"
+			  (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
+		    (:div :class "form-group"
+			  (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
+		    (:div :class "form-group"
+			  (:input :class "form-control" :type "text" :maxlength "256" :value cmpwebsite :placeholder "Website" :name "cmpwebsite" ))
+		    (:div :class "form-group"
+			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
 
 
 
@@ -165,7 +164,7 @@
 		     (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")))
 
 	 (str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
-	 (modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create))))))
+	 (modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create-dialog))))))
 
 			
 
@@ -187,7 +186,7 @@
 					      (:div :id "col-xs-6" :align "right" 
 						    (:span :class "badge" (str (format nil "~A" (length companies))))))
 					(:hr)
-					(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company))
+					(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company-dialog))
 					(str (display-as-tiles companies 'company-card))))))))
 
 
@@ -267,7 +266,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
        (:hr)		       
        (str (display-as-table (list "Name" "Description" "Function" "Type" )  lstattributes 'attribute-card))
 					;  (ui-list-attributes lstattributes)
-       (modal-dialog "addattribute-modal" "Add/Edit Attribute" (com-hhub-transaction-create-attribute))))))
+       (modal-dialog "addattribute-modal" "Add/Edit Attribute" (com-hhub-transaction-create-attribute-dialog))))))
 
 (defun dod-controller-loginpage ()
   (handler-case 
@@ -448,9 +447,6 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 				  :deleted-state "N"
 				  :created-by nil
 				  :updated-by nil)))
-
-	  
-	
 	(unless(and  ( or (null cmpname) (zerop (length cmpname)))
 		     ( or (null cmpaddress) (zerop (length cmpaddress)))
 		     ( or (null cmpzipcode) (zerop (length cmpzipcode))))
@@ -461,8 +457,9 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	    
 	  
 
-(defun dod-controller-new-company-request ()
-  (if (is-dod-session-valid?)
+(defun 	com-hhub-policy-create-company ()
+  (with-opr-session-check
+    (with-hhub-transaction "com-hhub-policy-create-company" nil 
       (let*  ((id (hunchentoot:parameter "id"))
 	      (company (if id (select-company-by-id id)))
 	      (cmpname (hunchentoot:parameter "cmpname"))
@@ -473,8 +470,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	      (cmpzipcode (hunchentoot:parameter "cmpzipcode"))
 	      (cmpwebsite (hunchentoot:parameter "cmpwebsite"))
 	      (loginuser (get-login-userid)))
-	
-    
+
 	(unless(and  ( or (null cmpname) (zerop (length cmpname)))
 		     ( or (null cmpaddress) (zerop (length cmpaddress)))
 		     ( or (null cmpzipcode) (zerop (length cmpzipcode))))
@@ -488,8 +484,8 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 		     (update-company company))
 					;else
 	      (new-dod-company cmpname cmpaddress cmpcity cmpstate cmpcountry cmpzipcode cmpwebsite loginuser loginuser)))
-	(hunchentoot:redirect  "/hhub/sadminhome"))
-      (hunchentoot:redirect "/hhub/opr-login.html")))
+	(hunchentoot:redirect  "/hhub/sadminhome")))))
+
 
 
 (setq hunchentoot:*dispatch-table*
@@ -521,7 +517,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbreset.html" 'dod-controller-dbreset-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbresetaction" 'dod-controller-dbreset-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodsyssearchtenantaction" 'dod-controller-company-search-for-sys-action)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddattribute" 'dod-controller-add-attribute)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddattribute" 'com-hhub-transaction-create-attribute)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listbusobjects" 'dod-controller-list-busobjs)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listabacsubjects" 'dod-controller-list-abac-subjects)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listbustrans" 'dod-controller-list-bustrans)

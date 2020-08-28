@@ -11,6 +11,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(defun com-hhub-policy-vendor-bulk-product-add (&optional transaction params)
+  :documentation "Vendor Add bulk products using CSV file. ")
+  
 
 (defun com-hhub-policy-cad-login-page (&optional transaction params)
 :documentation "Company Administrator login page is open to all. This policy is dummy as the request is initiated by the Browser."
@@ -133,8 +136,9 @@ T)
     (hunchentoot:redirect "/hhub/listbustrans"))))
 
 
-(defun dod-controller-add-policy-action ()
-(if (is-dod-session-valid?) 
+(defun com-hhub-transaction-policy-create ()
+  (with-opr-session-check
+    (with-hhub-transaction "com-hhub-transaction-policy-create" nil 
     (let* ((company (get-login-company))
 	   (id (hunchentoot:parameter "id"))
 	   (policy (select-auth-policy-by-id id)) 
@@ -149,13 +153,13 @@ T)
 	    (update-auth-policy policy))
 	  ;else
 	(create-auth-policy (concatenate 'string *ABAC-POLICY-NAME-PREFIX*  policyname)  policydesc (concatenate 'string *ABAC-POLICY-FUNC-PREFIX*  policyfunc) company))
-	(hunchentoot:redirect "/hhub/dasabacsecurity"))
-      ;else
-      (hunchentoot:redirect "/hhub/opr-login.html")))
+      (hunchentoot:redirect "/hhub/dasabacsecurity")))))
 
 
-(defun dod-controller-add-attribute ()
-  (if (is-dod-session-valid?)
+
+(defun com-hhub-transaction-create-attribute ()
+  (with-opr-session-check
+    (with-hhub-transaction "com-hhub-transaction-create-attribute" nil
       (let* ((company (get-login-company))
 	    (id (hunchentoot:parameter "id"))
 	    (attribute (select-auth-attr-by-id id))
@@ -172,9 +176,8 @@ T)
 	      (update-auth-attr-lookup attribute))
 	    ;else 
 	(create-auth-attr-lookup (concatenate 'string  *ABAC-ATTRIBUTE-NAME-PREFIX* attrname)   attrdesc (concatenate 'string *ABAC-ATTRIBUTE-FUNC-PREFIX*  attrfunc)  attrtype company))
-	(hunchentoot:redirect "/hhub/listattributes"))
-  ;else
-  (hunchentoot:redirect "/hhub/opr-login.html")))
+	(hunchentoot:redirect "/hhub/listattributes")))))
+
 
 
 (defun busobj-card (busobj-instance)
@@ -222,7 +225,7 @@ T)
     (:td :height "10px" 
 	 (:a  :data-toggle "modal" :data-target (format nil "#editattribute-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
 	 
-	 (modal-dialog (format nil "editattribute-modal~a" row-id) "Add/Edit Attribute" (com-hhub-transaction-create-attribute attribute-instance))))))
+	 (modal-dialog (format nil "editattribute-modal~a" row-id) "Add/Edit Attribute" (com-hhub-transaction-create-attribute-dialog attribute-instance))))))
 
 
 (defun policy-card (policy-instance)
@@ -240,7 +243,7 @@ T)
        	 (:h6 :class "policy-func-name"  (str policy-func) ))
       (:td :height "10px" 
        (:a  :data-toggle "modal" :data-target (format nil "#editpolicy-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
-	(modal-dialog (format nil "editpolicy-modal~a" row-id) "Add/Edit Policy" (com-hhub-transaction-policy-create policy-instance))))))
+	(modal-dialog (format nil "editpolicy-modal~a" row-id) "Add/Edit Policy" (com-hhub-transaction-policy-create-dialog  policy-instance))))))
 
 ;; @@ deprecated : start using with-html-dropdown instead. 
 (defun  attribute-type-dropdown (selectedkey)
@@ -393,14 +396,12 @@ T)
 
 
 
-(defun com-hhub-transaction-create-attribute (&optional attribute)
+(defun com-hhub-transaction-create-attribute-dialog (&optional attribute)
   (let* ((id (if attribute (slot-value attribute 'row-id)))
 	 (attrname (if attribute (slot-value attribute 'name)))
 	 (attrdesc (if attribute (slot-value attribute 'description)))
 	 (attrtype (if attribute (slot-value attribute 'attr-type)))
 	 (attrfunc (if attribute (slot-value attribute 'attr-func))))
-	
-(with-hhub-transaction "com-hhub-transaction-create-attribute" nil 
     (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
@@ -423,31 +424,30 @@ T)
 				  (attribute-type-dropdown attrtype))
 			    
 			    (:div :class "form-group"
-				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
 
 
-(defun com-hhub-transaction-policy-create (&optional policy)
+(defun com-hhub-transaction-policy-create-dialog (&optional policy)
   (let* ((id (if policy (slot-value policy 'row-id)))
 	 (policyname (if policy (slot-value policy 'name)))
 	 (policydesc (if policy (slot-value policy 'description)))
 	 (policyfunc (if policy (slot-value policy 'policy-func))))
-    (with-hhub-transaction "com-hhub-transaction-policy-create" 
-    	(cl-who:with-html-output (*standard-output* nil)
-	  (:div :class "row" 
-		(:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		      (:form :class "form-addpolicy" :role "form" :method "POST" :action "dasaddpolicyaction"
-			     (if policy (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
-			     (:img :class "profile-img" :src "/img/logo.png" :alt "")
-			     (:h1 :class "text-center login-title"  "Add/Edit Policy")
-			     (:div :class "form-group input-group"
-				   (:span :class "input-group-addon" :id "attrnameprefix" (str *ABAC-POLICY-NAME-PREFIX*) ) 
-				   (:input :class "form-control" :name "policyname" :aria-describedby "polnameprefix" :maxlength "30"  :value (if policy (subseq policyname (length *ABAC-POLICY-NAME-PREFIX*))) :placeholder "Enter Policy  Name ( max 30 characters) " :type "text" ))
-			     (:div :class "form-group"
-				   (:label :for "policydesc")
-				   (:textarea :class "form-control" :name "policydesc"  :placeholder "Enter Policy Description ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str policydesc) ))
-			     (:div :class "form-group" :id "charcount")
-			     (:div :class "form-group input-group"
-				   (:span :class "input-group-addon" :id "policyfuncprefix" (str *ABAC-POLICY-FUNC-PREFIX*)) 
-				   (:input :class "form-control" :name "policyfunc" :maxlength "30"  :value (if policy (subseq  policyfunc (length *ABAC-POLICY-FUNC-PREFIX*))) :placeholder "Declare Policy Function Name ( max 100 characters) " :aria-describedby "policyfuncprefix"  :type "text" ))
-			     (:div :class "form-group"
-				   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+    (cl-who:with-html-output (*standard-output* nil)
+      (:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (:form :class "form-addpolicy" :role "form" :method "POST" :action "dasaddpolicyaction"
+			 (if policy (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+			 (:img :class "profile-img" :src "/img/logo.png" :alt "")
+			 (:h1 :class "text-center login-title"  "Add/Edit Policy")
+			 (:div :class "form-group input-group"
+			       (:span :class "input-group-addon" :id "attrnameprefix" (str *ABAC-POLICY-NAME-PREFIX*) ) 
+			       (:input :class "form-control" :name "policyname" :aria-describedby "polnameprefix" :maxlength "30"  :value (if policy (subseq policyname (length *ABAC-POLICY-NAME-PREFIX*))) :placeholder "Enter Policy  Name ( max 30 characters) " :type "text" ))
+			 (:div :class "form-group"
+			       (:label :for "policydesc")
+			       (:textarea :class "form-control" :name "policydesc"  :placeholder "Enter Policy Description ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str policydesc) ))
+			 (:div :class "form-group" :id "charcount")
+			 (:div :class "form-group input-group"
+			       (:span :class "input-group-addon" :id "policyfuncprefix" (str *ABAC-POLICY-FUNC-PREFIX*)) 
+			       (:input :class "form-control" :name "policyfunc" :maxlength "30"  :value (if policy (subseq  policyfunc (length *ABAC-POLICY-FUNC-PREFIX*))) :placeholder "Declare Policy Function Name ( max 100 characters) " :aria-describedby "policyfuncprefix"  :type "text" ))
+			 (:div :class "form-group"
+			       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
