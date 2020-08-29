@@ -102,6 +102,17 @@
 (defun get-auth-policies (tenant-id)
   (clsql:select 'dod-auth-policy  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]    :caching *dod-database-caching* :flatp t ))
 
+(defun get-system-auth-policies-ht ()
+  :documentation "This function stores all the system ABAC policies in a Hashtable. The Key = Policy ID, Value = Policy instance."
+  (let ((ht (make-hash-table :test 'equal))
+	(policies (get-system-auth-policies)))
+    (loop for policy in policies do
+	 (let ((key (slot-value policy 'row-id)))
+	   (setf (gethash key ht) policy)))
+    ; Return  the hash table. 
+    ht))
+
+
 (defun select-auth-policy-by-id (id)
  (car  (clsql:select 'dod-auth-policy :where 
 		[and [= [:deleted-state] "N"]
