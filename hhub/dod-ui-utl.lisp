@@ -218,16 +218,18 @@
   (hunchentoot:redirect *HHUBCADLOGINPAGEURL*)))
 
 
-(defmacro with-hhub-transaction (name &optional params &body body)
-`(let ((transaction (get-ht-val ,name (hhub-get-cached-transactions-ht))))
-   (if (has-permission transaction ,params) 
-       (progn 
-	 (hunchentoot:log-message* :info "Got permission for transaction ~A" (slot-value transaction 'name))
-	 ,@body)
-      ;else
-       (progn 
-	 (hunchentoot:log-message* :info "Permission denied for transaction ~A" (slot-value transaction 'name))
-	 "Permission Denied"))))
+(defmacro with-hhub-transaction (name &optional params  &body body)
+:documentation "This is the Policy Enforcement Point for HighriseHub" 
+  `(let* ((transaction (get-ht-val ,name (hhub-get-cached-transactions-ht)))
+	  (uri (cdr (assoc "uri" params :test 'equal))))
+     (hunchentoot:log-message* :info "In the transaction ~A" (slot-value transaction 'name))
+     (if (and (has-permission transaction ,params)
+	      (if uri (equal uri (slot-value transaction 'uri)) T ))
+	 ,@body
+					;else
+	 (progn 
+	   (hunchentoot:log-message* :info "Permission denied for transaction ~A" (slot-value transaction 'name))
+	   "Permission Denied"))))
 
 ; Policy Enforcement Point for HHUB
 (defmacro with-hhub-pep (name subject resource action env &body body)

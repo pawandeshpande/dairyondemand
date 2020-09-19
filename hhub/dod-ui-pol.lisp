@@ -1,108 +1,82 @@
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
-(defmacro with-hhub-policy (&optional transaction params &body body) 
-  `(let ((rolename (com-hhub-attribute-role-name)) 
-	 (transbo (get-bus-tran-busobject transaction)))))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;; HERE WE DEFINE ALL THE POLICIES FOR HIGHRISEHUB ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defun com-hhub-policy-vendor-bulk-product-add (&optional transaction params)
-  :documentation "Vendor Add bulk products using CSV file. ")
-  
+(defun com-hhub-policy-vendor-bulk-product-add (&optional  (params nil))
+  :documentation "Vendor Add bulk products using CSV file. "
+  (<  (cdr (assoc "prdcount" params :test 'equal)) (com-hhub-attribute-vendor-bulk-product-count)))
 
-(defun com-hhub-policy-cad-login-page (&optional transaction params)
+
+(defun com-hhub-policy-cad-login-page (&optional (params nil))
 :documentation "Company Administrator login page is open to all. This policy is dummy as the request is initiated by the Browser."
-T)
+(let ((rolename (cdr (assoc "rolename" params :test 'equal))))
+    (equal rolename "COMPADMIN")))
 
-(defun com-hhub-policy-cad-login-action (&optional transaction params)
+
+(defun com-hhub-policy-cad-login-action (&optional (params nil))
   :documentation "Company Administrator login action is open to all. This policy is dummy as the request is initiated by the Browser."
-T)
+  T)
 
-(defun com-hhub-policy-cad-logout (&optional transaction params)
+(defun com-hhub-policy-cad-logout (&optional (params nil) )
   :documentation "Company Administrator logout action is open to all. This policy is dummy as the request is initiated by the Browser."
-T)
+(let ((rolename (cdr (assoc "rolename" params :test 'equal))))
+    (equal rolename "COMPADMIN")))
 
-(defun com-hhub-policy-cad-product-approve-action (&optional transaction params)
+
+(defun com-hhub-policy-cad-product-approve-action (&optional (params nil) )
   :documentation "only a Company Administrator can Approve a product. "
-(let ((rolename (com-hhub-attribute-role-name))
-      (transbo (get-bus-tran-busobject transaction)))
-  (if (and 
-       (string-equal (slot-value transbo 'name) "Products")
-       (equal rolename "COMPADMIN")) T NIL)))
+  (let ((rolename (cdr (assoc "rolename" params :test 'equal))))
+    (equal rolename "COMPADMIN")))
 
-(defun com-hhub-policy-cad-product-reject-action (&optional transaction params)
+
+
+(defun com-hhub-policy-cad-product-reject-action (&optional ( params nil))
   :documentation "only a Company Administrator can Reject a product. "
- (com-hhub-policy-cad-product-approve-action transaction params))
+ (com-hhub-policy-cad-product-approve-action params))
 
-(defun com-hhub-policy-compadmin-home (&optional transaction params) T)
+(defun com-hhub-policy-compadmin-home ( &optional (params nil))
+  (let ((rolename (cdr (assoc "rolename" params :test 'equal))))
+    (equal rolename "COMPADMIN")))
 
-(defun com-hhub-policy-compadmin-home1 (&optional transaction params)
-:documentation "Only company administrator can see the homepage for that role "
-(let ((rolename (com-hhub-attribute-role-name))
-      (transbo (get-bus-tran-busobject transaction)))
-  (if (and 
-       (string-equal (slot-value transbo 'name) "USER")
-       (equal rolename "COMPADMIN")) T NIL)))
 
-(defun com-hhub-policy-sadmin-profile (&optional transaction params)
+(defun com-hhub-policy-sadmin-profile (&optional  (params nil))
 :documentation "Super Administrator Profile Policy"
-(let ((username (assoc "username" params :test 'equal)))
-  (if (equal (cdr username)  "superadmin") T NIL)))
+(equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
 
-(defun com-hhub-policy-sadmin-login (&optional transaction params)
-:documentation "Super Administrator Login Policy"
-(let ((username (assoc "username" params :test 'equal)))
-(if (equal (cdr username)  "superadmin") T NIL)))
+(defun com-hhub-policy-sadmin-login (&optional (params nil))
+  :documentation "Super Administrator Login Policy"
+  (equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
 
-
-(defun com-hhub-policy-cust-edit-order-item (&optional transaction params)
-  (let ((transbo (get-bus-tran-busobject transaction)))
-    ; Match the Resource attribute and Action attribute for Edit Order.
-    (if  (and (string-equal (slot-value transbo 'name )(com-hhub-attribute-order)) 
-	      (if (equal (com-hhub-attribute-cust-edit-order-item) (slot-value transaction 'name))  T NIL)
-	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-customer-order-cutoff-time)))  T NIL)) T NIL)))
+(defun com-hhub-policy-cust-edit-order-item (&optional (params nil))
+  (com-hhub-policy-create-order params))
 
 
-(defun com-hhub-policy-create-order (&optional transaction params)
-  (let ((transbo (get-bus-tran-busobject transaction)))
-					; Match the Resource attribute and Action attribute for Create Order.
-    (hunchentoot:log-message* :info "Now executing policy com.hhub.policy.create.order")
-    (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
-	      (if (equal (com-hhub-attribute-create-order) (slot-value transaction 'name)) T NIL)
-	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-customer-order-cutoff-time)))  T NIL)) T NIL)))
+(defun com-hhub-policy-create-order (&optional (params nil))
+ (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-customer-order-cutoff-time))))
 
 
-;(defun com-hhub-policy-create-order1 (subject resource action env ) 
-;  (let ((transbo (get-bus-tran-busobject transaction)))
-;    ; Match the Resource attribute and Action attribute for Create Order.
-;    (if  (and (string-equal (slot-value transbo 'name) (com-hhub-attribute-order)) 
-;	      (if (> (search (com-hhub-attribute-create-order) (slot-value transaction 'name)) 0) T NIL)
-;	      (if (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-maxordertime)))  T NIL)) T NIL)))
-
-
-
-(defun com-hhub-policy-edit-user (&optional transaction params)
+(defun com-hhub-policy-edit-user (&optional (params nil))
   :documentation "Check whether role of the login user is SUPERADMIN or not" 
-  (if (equal (get-login-user-name) "superadmin") T NIL)) 
+  (equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
 
-
-(defun com-hhub-policy-sadmin-home (&optional transaction params)
+(defun com-hhub-policy-sadmin-home (&optional (params nil))
   :documentation "Check whether role of the login user is SUPERADMIN or not" 
-  (if (equal (get-login-user-name) "superadmin") T NIL)) 
+  (equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
 
-(defun com-hhub-policy-create-company (&optional transaction params)
-  (if (equal (get-login-user-name) "superadmin") T NIL)) 
+(defun com-hhub-policy-create-company (&optional  (params nil))
+  (equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
 
-(defun com-hhub-policy-create-attribute (&optional transaction params)
-  (if (equal (get-login-user-name) "superadmin") T NIL)) 
+(defun com-hhub-policy-create-attribute (&optional (params nil))
+  (equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
 
-(defun com-hhub-policy-create (&optional transaction params)
-  (if (equal (get-login-user-name) "superadmin") T NIL)) 
+
+(defun com-hhub-policy-create (&optional (params nil))
+  (equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -138,7 +112,11 @@ T)
 
 (defun com-hhub-transaction-policy-create ()
   (with-opr-session-check
-    (with-hhub-transaction "com-hhub-transaction-policy-create" nil 
+    (let ((params nil))
+      (setf params (acons "uri" (hunchentoot:request-uri*) params))
+      (setf params (acons "busobj" "POLICY" params))
+      (setf params (acons "bussubj" "SUPERADMIN" params))
+      (with-hhub-transaction "com-hhub-transaction-policy-create" params 
     (let* ((company (get-login-company))
 	   (id (hunchentoot:parameter "id"))
 	   (policy (select-auth-policy-by-id id)) 
@@ -152,14 +130,23 @@ T)
 	    (setf (slot-value policy 'policy-func) (concatenate 'string *ABAC-POLICY-FUNC-PREFIX*  policyfunc))
 	    (update-auth-policy policy))
 	  ;else
-	(create-auth-policy (concatenate 'string *ABAC-POLICY-NAME-PREFIX*  policyname)  policydesc (concatenate 'string *ABAC-POLICY-FUNC-PREFIX*  policyfunc) company))
-      (hunchentoot:redirect "/hhub/dasabacsecurity")))))
+					; This place is good for calling a higher order function or even a macro will do.
+	  ; (with-hhub-bus-layer 'create-auth-policy (concatenate 'string *ABAC-POLICY-NAME-PREFIX*  policyname)  policydesc (concatenate 'string *ABAC-POLICY-FUNC-PREFIX*  policyfunc) company)
+	   ; (hhub-bus-layer 'create-auth-policy (concatenate 'string *ABAC-POLICY-NAME-PREFIX*  policyname)  policydesc (concatenate 'string *ABAC-POLICY-FUNC-PREFIX*  policyfunc) company)
+	  (create-auth-policy (concatenate 'string *ABAC-POLICY-NAME-PREFIX*  policyname)  policydesc (concatenate 'string *ABAC-POLICY-FUNC-PREFIX*  policyfunc) company))
+      (hunchentoot:redirect "/hhub/dasabacsecurity"))))))
 
 
 
 (defun com-hhub-transaction-create-attribute ()
   (with-opr-session-check
-    (with-hhub-transaction "com-hhub-transaction-create-attribute" nil
+    (let ((params nil))
+      (setf params (acons "username" (get-login-user-name) params))
+      (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+      (setf params (acons "busobj" "ATTRIBUTE" params))
+      (setf params (acons "bussubj" "SUPERADMIN" params))
+
+    (with-hhub-transaction "com-hhub-transaction-create-attribute" params
       (let* ((company (get-login-company))
 	    (id (hunchentoot:parameter "id"))
 	    (attribute (select-auth-attr-by-id id))
@@ -176,7 +163,7 @@ T)
 	      (update-auth-attr-lookup attribute))
 	    ;else 
 	(create-auth-attr-lookup (concatenate 'string  *ABAC-ATTRIBUTE-NAME-PREFIX* attrname)   attrdesc (concatenate 'string *ABAC-ATTRIBUTE-FUNC-PREFIX*  attrfunc)  attrtype company))
-	(hunchentoot:redirect "/hhub/listattributes")))))
+	(hunchentoot:redirect "/hhub/listattributes"))))))
 
 
 
@@ -351,46 +338,35 @@ T)
   (let* ((id (if transaction (slot-value transaction 'row-id)))
 	 (transname (if transaction (slot-value transaction 'name)))
 	 (transuri (if transaction (slot-value transaction 'uri)))
-	 (transbo (if transaction (get-bus-tran-busobject transaction)))
-	 (transsubj (if transaction (get-bus-tran-abac-subject transaction)))
-					; (bo-id (if transbo (slot-value transbo 'row-id)))
-	 (abac-subject-name (if transsubj (slot-value transsubj 'name)))
-	 (bo-name (if transbo (slot-value transbo 'name)))
 	 (transtype (if transaction (slot-value transaction 'trans-type)))
 	 (transfunc (if transaction (slot-value transaction 'trans-func))))
 	
-(cl-who:with-html-output (*standard-output* nil)
-  (:div :class "row" 
-   (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-     (:form :class "form-addtransaction" :role "form" :method "POST" :action "dasaddtransactionaction"
-       (if transaction (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
-       ;(if transbo (htm (:input :class "form-control" :type "hidden" :value bo-id :name "bo-id")))
-       (:img :class "profile-img" :src "/img/logo.png" :alt "")
-       (:h1 :class "text-center login-title"  "Add/Edit Transaction")
-       (:div :class "form-group input-group"
-	     (:span :class "input-group-addon"  "Business Object") 
-	     (business-objects-dropdown bo-name))
-       (:div :class "form-group input-group"
-	     (:span :class "input-group-addon"  "ABAC Subject")
-	     (abac-subject-dropdown abac-subject-name))
-       (:div :class "form-group input-group"
-	(:span :class "input-group-addon" :id "transnameprefix" (str *ABAC-TRANSACTION-NAME-PREFIX*) )
-	(:label :class "input-group"  :for "transname" "Name:")
-	(:input :class "form-control" :name "transname" :aria-describedby "transnameprefix" :maxlength "30"  :value (if transaction (subseq transname (length *ABAC-TRANSACTION-NAME-PREFIX*)))  :placeholder "Enter Transaction  Name ( max 30 characters) " :type "text" ))
-       (:div :class "form-group"
-	 (:label :for "transuri" "URL")
-	 (:input :class "form-control" :name "transuri" :aria-describedby "transuri" :maxlength "50" :value transuri :placeholder "Enter transaction URI" :type "text")
-	 (:h6 "Note: If the URL is changed here, then this URL has to be updated in dod-ui-sys.lisp as well."))
-       (:div :class "form-group input-group"
-	(:span :class "input-group-addon" :id "transfuncprefix" (str *ABAC-TRANSACTION-FUNC-PREFIX* ))
-	(:label :class "input-group"  :for "transfunc" "Function:")
-	(:input :class "form-control" :name "transfunc" :maxlength "30"  :value (if transaction (subseq transfunc (length *ABAC-TRANSACTION-FUNC-PREFIX*))) :placeholder "Declare Transaction Function Name ( max 100 characters) " :aria-describedby "transfuncprefix"  :type "text" )
-	(:h6 "Note: If function name is changed here, then this function must be renamed in the file as well."))
-       (:div :class "form-group input-group"
-	 (:span :class "input-group-addon"  "Type") 
-	 (transaction-type-dropdown transtype))
-       (:div :class "form-group"
-	 (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+    (cl-who:with-html-output (*standard-output* nil)
+      (:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (:form :class "form-addtransaction" :role "form" :method "POST" :action "dasaddtransactionaction"
+			 (if transaction (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+					;(if transbo (htm (:input :class "form-control" :type "hidden" :value bo-id :name "bo-id")))
+			 (:img :class "profile-img" :src "/img/logo.png" :alt "")
+			 (:h1 :class "text-center login-title"  "Add/Edit Transaction")
+			   (:div :class "form-group input-group"
+			       (:span :class "input-group-addon" :id "transnameprefix" (str *ABAC-TRANSACTION-NAME-PREFIX*) )
+			       (:label :class "input-group"  :for "transname" "Name:")
+			       (:input :class "form-control" :name "transname" :aria-describedby "transnameprefix" :maxlength "30"  :value (if transaction (subseq transname (length *ABAC-TRANSACTION-NAME-PREFIX*)))  :placeholder "Enter Transaction  Name ( max 30 characters) " :type "text" ))
+			 (:div :class "form-group"
+			       (:label :for "transuri" "URL")
+			       (:input :class "form-control" :name "transuri" :aria-describedby "transuri" :maxlength "50" :value transuri :placeholder "Enter transaction URI" :type "text")
+			       (:h6 "Note: If the URL is changed here, then this URL has to be updated in dod-ui-sys.lisp as well."))
+			 (:div :class "form-group input-group"
+			       (:span :class "input-group-addon" :id "transfuncprefix" (str *ABAC-TRANSACTION-FUNC-PREFIX* ))
+			       (:label :class "input-group"  :for "transfunc" "Function:")
+			       (:input :class "form-control" :name "transfunc" :maxlength "30"  :value (if transaction (subseq transfunc (length *ABAC-TRANSACTION-FUNC-PREFIX*))) :placeholder "Declare Transaction Function Name ( max 100 characters) " :aria-describedby "transfuncprefix"  :type "text" )
+			       (:h6 "Note: If function name is changed here, then this function must be renamed in the file as well."))
+			 (:div :class "form-group input-group"
+			       (:span :class "input-group-addon"  "Type") 
+			       (transaction-type-dropdown transtype))
+			 (:div :class "form-group"
+			       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
 
 
 

@@ -56,29 +56,35 @@
 	    (:div :class "form-group"
 		  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))
 
-(defun dod-controller-vendor-upload-products-csvfile-action ()
+(defun com-hhub-transaction-vendor-bulk-products-add ()
   (let* ((csvfileparams (hunchentoot:post-parameter "uploadedcsvfile"))
+	 (params nil)
 	 (tempfilewithpath (nth 0 csvfileparams))
-	 ;(final-file-name (process-image  csvfileparams (format nil "~A/temp" *HHUBRESOURCESDIR*)))
+					;(final-file-name (process-image  csvfileparams (format nil "~A/temp" *HHUBRESOURCESDIR*)))
 	 (prdlist (cl-csv:read-csv tempfilewithpath ;(pathname (format nil "~A/temp/~A" *HHUBRESOURCESDIR* final-file-name))
 				   :skip-first-p T  :map-fn #'(lambda (row)
-							      (when (equal (nth 7 row) (string-upcase (ironclad:byte-array-to-hex-string (ironclad:digest-sequence :MD5 (ironclad:ascii-string-to-byte-array (nth 6 row))))))
-							       (make-instance 'dod-prd-master
-									      :prd-name (nth 0 row)
-									      :description (nth 1 row)
-									      :vendor-id (slot-value (get-login-vendor) 'row-id)
-									      :catg-id nil
-									      :qty-per-unit (nth 2 row)
-									      :unit-price (nth 3 row)
-									      :units-in-stock (nth 4 row)
-									      :subscribe-flag (nth 5 row)
-									      :prd-image-path (nth 6 row)
-									      :tenant-id (get-login-vendor-tenant-id)
-									      :active-flag "Y"
-									      :approved-flag "N"
-									      :approval-status "PENDING"
-									      :deleted-state "N"))))))
-    (if prdlist (create-bulk-products prdlist))
+								(when (equal (nth 7 row) (string-upcase (ironclad:byte-array-to-hex-string (ironclad:digest-sequence :MD5 (ironclad:ascii-string-to-byte-array (nth 6 row))))))
+								  (make-instance 'dod-prd-master
+										 :prd-name (nth 0 row)
+										 :description (nth 1 row)
+										 :vendor-id (slot-value (get-login-vendor) 'row-id)
+										 :catg-id nil
+										 :qty-per-unit (nth 2 row)
+										 :unit-price (nth 3 row)
+										 :units-in-stock (nth 4 row)
+										 :subscribe-flag (nth 5 row)
+										 :prd-image-path (nth 6 row)
+										 :tenant-id (get-login-vendor-tenant-id)
+										 :active-flag "Y"
+										 :approved-flag "N"
+										 :approval-status "PENDING"
+										 :deleted-state "N"))))))
+    
+    
+    (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+    (setf params (acons "prdcount" (length prdlist) params))
+    (with-hhub-transaction "com-hhub-transaction-vendor-bulk-products-add" params
+      (if prdlist (create-bulk-products prdlist)))
     (hunchentoot:redirect "/hhub/dodvenproducts")))
 
 
