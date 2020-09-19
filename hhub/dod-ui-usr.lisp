@@ -34,6 +34,7 @@
 
 (defun com-hhub-transaction-edit-user (for-tenant-id mode  &optional user)
   (let* ((fullname (if user (slot-value user 'name)))
+	 (params nil)
 	 (username (if user (slot-value user 'username)))
 	 (email (if user (slot-value user 'email)))
 	 (phone (if user (slot-value user 'phone-mobile)))
@@ -41,44 +42,46 @@
 	 (tenant-id (if user (slot-value user 'tenant-id)))
 	 (userrole-instance (if user (select-user-role-by-userid row-id tenant-id)))
 	 (userrolename (if userrole-instance (slot-value (get-user-roles.role userrole-instance) 'name))))
-    (with-hhub-transaction "com-hhub-transaction-edit-user" nil     (cl-who:with-html-output (*standard-output* nil)
-       (:div :class "row" 
-	(:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-	 (:form :class "form-adduser" :role "form" :method "POST" :action "dasadduseraction" :data-toggle "validator"
-	   (if user (htm (:input :class "form-control" :type "hidden" :value row-id :name "id")))
-	   (:img :class "profile-img" :src "/img/logo.png" :alt "")
-	   (:h1 :class "text-center login-title"  "Add/Edit User")
-	   (:div :class "form-group input-group"
-		 (:input :class "form-control" :required T :name "fullname" :aria-describedby "fullnameprefix" :placeholder "Enter Full Name" :maxlength "60" :size "50" :type "text"  :value fullname)) 
-	   
-	   (:div :class "form-group input-group"
-		 (:input :class "form-control" :name "username" :required T :aria-describedby "nameprefix" :placeholder "Enter username" :maxlength "30" :type "text"  :value username)) 
-	   (:div :class "form-group"
-		 (:label :for "email")
-		 (:input :class "form-control" :name "email" :required T :placeholder "Enter User Email " :type "text" :value email ))
-	   (:div :class "form-group"
-		 (:label :for "userrole")
-		 (role-dropdown "userrole" userrolename))
-	   (:div :class "form-group input-group"
-		 (:input :class "form-control" :name "phone" :maxlength "30"  :required T :value phone :placeholder "Phone"  :type "text"))
-	   (if (equal mode "NEW") 
-	       (htm 
-		(:div :class "form-group input-group"
-		 (:input :class "form-control" :name "usertenantid" :type "hidden" :value for-tenant-id))
-	  
-		(:div :class "form-group input-group"
-			  (:input :class "form-control" :name "password" :id "password" :maxlength "30" :required T  :placeholder "Password"  :type "password"))
-		    (:div :class "form-group input-group"
-			  (:input :class "form-control" :name "confirmpass" :maxlength "30" :required T :data-match "#password" :data-match-error "Passwords dont match !"  :placeholder "Confirm Password"  :type "password"))))
-	       ;else
-	   (if (equal mode "EDIT") (htm (:div :class "form-group input-group"
-		 (:input :class "form-control" :name "usertenantid" :type "hidden" :value tenant-id))))
-
-	   (:div :class "form-group input-group"
-		 (:input :class "form-control" :name "userid" :type "hidden" :value row-id))
-	  
-	   	   (:div :class "form-group"
-		 (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
+          (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+    (with-hhub-transaction "com-hhub-transaction-edit-user" params
+      (cl-who:with-html-output (*standard-output* nil)
+	(:div :class "row" 
+	      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		    (:form :class "form-adduser" :role "form" :method "POST" :action "dasadduseraction" :data-toggle "validator"
+			   (if user (htm (:input :class "form-control" :type "hidden" :value row-id :name "id")))
+			   (:img :class "profile-img" :src "/img/logo.png" :alt "")
+			   (:h1 :class "text-center login-title"  "Add/Edit User")
+			   (:div :class "form-group input-group"
+				 (:input :class "form-control" :required T :name "fullname" :aria-describedby "fullnameprefix" :placeholder "Enter Full Name" :maxlength "60" :size "50" :type "text"  :value fullname)) 
+			   
+			   (:div :class "form-group input-group"
+				 (:input :class "form-control" :name "username" :required T :aria-describedby "nameprefix" :placeholder "Enter username" :maxlength "30" :type "text"  :value username)) 
+			   (:div :class "form-group"
+				 (:label :for "email")
+				 (:input :class "form-control" :name "email" :required T :placeholder "Enter User Email " :type "text" :value email ))
+			   (:div :class "form-group"
+				 (:label :for "userrole")
+				 (role-dropdown "userrole" userrolename))
+			   (:div :class "form-group input-group"
+				 (:input :class "form-control" :name "phone" :maxlength "30"  :required T :value phone :placeholder "Phone"  :type "text"))
+			   (if (equal mode "NEW") 
+			       (htm 
+				(:div :class "form-group input-group"
+				      (:input :class "form-control" :name "usertenantid" :type "hidden" :value for-tenant-id))
+				
+				(:div :class "form-group input-group"
+				      (:input :class "form-control" :name "password" :id "password" :maxlength "30" :required T  :placeholder "Password"  :type "password"))
+				(:div :class "form-group input-group"
+				      (:input :class "form-control" :name "confirmpass" :maxlength "30" :required T :data-match "#password" :data-match-error "Passwords dont match !"  :placeholder "Confirm Password"  :type "password"))))
+					;else
+			   (if (equal mode "EDIT") (htm (:div :class "form-group input-group"
+							      (:input :class "form-control" :name "usertenantid" :type "hidden" :value tenant-id))))
+			   
+			   (:div :class "form-group input-group"
+				 (:input :class "form-control" :name "userid" :type "hidden" :value row-id))
+			   
+			   (:div :class "form-group"
+				 (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
 
 
 

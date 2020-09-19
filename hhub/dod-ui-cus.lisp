@@ -1020,7 +1020,7 @@
 		      (:h1 :class "text-center login-title"  "Customer - Add order ")
 		      (:form :class "form-order" :role "form" :method "POST" :action (if (equal paymentmode "OPY") "hhubcustonlinepayment" "dodcustshopcartro") :data-toggle "validator"
 			     (:div  :class "form-group" (:label :for "orddate" "Order Date" )
-				    (:input :class "form-control" :name "orddate" :value (str (get-date-string (clsql::get-date))) :type "text"  :readonly "true"  ))
+				    (:input :class "form-control" :name "orddate" :value (str (get-date-string (clsql-sys::get-date))) :type "text"  :readonly "true"  ))
 			     (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
 				   (:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (str (format nil "~A. Click to change" (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1))))) :type "text" :value (get-date-string (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day 1)))))
 			       (:div :class "form-group" (:label :for "phone" "Phone" )
@@ -1232,8 +1232,11 @@
 
 
 (defun com-hhub-transaction-create-order ()
- (with-cust-session-check 
-   (with-hhub-transaction "com-hhub-transaction-create-order" 
+  (with-cust-session-check
+    (let ((params nil))
+      (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+            
+      (with-hhub-transaction "com-hhub-transaction-create-order" params
        (multiple-value-bind (odts products odate reqdate ship-date shipaddress shopcart-total payment-mode comments cust custcomp order-cxt phone email )
 		  (values-list (get-cust-order-params))
 	 (let* ((temp-ht (make-hash-table :test 'equal))
@@ -1256,7 +1259,7 @@
 	     (reset-cust-order-params)
 	     (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	     (setf (hunchentoot:session-value :login-shopping-cart ) nil)
-	     (hunchentoot:redirect "/hhub/dodcustordsuccess")))))))
+	     (hunchentoot:redirect "/hhub/dodcustordsuccess"))))))))
 
 (defun save-cust-order-params (list) 
   (setf (hunchentoot:session-value :customer-clipboard) list))

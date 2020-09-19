@@ -58,7 +58,11 @@
 
 (defun com-hhub-transaction-compadmin-home () 
   (with-cad-session-check 
-    (with-hhub-transaction "com-hhub-transaction-compadmin-home"  nil
+  (let ((params nil))
+    ; We are not checking the URI for home page, because it contains the session variable. 
+					; (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+    (setf params (acons "rolename" (com-hhub-attribute-role-name) params))
+    (with-hhub-transaction "com-hhub-transaction-compadmin-home" params
 	(let ((products (get-products-for-approval (get-login-tenant-id))))
 	  (with-standard-compadmin-page (:title "Welcome to Highrisehub.")
 	    (:div :class "container"
@@ -72,17 +76,24 @@
 			      (:div :id "col-xs-6" :align "right" 
 				  (:span :class "badge" (str (format nil "~A" (length products)))))))
 		  (:hr)
-		  (str (display-as-tiles products 'product-card-for-approval ))))))))
+		  (str (display-as-tiles products 'product-card-for-approval )))))))))
   
   
 (defun com-hhub-transaction-cad-login-action ()
-  (with-hhub-transaction "com-hhub-transaction-cad-login-action" nil 
+  (let ((params nil))
+    (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+    ; The person has not yet logged in 
+					;(setf params (acons "rolename" (com-hhub-attribute-role-name) params))
+    (with-hhub-transaction "com-hhub-transaction-cad-login-action" params
     (let  ((phone (hunchentoot:parameter "phone"))
 	   (passwd (hunchentoot:parameter "password")))
       (unless(and
 	      ( or (null phone) (zerop (length phone)))
 	      ( or (null passwd) (zerop (length passwd))))
-	(if (equal (dod-cad-login :phone phone :password passwd) NIL) (hunchentoot:redirect "/hhub/cad-login.html") (hunchentoot:redirect  "/hhub/hhubcadindex"))))))
+	(if (dod-cad-login :phone phone :password passwd)
+	    (hunchentoot:redirect  "/hhub/hhubcadindex")
+					;else
+	      (hunchentoot:redirect "/hhub/cad-login.html")))))))
 
 
 (defun dod-cad-login (&key phone  password)
@@ -99,6 +110,8 @@
 	 (password-verified (if login-user  (check-password password salt pwd)))
 	 (company-name (if login-user (slot-value (users-company login-user) 'name))))
 
+    (unless login-user (hunchentoot:log-message* :info "Company admin user does not exist - ~A" phone))
+    (unless password-verified (hunchentoot:log-message* :info "Password not verified for ~A" phone))
 
     (when (and   
 	   login-user password-verified
@@ -109,36 +122,46 @@
 				      (setf (hunchentoot:session-value :login-attribute-cart) login-attribute-cart)
 				      (setf (hunchentoot:session-value :login-tenant-id) login-tenant-id)
 				      (setf (hunchentoot:session-value :login-company-name) company-name)
-				      (setf (hunchentoot:session-value :login-company) login-company)))))
+				      (setf (hunchentoot:session-value :login-company) login-company)
+				      T))))
 
 
   
 (defun com-hhub-transaction-cad-logout ()
-  (with-hhub-transaction "com-hhub-transaction-cad-logout" nil 
-     (progn (dod-logout (get-login-user-name))
-	    (hunchentoot:remove-session *current-user-session*)
-	    (hunchentoot:redirect "/hhub/cad-login.html"))))
+  (let ((params nil))
+    (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+    (setf params (acons "rolename" (com-hhub-attribute-role-name) params))
+    (with-hhub-transaction "com-hhub-transaction-cad-logout" params 
+      (progn (dod-logout (get-login-user-name))
+	     (hunchentoot:remove-session *current-user-session*)
+	     (hunchentoot:redirect "/hhub/cad-login.html")))))
 
 
 
 (defun com-hhub-transaction-cad-product-reject-action ()
   (with-cad-session-check
-   (with-hhub-transaction "com-hhub-transaction-cad-product-reject-action" nil 
+     (let ((params nil))
+      (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+      (setf params (acons "rolename" (com-hhub-attribute-role-name) params))
+   (with-hhub-transaction "com-hhub-transaction-cad-product-reject-action" params 
     (let ((id (hunchentoot:parameter "id"))
 	    (description (hunchentoot:parameter "description")))
 	(reject-product id description (get-login-company))
-	(hunchentoot:redirect "/hhub/hhubcadindex")))))
+	(hunchentoot:redirect "/hhub/hhubcadindex"))))))
      
 
 
 
 (defun com-hhub-transaction-cad-product-approve-action ()
- (with-cad-session-check
-   (with-hhub-transaction "com-hhub-transaction-cad-product-approve-action" nil 
+  (with-cad-session-check
+    (let ((params nil))
+      (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+      (setf params (acons "rolename" (com-hhub-attribute-role-name) params))
+   (with-hhub-transaction "com-hhub-transaction-cad-product-approve-action" params
       (let ((id (hunchentoot:parameter "id"))
 	    (description (hunchentoot:parameter "description")))
 	(approve-product id description (get-login-company))
-	(hunchentoot:redirect "/hhub/hhubcadindex")))))
+	(hunchentoot:redirect "/hhub/hhubcadindex"))))))
 
 
 (defun dod-controller-products-approval-page ()

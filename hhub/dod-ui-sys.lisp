@@ -171,7 +171,10 @@
 
 (defun com-hhub-transaction-sadmin-home () 
   (with-opr-session-check
-    (with-hhub-transaction "com-hhub-transaction-sadmin-home" nil 
+    (let ((params nil))
+      (setf params (acons "username" (get-login-user-name) params))
+      ;(setf params (acons "uri" (hunchentoot:request-uri*)  params))
+      (with-hhub-transaction "com-hhub-transaction-sadmin-home" params 
       (let (( companies (hhub-get-cached-companies)))
 	(with-standard-admin-page (:title "Welcome to Highrisehub.")
 				  (:div :class "container"
@@ -187,10 +190,9 @@
 						    (:span :class "badge" (str (format nil "~A" (length companies))))))
 					(:hr)
 					(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company-dialog))
-					(str (display-as-tiles companies 'company-card))))))))
+					(str (display-as-tiles companies 'company-card)))))))))
 
 
-(setq *logged-in-users* (make-hash-table :test 'equal))
 
 (defun IAM-security-page-header ()
 (cl-who:with-html-output (*standard-output* nil)
@@ -198,17 +200,15 @@
 	       (:div :class "col-sm-12"
 		     (:h5 (:span :class "label label-warning" "Note: Any changes saved will not get reflected  when you refresh the screen. Please stop and start HighriseHub system 
 using (stop-das) followed by (start-das) in the Lisp REPL."))))
-	 (:div :class "row"
-	       (:div :class "col-xs-2"
-		     (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Business Attributes  "))
-	       (:div :class "col-xs-2"
-		     (:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objects  "))
-	       (:div :class "col-xs-2"
-		     (:a :class "btn btn-primary" :role "button" :href "/hhub/listabacsubjects"  " Business Personas  "))
-	       (:div :class "col-xs-2"
-		     (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Business Transactions  ")))
-	 (:div :class "row" )))
-	
+      (:div :class "row"
+	    (:div :class "col-xs-2"
+		  (:a :class "btn btn-primary" :role "button" :href "/hhub/dasabacsecurity"  " Business Policies  "))
+	    (:div :class "col-xs-2"
+		  (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Business Attributes  "))
+	    (:div :class "col-xs-2"
+		  (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Business Transactions  ")))
+      (:div :class "row" )))
+
 
 
 (defun dod-controller-list-busobjs () 
@@ -302,9 +302,10 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(passwd (hunchentoot:parameter "password"))
 	(cname (hunchentoot:parameter "company"))
 	(params nil))
-	(setf params (acons "username" uname params))
-	(setf params (acons "password" passwd params))
-	(setf params (acons "company" cname params))
+   
+   (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+   (setf params (acons "username" uname params))
+   (setf params (acons "company" cname params))
    (with-hhub-transaction "com-hhub-transaction-sadmin-login"  params   
       (unless(and
 	    ( or (null cname) (zerop (length cname)))
@@ -459,7 +460,9 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 
 (defun 	com-hhub-policy-create-company ()
   (with-opr-session-check
-    (with-hhub-transaction "com-hhub-policy-create-company" nil 
+    (let ((params nil))
+      (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+      (with-hhub-transaction "com-hhub-policy-create-company" params  
       (let*  ((id (hunchentoot:parameter "id"))
 	      (company (if id (select-company-by-id id)))
 	      (cmpname (hunchentoot:parameter "cmpname"))
@@ -484,7 +487,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 		     (update-company company))
 					;else
 	      (new-dod-company cmpname cmpaddress cmpcity cmpstate cmpcountry cmpzipcode cmpwebsite loginuser loginuser)))
-	(hunchentoot:redirect  "/hhub/sadminhome")))))
+	(hunchentoot:redirect  "/hhub/sadminhome"))))))
 
 
 
@@ -521,7 +524,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/listbusobjects" 'dod-controller-list-busobjs)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listabacsubjects" 'dod-controller-list-abac-subjects)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listbustrans" 'dod-controller-list-bustrans)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddpolicyaction" 'dod-controller-add-policy-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddpolicyaction" 'com-hhub-transaction-policy-create)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasaddtransactionaction" 'dod-controller-add-transaction-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dassearchpolicies" 'dod-controller-policy-search-action )
 	(hunchentoot:create-regex-dispatcher "^/hhub/transtopolicylinkpage" 'dod-controller-trans-to-policy-link-page)
@@ -647,7 +650,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenbulkaddprodpage" 'dod-controller-vendor-bulk-add-products-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenaddproductaction" 'dod-controller-vendor-add-product-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenuploadproductsimagesaction" 'dod-controller-vendor-upload-products-images-action)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenuploadproductscsvfileaction" 'dod-controller-vendor-upload-products-csvfile-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenuploadproductscsvfileaction" 'com-hhub-transaction-vendor-bulk-products-add)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenordcancel" 'dod-controller-vendor-order-cancel)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendupdateaction" 'dod-controller-vendor-update-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendupdatesettings" 'dod-controller-vendor-update-settings)
