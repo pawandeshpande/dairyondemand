@@ -223,8 +223,9 @@
   `(let* ((transaction (get-ht-val ,name (hhub-get-cached-transactions-ht)))
 	  (uri (cdr (assoc "uri" params :test 'equal))))
      (hunchentoot:log-message* :info "In the transaction ~A" (slot-value transaction 'name))
+     (hunchentoot:log-message* :info "URI -  ~A" uri)
      (if (and (has-permission transaction ,params)
-	      (if uri (equal uri (slot-value transaction 'uri)) T ))
+	      (>= (search  (slot-value transaction 'uri) uri) 0))
 	 ,@body
 					;else
 	 (progn 

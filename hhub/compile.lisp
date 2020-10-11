@@ -1,14 +1,15 @@
+(in-package :cl-user)
 (defun compile-hhub-files ()
   (let ((filelist (list 
 		   "packages.lisp"
 		   "secretkeys.lisp"
-		   "dod-ini-sys.lisp"
+
 		   ;;;;;;;;;;;;;;;;;; Init data
 
 ;;;;;;;;;; Utilities
 		    "dod-bl-utl.lisp"
 		    "dod-ui-utl.lisp"
-		    
+		    "dod-ini-sys.lisp"
 		   ;;;;;;;;;;;;;;; DATA ACCESS LAYER 
 		    "dod-dal-push.lisp"
 		    "dod-dal-bo.lisp"
