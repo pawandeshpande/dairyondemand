@@ -6,6 +6,7 @@
 (defvar *current-user-session* nil)
 
 
+
 (defun com-hhub-transaction-system-dashboard ()
 )
 
@@ -209,6 +210,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 		  (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Business Transactions  ")))
       (:div :class "row" )))
 
+(setq *logged-in-users* (make-hash-table :test 'equal))
 
 
 (defun dod-controller-list-busobjs () 
