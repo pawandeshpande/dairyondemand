@@ -45,12 +45,8 @@
 
 
 
-(defun remove-webpush-subscription-for-vendor (vendor) 
-  (let* ((vendor-id (slot-value vendor 'vendor-id))
-	(tenant-id (slot-value vendor 'tenant-id))
-	(push-subscription (car (clsql:select 'dod-webpush-notify :where [and [= [:vendor-id] vendor-id] [= [:tenant-id] tenant-id]] :flatp t :caching *dod-database-caching*))))
-    (setf (slot-value push-subscription 'deleted-state) "Y")
-    (clsql:update-record-from-slot push-subscription 'deleted-state)))
+(defun remove-webpush-subscription-for-vendor (subscriptions-list)
+  (delete-subscriptions subscriptions-list))
 
 (defun get-push-notify-subscription-for-customer (customer)
   (let ((cust-id (slot-value customer 'row-id))
@@ -67,7 +63,7 @@
 (defun get-push-notify-subscription-for-vendor (vendor)
   (let ((vendor-id (slot-value vendor 'row-id))
 	(tenant-id (slot-value vendor 'tenant-id)))
-    (clsql:select 'dod-webpush-notify :where
+     (clsql:select 'dod-webpush-notify :where
 		  [and
 		  [= [:deleted-state] "N"]
 		  [= [:active-flag] "Y"]

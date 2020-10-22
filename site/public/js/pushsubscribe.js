@@ -1,16 +1,19 @@
 var subscribeurl =
-  "https://highrisehub.com/hhub/hhubvendsavepushsubscription";
+  "hhubvendsavepushsubscription";
 var unsubscribeurl =
-  "https://highrisehub.com/hhub/hhubvendremovepushsubscription";
+  "hhubvendremovepushsubscription";
+
+var getvendsubscriptionurl = "hhubvendgetpushsubscription";
 
 //Vapid public key.
 var applicationServerPublicKey =
   "BBjBF5eKGs32lJVJ5DHaco9jRzIqwzKXhVdIaekVzx3_LW6KlLTsguiN3J2Tb3VQF1dJl8gLyubwCttsr_xu5jU";
 
-var serviceWorkerName = "https://highrisehub.com/js/serviceworker.js";
+var serviceWorkerName = "/js/serviceworker.js";
 
 var isSubscribed = false;
 var swRegistration = null;
+
 
 $(document).ready(function() {
   $("#btnPushNotifications").click(function(event) {
@@ -61,6 +64,48 @@ function handleSWRegistration(reg) {
   initialiseState(reg);
 }
 
+function checkPushSubscription(){
+    var jqxhr = $.getJSON(getvendsubscriptionurl, function(data){
+	var storedendpoints = data.result;
+	if(data.success == 1){
+	    $.each(data.result, function(index, item){
+		// We need the service worker registration to check for a subscription
+		navigator.serviceWorker.ready.then(function(reg) {
+		    // Do we already have a push message subscription?
+		    reg.pushManager
+			.getSubscription()
+			.then(function(subscription) {
+			    if (!subscription) {
+				console.log("Not yet subscribed to Push");
+				isSubscribed = false;
+				makeButtonSubscribable();
+			    } else {
+				// initialize status, which includes setting UI elements for subscribed status
+				// and updating Subscribers list via push
+				if(item.endpoint == subscription.endpoint){
+				    isSubscribed = true;
+				    makeButtonUnsubscribable();
+				}
+			    }
+			})
+			.catch(function(err) {
+			    console.log("Error during getSubscription()", err);
+			});
+		});
+		
+	    }); 
+	}
+	console.log("Get Vendor Subscription Returned Success.");
+    }).done(function(){
+	console.log("Get Vendor Subscription - Done");
+    }).fail(function(){
+	console.log("Get Vendor Subscription - Failed"); 
+    }).always(function(){
+	console.log("Get Vendor Subscription - Done Done"); 
+    }); 
+}
+
+
 // Once the service worker is registered set the initial state
 function initialiseState(reg) {
   // Are Notifications supported in the service worker?
@@ -77,29 +122,13 @@ function initialiseState(reg) {
     return;
   }
 
-  // We need the service worker registration to check for a subscription
-  navigator.serviceWorker.ready.then(function(reg) {
-    // Do we already have a push message subscription?
-    reg.pushManager
-      .getSubscription()
-      .then(function(subscription) {
-        if (!subscription) {
-          console.log("Not yet subscribed to Push");
-
-          isSubscribed = false;
-          makeButtonSubscribable();
-        } else {
-          // initialize status, which includes setting UI elements for subscribed status
-          // and updating Subscribers list via push
-          isSubscribed = true;
-          makeButtonUnsubscribable();
-        }
-      })
-      .catch(function(err) {
-        console.log("Error during getSubscription()", err);
-      });
-  });
+    checkPushSubscription(); 
+  
 }
+
+
+
+
 
 function subscribe() {
   navigator.serviceWorker.ready.then(function(reg) {
@@ -133,32 +162,64 @@ function subscribe() {
   });
 }
 
-function unsubscribe() {
-  var endpoint = null;
+function unsubscribe(){
+    var endpoint = null;
+    var subs = null; 
+
+    navigator.serviceWorker.ready.then(function(reg) {
+	reg.pushManager.getSubscription().then(function(subscription) {
+	    endpoint = subscription.endpoint;
+	    return subscription.unsubscribe(); 
+	    
+	}).catch(function(error){
+	    console.log("Error in unsubscribing", error)})
+	    .then(function(){
+		removeSubscriptionFromServer(endpoint);
+		console.log("User is unsubscribed");
+		isSubscribed = false;
+		makeButtonSubscribable(endpoint);
+	    });
+    });
+}
+
+
+function unsubscribe2() {
+    var endpoint = null;
+    var subs = null; 
   swRegistration.pushManager
     .getSubscription()
     .then(function(subscription) {
       if (subscription) {
-        endpoint = subscription.endpoint;
+	  subs = subscription; 
+	  endpoint = subscription.endpoint;
         return subscription.unsubscribe();
       }
     })
     .catch(function(error) {
       console.log("Error unsubscribing", error);
     })
-    .then(function() {
-      removeSubscriptionFromServer(endpoint);
-
-      console.log("User is unsubscribed.");
-      isSubscribed = false;
-
-      makeButtonSubscribable(endpoint);
+	.then(function() {
+	    if (subs) {
+		removeSubscriptionFromServer(endpoint);
+		console.log("User is unsubscribed.");
+		isSubscribed = false;
+		makeButtonSubscribable(endpoint);
+	    }
     });
 }
 
+function getCookie(k)
+{
+    var v=document.cookie.match('(^|;) ?'+k+'=([^;]*)(;|$)');
+    return v?v[2]:null
+}
+
+
 function sendSubscriptionToServer(endpoint, key, auth) {
-  var encodedKey = btoa(String.fromCharCode.apply(null, new Uint8Array(key)));
-  var encodedAuth = btoa(String.fromCharCode.apply(null, new Uint8Array(auth)));
+    var encodedKey = btoa(String.fromCharCode.apply(null, new Uint8Array(key)));
+    var encodedAuth = btoa(String.fromCharCode.apply(null, new Uint8Array(auth)));
+    var hunchentoot = getCookie("hunchentoot-session");
+    subscribeurl = subscribeurl + "?hunchentoot-session=" + hunchentoot;  
     $.ajax({
 	type: "POST",
 	url: subscribeurl,

@@ -2,7 +2,23 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
+(defun hhub-get-vendor-push-subscription ()
+  (let ((templist '())
+	(mylist '())
+	(appendlist '())
+	(vendor-subs (get-push-notify-subscription-for-vendor (get-login-vendor))))
 
+    (mapcar (lambda(sub)
+	      (let ((ep (endpoint sub)))
+		(setf templist (acons "endpoint" ep templist))
+		(setf appendlist (append appendlist (list templist))) 
+		(setf templist nil))) vendor-subs)
+
+    (setf mylist (acons "result" appendlist  mylist))    
+    (setf mylist (acons "success" 1 mylist))
+    (json:encode-json-to-string mylist)))
+
+	
 
 (defun hhub-save-customer-push-subscription ()
   (let ((endpoint (hunchentoot:parameter "notificationEndPoint"))
@@ -29,8 +45,8 @@
 
 
 (defun hhub-remove-vendor-push-subscription ()
-  (let* ((subscription (get-push-notify-subscription-for-vendor (get-login-vendor))))
-    (remove-webpush-subscription-for-vendor subscription)
+  (let* ((subscription-list (get-push-notify-subscription-for-vendor (get-login-vendor))))
+    (if subscription-list (remove-webpush-subscription-for-vendor subscription-list))
     "Vendor Subscription Removed"))
 
 
