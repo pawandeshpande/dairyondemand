@@ -137,11 +137,11 @@
     (setf (slot-value object 'deleted-state) "N")
     (clsql:update-record-from-slot object 'deleted-state))) list )))
 
-(defun persist-bus-transaction(name  uri  bo-id trans-type trans-func tenant-id )
+(defun persist-bus-transaction(name  uri  trans-type trans-func tenant-id )
  (clsql:update-records-from-instance (make-instance 'dod-bus-transaction
 						    :name name
 						    :uri uri
-						    :bo-id bo-id 
+						    :bo-id 1 
 						    :auth-policy-id 1
 						    :trans-type trans-type
 						    :active-flg "Y" 
@@ -151,10 +151,9 @@
  
 
 
-(defun create-bus-transaction (name  uri  bus-object trans-type trans-func company-instance)
-  (let ((tenant-id (slot-value company-instance 'row-id))
-	(bo-id (if bus-object (slot-value bus-object 'row-id))))
-    	      (persist-bus-transaction name  uri  bo-id trans-type trans-func  tenant-id)))
+(defun create-bus-transaction (name  uri trans-type trans-func company-instance)
+  (let ((tenant-id (slot-value company-instance 'row-id)))
+	(persist-bus-transaction name  uri trans-type trans-func  tenant-id)))
 
 
 ; POLICY ENFORCEMENT POINT 

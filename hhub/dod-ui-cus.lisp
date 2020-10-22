@@ -147,7 +147,7 @@
     :documentation "customer logout."
     (let ((company-website (get-login-customer-company-website)))
       (progn 
-	(hunchentoot:remove-session *current-customer-session*)
+	(hunchentoot:remove-session hunchentoot:*session*)
 	(if company-website (hunchentoot:redirect (format nil "http://~A" company-website)) 
 	    ;else
 	    (hunchentoot:redirect (hunchentoot:redirect "/index.html"))))))
@@ -1651,7 +1651,7 @@
 		 (null (hunchentoot:session-value :login-customer-name))) ;; customer should not be logged-in in the first place.
 	(progn
 	  (hunchentoot:log-message* :info "Login successful for customer  ~A" customer-name)
-	  (setf *current-customer-session* (hunchentoot:start-session))
+	  (hunchentoot:start-session)
 	  (setf (hunchentoot:session-value :login-customer ) customer)
 	  (setf (hunchentoot:session-value :login-customer-name) customer-name)
 	  (setf (hunchentoot:session-value :login-customer-id) customer-id)

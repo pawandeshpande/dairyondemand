@@ -2,7 +2,9 @@
 (clsql:file-enable-sql-reader-syntax)
 
 (defun com-hhub-transaction-cust-edit-order-item ()
-  (with-hhub-transaction "com-hhub-transaction-cust-edit-order" 
+  (let ((params nil))
+    (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+  (with-hhub-transaction "com-hhub-transaction-cust-edit-order-item" params 
       (let* ((item-id (hunchentoot:parameter "item-id"))
 	     (company (get-login-customer-company))
 	     (customer (get-login-customer))
@@ -30,7 +32,7 @@
 	     (update-prd-details product)
 	     
 					; ((equal prdqty 0) (delete-order-items (list item-id) company)))
-	     (hunchentoot:redirect (format nil "/hhub/hhubcustmyorderdetails?id=~A" order-id))))))))
+	     (hunchentoot:redirect (format nil "/hhub/hhubcustmyorderdetails?id=~A" order-id)))))))))
 
 
 (defun order-item-edit-popup (item-id) 
