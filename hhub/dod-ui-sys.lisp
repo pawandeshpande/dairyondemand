@@ -661,8 +661,10 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendpassreset.html" 'dod-controller-vendor-password-reset-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendgentemppass"   'dod-controller-vendor-generate-temp-password) 
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendpassreset"   'dod-controller-vendor-password-reset-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendpushsubscribepage"   'dod-controller-vendor-pushsubscribe-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendsavepushsubscription"   'hhub-save-vendor-push-subscription )
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendremovepushsubscription"   'hhub-remove-vendor-push-subscription )
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendgetpushsubscription"   'hhub-get-vendor-push-subscription )
 	
 	
 	

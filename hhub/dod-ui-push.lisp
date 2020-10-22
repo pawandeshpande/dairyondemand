@@ -2,6 +2,8 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
+
+
 (defun hhub-save-customer-push-subscription ()
   (let ((endpoint (hunchentoot:parameter "notificationEndPoint"))
 	(publicKey (hunchentoot:parameter "publicKey"))
@@ -27,9 +29,7 @@
 
 
 (defun hhub-remove-vendor-push-subscription ()
-  (let* ((vendor-id (hunchentoot:parameter "vendor-id"))
-	 (vendor (select-vendor-by-id vendor-id))
-	 (subscription (get-push-notify-subscription-for-vendor vendor)))
+  (let* ((subscription (get-push-notify-subscription-for-vendor (get-login-vendor))))
     (remove-webpush-subscription-for-vendor subscription)
     "Vendor Subscription Removed"))
 

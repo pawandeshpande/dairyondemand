@@ -1,7 +1,25 @@
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
+(defun dod-controller-vendor-pushsubscribe-page ()
+  (with-vend-session-check
+    (with-standard-vendor-page
+      (:div :class "row"
+	    (:h3 "Subscribe to Push Notification on your Browser"))
+      (:div :class "row"
+	    (:h5 "Push notification will be sent when you receive a new order"))
+      (:div :class "row"
+	    (:div :class "col-md-4" 
+		  (:button :class "btn btn-lg btn-primary btn-block" :id "btnPushNotifications" :name "btnPushNotifications" "Subscribe")))
+      
+      (:div :class "row" 
+	    (:div :class "col-md-4"
+		  (:a :href "dodvendindex?context=home" "Home")))
+            
+      (:script :src "https://www.highrisehub.com/js/pushsubscribe.js"))))
 
+
+	    
 
 (defun modal.upload-product-images  ()
   (cl-who:with-html-output (*standard-output* nil)
@@ -25,7 +43,7 @@
 
 
 (defun async-upload-images (images)
-  (let* ((header (list "Product Name " "Description" "Qty Per Unit" "Unit Price" "Units In Stock" "Subscription Flag" "Image Path" "Image Hash"))
+  (let* ((header (list "Product Name " "Description" "Qty Per Unit" "Unit Price" "Units In Stock" "Subscription Flag" "Image Path (DO NOT MODIFY)" "Image Hash (DO NOT MODIFY)"))
 	 (vendor-id (slot-value (get-login-vendor) 'row-id))
 	 (filepaths (mapcar (lambda (image)
 			     (let* ((newimageparams (remove "uploadedimagefiles" image :test #'equal ))
@@ -716,7 +734,8 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 		    
 		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendchangepin-modal")  :href "#"  "Change Password")
 		    (modal-dialog (format nil "dodvendchangepin-modal") "Change Password" (modal.vendor-change-pin))
-		    (:a :class "list-group-item" :href "/pushsubscribe.html" "Push Notifications")
+		   ; (:a :class "list-group-item" :href "/pushsubscribe.html" "Push Notifications")
+		    (:a :class "list-group-item" :href "/hhub/hhubvendpushsubscribepage" "Push Notifications")
 		    (:a :class "list-group-item" :data-toggle "modal" :data-target (format nil "#dodvendsettings-modal")  :href "#"  "Settings")
 		    (modal-dialog (format nil "dodvendsettings-modal") "Update Settings" (modal.vendor-update-settings))))
     (hunchentoot:redirect "/hhub/vendor-login.html")))
@@ -1055,7 +1074,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
     (let* ((vc (get-login-vendor-company))
 	   (company-website (if vc (slot-value vc 'website))))
       (progn 
-	(hunchentoot:remove-session *current-vendor-session*)
+	(hunchentoot:remove-session hunchentoot:*session*)
 	(if company-website (hunchentoot:redirect (format nil "http://~A" company-website)) 
 					;else
 	    (hunchentoot:redirect (hunchentoot:redirect "/index.html"))))))

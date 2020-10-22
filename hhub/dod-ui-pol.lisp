@@ -87,10 +87,6 @@
 (with-opr-session-check 
   (let* ((company (get-login-company))
 	 (id (hunchentoot:parameter "id"))
-	 (boname (hunchentoot:parameter "busobject"))
-	 (abacsubject (hunchentoot:parameter "abacsubject"))
-	 (abacsubjectobj (get-abac-subject-by-name abacsubject))
-	 (transbo (get-bus-object-by-name boname))
 	 (transaction (get-bus-transaction id))
 	 (transname (hunchentoot:parameter "transname"))
 	 (transuri (hunchentoot:parameter "transuri"))
@@ -98,24 +94,21 @@
 	 (transtype (hunchentoot:parameter "transtype")))
     (if transaction 
 	(progn 
-	  (setf (slot-value transaction 'bo-id) (slot-value transbo 'row-id))
-	  (setf (slot-value transaction 'abac-subject-id) (slot-value abacsubjectobj 'row-id)) 
 	  (setf (slot-value transaction 'name) (concatenate 'string *ABAC-TRANSACTION-NAME-PREFIX* transname))
 	  (setf (slot-value transaction 'uri) transuri)
 	  (setf (slot-value transaction 'trans-func) (concatenate 'string *ABAC-TRANSACTION-FUNC-PREFIX* transfunc))
 	  (setf (slot-value transaction 'trans-type) transtype)
 	  (update-bus-transaction transaction))
 					;else
-	(create-bus-transaction (concatenate 'string *ABAC-TRANSACTION-NAME-PREFIX* transname)  transuri  transbo transtype (concatenate 'string *ABAC-TRANSACTION-FUNC-PREFIX* transfunc) company))
+	(create-bus-transaction (concatenate 'string *ABAC-TRANSACTION-NAME-PREFIX* transname)  transuri  transtype (concatenate 'string *ABAC-TRANSACTION-FUNC-PREFIX* transfunc) company))
     (hunchentoot:redirect "/hhub/listbustrans"))))
 
 
 (defun com-hhub-transaction-policy-create ()
   (with-opr-session-check
     (let ((params nil))
+      (setf params (acons "username" (get-login-user-name) params))
       (setf params (acons "uri" (hunchentoot:request-uri*) params))
-      (setf params (acons "busobj" "POLICY" params))
-      (setf params (acons "bussubj" "SUPERADMIN" params))
       (with-hhub-transaction "com-hhub-transaction-policy-create" params 
     (let* ((company (get-login-company))
 	   (id (hunchentoot:parameter "id"))

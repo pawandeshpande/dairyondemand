@@ -28,9 +28,9 @@
 	 (udf4 "not used")
 	 (udf5 "not used")
 	 (show-convenience-fee "Y")
-	 (return-url (format nil "~A?~A" *PAYGATEWAYRETURNURL* (format nil "~A=~A" (hunchentoot:session-cookie-name *current-customer-session*) (hunchentoot:url-encode (hunchentoot:session-cookie-value *current-customer-session*))))) 
-	 (return-url-cancel (format nil "~A?~A" *PAYGATEWAYCANCELURL* (format nil "~A=~A" (hunchentoot:session-cookie-name *current-customer-session*) (hunchentoot:url-encode (hunchentoot:session-cookie-value *current-customer-session*)))))  
-	 (return-url-failure (format nil "~A?~A" *PAYGATEWAYFAILUREURL*  (format nil "~A=~A" (hunchentoot:session-cookie-name *current-customer-session*) (hunchentoot:url-encode (hunchentoot:session-cookie-value *current-customer-session*)))))
+	 (return-url (format nil "~A?~A" *PAYGATEWAYRETURNURL* (format nil "~A=~A" (hunchentoot:session-cookie-name *current-customer-session*) (hunchentoot:url-encode (hunchentoot:session-cookie-value hunchentoot:*session*))))) 
+	 (return-url-cancel (format nil "~A?~A" *PAYGATEWAYCANCELURL* (format nil "~A=~A" (hunchentoot:session-cookie-name *current-customer-session*) (hunchentoot:url-encode (hunchentoot:session-cookie-value hunchentoot:*session*)))))  
+	 (return-url-failure (format nil "~A?~A" *PAYGATEWAYFAILUREURL*  (format nil "~A=~A" (hunchentoot:session-cookie-name *current-customer-session*) (hunchentoot:url-encode (hunchentoot:session-cookie-value hunchentoot:*session*)))))
 	 (param-names (list "amount" "api_key" "city" "country" "currency" "description" "email" "mode"  "name" "order_id" "phone" "return_url" "show_convenience_fee" "return_url_cancel" "return_url_failure" "udf1" "udf2" "udf3" "udf4" "udf5"  "zip_code"))
 	 (param-values (list amount payment-api-key customer-city customer-country currency description customer-email mode  customer-name order-id  customer-phone return-url show-convenience-fee return-url-cancel return-url-failure udf1 udf2 udf3 udf4 udf5  customer-zipcode))
 	 (params-alist (pairlis param-names param-values))
@@ -81,6 +81,7 @@
 
 
 (defun dod-controller-customer-payment-successful-page ()
+  :documentation "This page is called by the Payment Gateway when the payment is successful and the PG redirects to HighriseHub" 
   (let* ((transaction-id (hunchentoot:parameter "transaction_id"))
 	 (company (get-login-customer-company))
 	 (payment-method (hunchentoot:parameter "payment_method"))

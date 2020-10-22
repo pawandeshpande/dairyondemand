@@ -1,13 +1,13 @@
 var subscribeurl =
-  "https://www.highrisehub.com/hhub/hhubvendsavepushsubscription";
+  "https://highrisehub.com/hhub/hhubvendsavepushsubscription";
 var unsubscribeurl =
-  "https://www.highrisehub.com/hhub/hhubvendremovepushsubscription";
+  "https://highrisehub.com/hhub/hhubvendremovepushsubscription";
 
 //Vapid public key.
 var applicationServerPublicKey =
   "BBjBF5eKGs32lJVJ5DHaco9jRzIqwzKXhVdIaekVzx3_LW6KlLTsguiN3J2Tb3VQF1dJl8gLyubwCttsr_xu5jU";
 
-var serviceWorkerName = "serviceworker.js";
+var serviceWorkerName = "https://highrisehub.com/js/serviceworker.js";
 
 var isSubscribed = false;
 var swRegistration = null;
