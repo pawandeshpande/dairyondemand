@@ -1,5 +1,7 @@
+;; -*- mode: common-lisp; coding: utf-8 -*-
 (in-package :hhub)
-(clsql:file-enable-sql-reader-syntax)
+;;(clsql:file-enable-sql-reader-syntax)
+
 
 (clsql:def-view-class dod-order ()
   ((row-id
@@ -77,18 +79,21 @@
     :void-value "N"
     :initarg :deleted-state)
 
-    (tenant-id
+(order-type 
+ :type (string 4)
+ :initarg :order-type
+ :void-value "SALE")
+
+(tenant-id
     :type integer
     :initarg :tenant-id)
-   (COMPANY
-    :ACCESSOR get-company
-    :DB-KIND :JOIN
-    :DB-INFO (:JOIN-CLASS dod-company
-	                  :HOME-KEY tenant-id
-                          :FOREIGN-KEY row-id
-                          :SET nil)))
-
-   
+(COMPANY
+ :ACCESSOR get-company
+ :DB-KIND :JOIN
+ :DB-INFO (:JOIN-CLASS dod-company
+	   :HOME-KEY tenant-id
+	   :FOREIGN-KEY row-id
+	   :SET nil)))
   (:BASE-TABLE dod_order))
 
 

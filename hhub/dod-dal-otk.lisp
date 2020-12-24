@@ -1,6 +1,5 @@
 ;; -*- mode: common-lisp; coding: utf-8 -*-
-(in-package :dairyondemand)
-(clsql:file-enable-sql-reader-syntax)
+(in-package :hhub)
 
 (clsql:def-view-class dod-order-track ()
   ((row-id

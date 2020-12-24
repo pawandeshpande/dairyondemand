@@ -1,5 +1,6 @@
-(in-package :dairyondemand)
-(clsql:file-enable-sql-reader-syntax)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
+
 (clsql:def-view-class dod-prd-master ()
   ((row-id
     :db-kind :key
@@ -85,6 +86,11 @@
     :void-value "PENDING"
     :initarg :approval-status)
 
+      (prd-type
+       :type (string 4)
+       :void-value "SALE"
+       :initarg :prd-type)
+      
     (tenant-id
     :type integer
     :initarg :tenant-id)

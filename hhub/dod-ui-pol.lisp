@@ -164,7 +164,7 @@
   (let ((name (slot-value busobj-instance 'name)))
 	(cl-who:with-html-output (*standard-output* nil)
 	  (:td :height "10px" 
-	   (:h6 :class "busobj-name"  (str (format nil " ~A" name)))))))
+	   (:h6 :class "busobj-name"  (cl-who:str (format nil " ~A" name)))))))
 
 (defun bustrans-card (bustrans-instance)
   (let ((name (slot-value bustrans-instance 'name))
@@ -173,11 +173,11 @@
 	(trans-func (slot-value bustrans-instance 'trans-func)))
     (cl-who:with-html-output (*standard-output* nil)
       (:td :height "10px" 
-	   (:h6 :class "bustrans-name"  (str (format nil " ~A" name))))
+	   (:h6 :class "bustrans-name"  (cl-who:str (format nil " ~A" name))))
       (:td :height "10px" 
-	   (:h6 :class "bustrans-name"  (str (format nil " ~A" uri))))
+	   (:h6 :class "bustrans-name"  (cl-who:str (format nil " ~A" uri))))
       (:td :height "10px" 
-	   (:h6 :class "bustrans-name"  (str (format nil "~A" trans-func))))
+	   (:h6 :class "bustrans-name"  (cl-who:str (format nil "~A" trans-func))))
       (:td :height "10px" 
 	   (:a  :data-toggle "modal" :data-target (format nil "#editbustrans-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
 	   (:a  :data-toggle "modal"  :data-target (format nil "#linkbustrans-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-link"))
@@ -194,14 +194,14 @@
    
   (cl-who:with-html-output (*standard-output* nil)
     (:td :height "10px" 
-	 (:h6 :class "attribute-name"  (str name) ))
+	 (:h6 :class "attribute-name"  (cl-who:str name) ))
     (:td :height "10px" 
-	 (:h6 :class "attribute-desc"  (str description) ))
+	 (:h6 :class "attribute-desc"  (cl-who:str description) ))
     (:td :height "10px" 
-	 (:h6 :class "attribute-name"  (str attr-func))
+	 (:h6 :class "attribute-name"  (cl-who:str attr-func))
 	 (:a :class ""  :onclick copystr :href "#" (:span :class "glyphicon glyphicon-copy")))
     (:td :height "10px" 
-	 (:h6 :class "attribute-type" (str  (format nil "~A"  attr-type))))
+	 (:h6 :class "attribute-type" (cl-who:str  (format nil "~A"  attr-type))))
     (:td :height "10px" 
 	 (:a  :data-toggle "modal" :data-target (format nil "#editattribute-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
 	 
@@ -216,11 +216,11 @@
     (cl-who:with-html-output (*standard-output* nil)
       
       (:td :height "10px" 
-	(:h6 :class "policy-name"  (str name)))
+	(:h6 :class "policy-name"  (cl-who:str name)))
       (:td :height "10px" 
-	(:h6 :class "policy-desc"  (str description)))
+	(:h6 :class "policy-desc"  (cl-who:str description)))
       (:td :height "10px" 
-       	 (:h6 :class "policy-func-name"  (str policy-func) ))
+       	 (:h6 :class "policy-func-name"  (cl-who:str policy-func) ))
       (:td :height "10px" 
        (:a  :data-toggle "modal" :data-target (format nil "#editpolicy-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
 	(modal-dialog (format nil "editpolicy-modal~a" row-id) "Add/Edit Policy" (com-hhub-transaction-policy-create-dialog  policy-instance))))))
@@ -265,8 +265,8 @@
     (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row"
 	    (:div :class "col-xs-12"
-		  (if policy (htm (:h4 (str (format nil "Linked Policy Name: ~A" (slot-value policy 'name)))))
-		      (htm (:h4 (str (format nil "No Policy Linked! Create a New Policy.")))))))
+		  (if policy (cl-who:htm (:h4 (cl-who:str (format nil "Linked Policy Name: ~A" (slot-value policy 'name)))))
+		      (cl-who:htm (:h4 (cl-who:str (format nil "No Policy Linked! Create a New Policy.")))))))
       (:hr)
       (:a :class "btn btn-primary" :role "button" :href (format nil "/hhub/transtopolicylinkpage?trans-id=~A" (slot-value transaction 'row-id)) " Link Policy/Change "))))
 
@@ -279,10 +279,10 @@
   (with-standard-admin-page (:title "Link Transaction To Policy")  
     (:div :class "row" 
 	  (:div :class "col-xs-12" 
-		(:h4 (str (format nil "Transaction:   ~A" (slot-value transaction 'name))))))
+		(:h4 (cl-who:str (format nil "Transaction:   ~A" (slot-value transaction 'name))))))
     (:div :class "row" 
 	  (:div :class "col-xs-12" 
-		(:h4 (str (format nil "Currently linked policy:   ~A" (slot-value policy 'name))))))
+		(:h4 (cl-who:str (format nil "Currently linked policy:   ~A" (slot-value policy 'name))))))
 
     (with-html-search-form "dassearchpolicies" "Enter Policy Name..." 
       (:input :class "form-control" :name "trans-id" :type "hidden" :value trans-id))
@@ -304,9 +304,9 @@
 
  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
   (if policy-list 
-      (htm (:div :class "row-fluid"	  
+      (cl-who:htm (:div :class "row-fluid"	  
 	    (mapcar (lambda (pol)
-		      (htm (:form :method "POST" :action "transtopolicylinkaction" :id "transtopolicylinkform"  
+		      (cl-who:htm (:form :method "POST" :action "transtopolicylinkaction" :id "transtopolicylinkform"  
 			   (:div :class "col-sm-4 col-lg-3 col-md-4"
 			    (:div :class "form-group"
 			     (:input :class "form-control" :name "trans-id" :type "hidden" :value trans-id ))
@@ -314,9 +314,9 @@
 			     (:input :class "form-control" :name "policy-id" :type "hidden" :value (slot-value pol 'row-id) ))
 			    
 			    (:div :class "form-group"
-				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" (str (format nil "~A" (slot-value pol 'name)))))))))  policy-list)))
+				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" (cl-who:str (format nil "~A" (slot-value pol 'name)))))))))  policy-list)))
 					;else
-      (htm (:div :class "col-sm-12 col-md-12 col-lg-12"
+      (cl-who:htm (:div :class "col-sm-12 col-md-12 col-lg-12"
 		 (:h3 "No records found")))))))
 
 (defun dod-controller-trans-to-policy-link-action ()
@@ -338,12 +338,12 @@
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		  (:form :class "form-addtransaction" :role "form" :method "POST" :action "dasaddtransactionaction"
-			 (if transaction (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
-					;(if transbo (htm (:input :class "form-control" :type "hidden" :value bo-id :name "bo-id")))
+			 (if transaction (cl-who:htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+					;(if transbo (cl-who:htm (:input :class "form-control" :type "hidden" :value bo-id :name "bo-id")))
 			 (:img :class "profile-img" :src "/img/logo.png" :alt "")
 			 (:h1 :class "text-center login-title"  "Add/Edit Transaction")
 			   (:div :class "form-group input-group"
-			       (:span :class "input-group-addon" :id "transnameprefix" (str *ABAC-TRANSACTION-NAME-PREFIX*) )
+			       (:span :class "input-group-addon" :id "transnameprefix" (cl-who:str *ABAC-TRANSACTION-NAME-PREFIX*) )
 			       (:label :class "input-group"  :for "transname" "Name:")
 			       (:input :class "form-control" :name "transname" :aria-describedby "transnameprefix" :maxlength "30"  :value (if transaction (subseq transname (length *ABAC-TRANSACTION-NAME-PREFIX*)))  :placeholder "Enter Transaction  Name ( max 30 characters) " :type "text" ))
 			 (:div :class "form-group"
@@ -351,7 +351,7 @@
 			       (:input :class "form-control" :name "transuri" :aria-describedby "transuri" :maxlength "50" :value transuri :placeholder "Enter transaction URI" :type "text")
 			       (:h6 "Note: If the URL is changed here, then this URL has to be updated in dod-ui-sys.lisp as well."))
 			 (:div :class "form-group input-group"
-			       (:span :class "input-group-addon" :id "transfuncprefix" (str *ABAC-TRANSACTION-FUNC-PREFIX* ))
+			       (:span :class "input-group-addon" :id "transfuncprefix" (cl-who:str *ABAC-TRANSACTION-FUNC-PREFIX* ))
 			       (:label :class "input-group"  :for "transfunc" "Function:")
 			       (:input :class "form-control" :name "transfunc" :maxlength "30"  :value (if transaction (subseq transfunc (length *ABAC-TRANSACTION-FUNC-PREFIX*))) :placeholder "Declare Transaction Function Name ( max 100 characters) " :aria-describedby "transfuncprefix"  :type "text" )
 			       (:h6 "Note: If function name is changed here, then this function must be renamed in the file as well."))
@@ -375,19 +375,19 @@
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		  (:form :class "form-addattribute" :role "form" :method "POST" :action "dasaddattribute"
-			 (if attribute (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+			 (if attribute (cl-who:htm (:input :class "form-control" :type "hidden" :value id :name "id")))
 			 (:img :class "profile-img" :src "/img/logo.png" :alt "")
 			    (:h1 :class "text-center login-title"  "Add/Edit Attribute")
 			    (:div :class "form-group input-group"
-				  (:span :class "input-group-addon" :id "attrnameprefix" (str *ABAC-ATTRIBUTE-NAME-PREFIX*)) 
+				  (:span :class "input-group-addon" :id "attrnameprefix" (cl-who:str *ABAC-ATTRIBUTE-NAME-PREFIX*)) 
 				  (:input :class "form-control" :name "attrname" :id "attrname"  :aria-describedby "attrnameprefix" :maxlength "30"  :value (if attribute (subseq attrname (length *ABAC-ATTRIBUTE-NAME-PREFIX*))) :placeholder "Enter Attribute  Name ( max 30 characters) " :type "text" ))
 			    (:div :class "form-group"
 				  (:label :for "attrdesc")
-				  (:textarea :class "form-control" :name "attrdesc"  :placeholder "Enter Attribute Description ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 200)" (str attrdesc) ))
+				  (:textarea :class "form-control" :name "attrdesc"  :placeholder "Enter Attribute Description ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 200)" (cl-who:str attrdesc) ))
 			    (:div :class "form-group" :id "charcount")
 			    (:div :class "form-group input-group"
 				  
-				  (:span :class "input-group-addon" :id "attrfuncprefix" (str *ABAC-ATTRIBUTE-FUNC-PREFIX*)) 
+				  (:span :class "input-group-addon" :id "attrfuncprefix" (cl-who:str *ABAC-ATTRIBUTE-FUNC-PREFIX*)) 
 				  (:input :class "form-control" :name "attrfunc" :id "attrfunc"  :maxlength "30"  :value (if attribute (subseq attrfunc (length *ABAC-ATTRIBUTE-FUNC-PREFIX*))) :placeholder "Declare Attribute Function Name ( max 100 characters) " :aria-describedby "attrfuncprefix"  :type "text" ))
 			    (:div :class "form-group"
 				  (attribute-type-dropdown attrtype))
@@ -405,18 +405,18 @@
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		  (:form :class "form-addpolicy" :role "form" :method "POST" :action "dasaddpolicyaction"
-			 (if policy (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+			 (if policy (cl-who:htm (:input :class "form-control" :type "hidden" :value id :name "id")))
 			 (:img :class "profile-img" :src "/img/logo.png" :alt "")
 			 (:h1 :class "text-center login-title"  "Add/Edit Policy")
 			 (:div :class "form-group input-group"
-			       (:span :class "input-group-addon" :id "attrnameprefix" (str *ABAC-POLICY-NAME-PREFIX*) ) 
+			       (:span :class "input-group-addon" :id "attrnameprefix" (cl-who:str *ABAC-POLICY-NAME-PREFIX*) ) 
 			       (:input :class "form-control" :name "policyname" :aria-describedby "polnameprefix" :maxlength "30"  :value (if policy (subseq policyname (length *ABAC-POLICY-NAME-PREFIX*))) :placeholder "Enter Policy  Name ( max 30 characters) " :type "text" ))
 			 (:div :class "form-group"
 			       (:label :for "policydesc")
-			       (:textarea :class "form-control" :name "policydesc"  :placeholder "Enter Policy Description ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str policydesc) ))
+			       (:textarea :class "form-control" :name "policydesc"  :placeholder "Enter Policy Description ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (cl-who:str policydesc) ))
 			 (:div :class "form-group" :id "charcount")
 			 (:div :class "form-group input-group"
-			       (:span :class "input-group-addon" :id "policyfuncprefix" (str *ABAC-POLICY-FUNC-PREFIX*)) 
+			       (:span :class "input-group-addon" :id "policyfuncprefix" (cl-who:str *ABAC-POLICY-FUNC-PREFIX*)) 
 			       (:input :class "form-control" :name "policyfunc" :maxlength "30"  :value (if policy (subseq  policyfunc (length *ABAC-POLICY-FUNC-PREFIX*))) :placeholder "Declare Policy Function Name ( max 100 characters) " :aria-describedby "policyfuncprefix"  :type "text" ))
 			 (:div :class "form-group"
 			       (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))

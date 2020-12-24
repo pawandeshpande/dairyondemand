@@ -10,7 +10,7 @@
        (:h3 "Users")
        (:a  :data-toggle "modal" :data-target (format nil "#adduser-modal")  :href "#"  (:span :class "glyphicon glyphicon-plus") " Add User")
 	(modal-dialog (format nil "adduser-modal") "Add/Edit Policy" (com-hhub-transaction-edit-user tenant-id "NEW"))
-       (str (display-as-table (list "Name" "Phone number" "Email" "Action")  users 'user-card))))
+       (cl-who:str (display-as-table (list "Name" "Phone number" "Email" "Action")  users 'user-card))))
    (hunchentoot:redirect "/hhub/opr-login.html")))
 
 
@@ -21,11 +21,11 @@
 	(row-id (slot-value user-instance 'row-id)))
     (cl-who:with-html-output (*standard-output* nil)
       (:td :height "10px" 
-	(:h6 :class "user-name"  (str name)))
+	(:h6 :class "user-name"  (cl-who:str name)))
       (:td :height "10px" 
-	(:h6 :class "user-phone-mobile"  (str phone-mobile)))
+	(:h6 :class "user-phone-mobile"  (cl-who:str phone-mobile)))
       (:td :height "10px" 
-       	 (:h6 :class "user-email"  (str email) ))
+       	 (:h6 :class "user-email"  (cl-who:str email) ))
       (:td :height "10px" 
        (:a  :data-toggle "modal" :data-target (format nil "#edituser-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
 	(modal-dialog (format nil "edituser-modal~a" row-id) "Add/Edit Policy" (com-hhub-transaction-edit-user nil "EDIT" user-instance))))))
@@ -48,7 +48,7 @@
 	(:div :class "row" 
 	      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		    (:form :class "form-adduser" :role "form" :method "POST" :action "dasadduseraction" :data-toggle "validator"
-			   (if user (htm (:input :class "form-control" :type "hidden" :value row-id :name "id")))
+			   (if user (cl-who:htm (:input :class "form-control" :type "hidden" :value row-id :name "id")))
 			   (:img :class "profile-img" :src "/img/logo.png" :alt "")
 			   (:h1 :class "text-center login-title"  "Add/Edit User")
 			   (:div :class "form-group input-group"
@@ -65,7 +65,7 @@
 			   (:div :class "form-group input-group"
 				 (:input :class "form-control" :name "phone" :maxlength "30"  :required T :value phone :placeholder "Phone"  :type "text"))
 			   (if (equal mode "NEW") 
-			       (htm 
+			       (cl-who:htm 
 				(:div :class "form-group input-group"
 				      (:input :class "form-control" :name "usertenantid" :type "hidden" :value for-tenant-id))
 				
@@ -74,7 +74,7 @@
 				(:div :class "form-group input-group"
 				      (:input :class "form-control" :name "confirmpass" :maxlength "30" :required T :data-match "#password" :data-match-error "Passwords dont match !"  :placeholder "Confirm Password"  :type "password"))))
 					;else
-			   (if (equal mode "EDIT") (htm (:div :class "form-group input-group"
+			   (if (equal mode "EDIT") (cl-who:htm (:div :class "form-group input-group"
 							      (:input :class "form-control" :name "usertenantid" :type "hidden" :value tenant-id))))
 			   
 			   (:div :class "form-group input-group"

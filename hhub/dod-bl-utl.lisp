@@ -1,6 +1,6 @@
 ;; -*- mode: common-lisp; coding: utf-8 -*-
 (in-package :hhub)
-
+(clsql:file-enable-sql-reader-syntax)
 
 
 
@@ -35,11 +35,11 @@
 
 
 (defun hhub-write-file-for-css-inlining (contents) 
-  (with-open-file (str "/data/www/highrisehub.com/public/emailtemplate.html"
+  (with-open-file (stream "/data/www/highrisehub.com/public/emailtemplate.html"
                      :direction :output
                      :if-exists :supersede
                      :if-does-not-exist :create)
-  (format str "~A" contents)))
+  (format stream "~A" contents)))
 
 
 (defun process-image (image move-to)

@@ -1,5 +1,5 @@
-(in-package :dairyondemand)
-(clsql:file-enable-sql-reader-syntax)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 
 (defun dod-controller-delete-company ()
 (if (is-dod-session-valid?)
@@ -21,7 +21,7 @@
 	 (:div :class "product-box" 
 	  (:div :class "row"
 		(:div :class "col-xs-8" 
-		      (:h3 (str (if (> (length comp-name) 20)  (subseq comp-name 0 20) comp-name))))
+		      (:h3 (cl-who:str (if (> (length comp-name) 20)  (subseq comp-name 0 20) comp-name))))
 		(:div :class "col-xs-1" :align "right" 
 		      (:a  :data-toggle "modal" :data-target (format nil "#editcompany-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
 				(modal-dialog (format nil "editcompany-modal~a" row-id) "Add/Edit Group" (com-hhub-transaction-create-company-dialog row-id)))
@@ -33,55 +33,43 @@
 			   (:li (:a :href "#" "Delete")))))
 		 
 	  (:div :class "row"
-		(:div :class "col-xs-12"  (str (if (> (length address) 20)  (subseq address 0 20) address))))
+		(:div :class "col-xs-12"  (cl-who:str (if (> (length address) 20)  (subseq address 0 20) address))))
 	  (:div :class "row"
-		(:div :class "col-xs-12" (str city)))
+		(:div :class "col-xs-12" (cl-who:str city)))
 	  (:div :class "row"
-		(:div :class "col-xs-6" (str state))
-		(:div :class "col-xs-6" (str country)))
+		(:div :class "col-xs-6" (cl-who:str state))
+		(:div :class "col-xs-6" (cl-who:str country)))
 	  (:div :class "row"
-		(:div :class "col-xs-6" (str zipcode)))
+		(:div :class "col-xs-6" (cl-who:str zipcode)))
 	  (:div :class "row" 
-		(:div :class "col-xs-6" (:b (:h5 (str (format nil "No of Customers: ~A " (count-company-customers instance))))))
-	  (:div :class "col-xs-6" (:b (:h5 (str (format nil  "No of Vendors: ~A " (count-company-vendors instance )))))))
+		(:div :class "col-xs-6" (:b (:h5 (cl-who:str (format nil "No of Customers: ~A " (count-company-customers instance))))))
+	  (:div :class "col-xs-6" (:b (:h5 (cl-who:str (format nil  "No of Vendors: ~A " (count-company-vendors instance )))))))
 	  ))))
 
 
 (defun dod-controller-list-companies ()
 (with-opr-session-check
-   (let (( companies (list-dod-companies)))
+   (let (( companies (get-system-companies)))
     (with-standard-admin-page (:title "List companies")
       (ui-list-companies companies)))))
-
-
 
 (defun ui-list-companies (company-list)
  (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
   (if company-list 
-      (htm (:div :class "row-fluid"	  
+      (cl-who:htm (:div :class "row-fluid"	  
 	    (mapcar (lambda (cmp)
-		      (htm
+		      (cl-who:htm
 		        (:div :class "col-sm-4 col-lg-3 col-md-4"
 			      (:form :method "POST" :action "custsignup1action" :id "custsignup1form" 
 				     (:div :class "form-group"
-					   (:input :class "form-control" :name "cname" :type "hidden" :value (str (format nil "~A" (slot-value cmp 'name)))))
+					   (:input :class "form-control" :name "cname" :type "hidden" :value (cl-who:str (format nil "~A" (slot-value cmp 'name)))))
 				     (:div :class "form-group"
-					   (:button :class "btn btn-sm btn-primary btn-block" :type "submit" (str (format nil "~A - Sign Up" (slot-value cmp 'name))))))
+					   (:button :class "btn btn-sm btn-primary btn-block" :type "submit" (cl-who:str (format nil "~A - Sign Up" (slot-value cmp 'name))))))
 			(:a :target "_blank" :href (format nil "dascustloginasguest?tenant-id=~A" (slot-value cmp 'row-id)) (:span :class "glyphicon glyphicon-shopping-cart") " Shop Now")
 			)))  company-list)))
 					;else
-      (htm (:div :class "col-sm-12 col-md-12 col-lg-12"
+      (cl-who:htm (:div :class "col-sm-12 col-md-12 col-lg-12"
 		 (:h3 "Record Not Found."))))))
-
-
-
-
-
-
-
-
-
-
 
 (defun get-login-tenant-id ()
   (hunchentoot:session-value :login-tenant-id))

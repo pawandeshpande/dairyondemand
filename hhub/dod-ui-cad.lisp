@@ -1,33 +1,30 @@
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
-(defmacro with-compadmin-navigation-bar ()
+(eval-when (:compile-toplevel :load-toplevel :execute) 
+  (defmacro with-compadmin-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
     `(cl-who:with-html-output (*standard-output* nil)
-	 (:div :class "navbar navbar-default navbar-inverse navbar-static-top"
+       (:div :class "navbar navbar-default navbar-inverse navbar-static-top"
 	     (:div :class "container-fluid"
-		 (:div :class "navbar-header"
-		     (:button :type "button" :class "navbar-toggle" :data-toggle "collapse" :data-target "#navHeaderCollapse"
-			 (:span :class "icon-bar")
-			 (:span :class "icon-bar")
-			 (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "HighriseHub" (:img :style "width: 30px; height: 30px;" :src "/img/logo.png" )  ))
-		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
-		     (:ul :class "nav navbar-nav navbar-left"
-			 (:li :class "active" :align "center" (:a :href "/hhub/hhubcadindex"  (:span :class "glyphicon glyphicon-home")  " Home"))
-			 (:li  (:a :href "/hhub/dasproductapprovals" "Customer Approvals"))
-			 (:li  (:a :href "/hhub/dasproductapprovals" "Vendor Approvals"))
-			 (:li :align "center" (:a :href "#" (str (format nil "Group: ~a" (slot-value (get-login-company) 'name)))))
-			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
-		     
-		     (:ul :class "nav navbar-nav navbar-right"
-			 (:li :align "center" (:a :href "#"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
-			 (:li :align "center" (:a :href "/hhub/hhubcadlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
-
-
-
-
-
+		   (:div :class "navbar-header"
+			 (:button :type "button" :class "navbar-toggle" :data-toggle "collapse" :data-target "#navHeaderCollapse"
+				  (:span :class "icon-bar")
+				  (:span :class "icon-bar")
+				  (:span :class "icon-bar"))
+			 (:a :class "navbar-brand" :href "#" :title "HighriseHub" (:img :style "width: 30px; height: 30px;" :src "/img/logo.png" )  ))
+		   (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
+			 (:ul :class "nav navbar-nav navbar-left"
+			      (:li :class "active" :align "center" (:a :href "/hhub/hhubcadindex"  (:span :class "glyphicon glyphicon-home")  " Home"))
+			      (:li  (:a :href "/hhub/dasproductapprovals" "Customer Approvals"))
+			      (:li  (:a :href "/hhub/dasproductapprovals" "Vendor Approvals"))
+			      (:li :align "center" (:a :href "#" (cl-who:str (format nil "Group: ~a" (slot-value (get-login-company) 'name)))))
+			      (:li :align "center" (:a :href "#" (print-web-session-timeout))))
+			 
+			 (:ul :class "nav navbar-nav navbar-right"
+			      (:li :align "center" (:a :href "#"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
+			      (:li :align "center" (:a :href "/hhub/hhubcadlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  )))))))))
+  
 
 (defun com-hhub-transaction-cad-login-page ()
   (handler-case 
@@ -60,7 +57,7 @@
   (with-cad-session-check 
   (let ((params nil))
     ; We are not checking the URI for home page, because it contains the session variable. 
-					; (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+    (setf params (acons "uri" (hunchentoot:request-uri*)  params))
     (setf params (acons "rolename" (com-hhub-attribute-role-name) params))
     (with-hhub-transaction "com-hhub-transaction-compadmin-home" params
 	(let ((products (get-products-for-approval (get-login-tenant-id))))
@@ -68,15 +65,15 @@
 	    (:div :class "container"
 		  (:div :id "row"
 			(:div :id "col-xs-6" 
-			      (:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+			      (:h3 "Welcome " (cl-who:str (format nil "~A" (get-login-user-name))))))
 		  (:hr)
 		  (:h4 "Pending Product Approvals")
 		  (:div :id "row"
 			(:div :id "col-xs-6"
 			      (:div :id "col-xs-6" :align "right" 
-				  (:span :class "badge" (str (format nil "~A" (length products)))))))
+				  (:span :class "badge" (cl-who:str (format nil "~A" (length products)))))))
 		  (:hr)
-		  (str (display-as-tiles products 'product-card-for-approval )))))))))
+		  (cl-who:str (display-as-tiles products 'product-card-for-approval )))))))))
   
   
 (defun com-hhub-transaction-cad-login-action ()
@@ -172,13 +169,13 @@
 	(:div :class "container"
 	(:div :id "row"
 	      (:div :id "col-xs-6" 
-	(:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+	(:h3 "Welcome " (cl-who:str (format nil "~A" (get-login-user-name))))))
 	(:hr)
 	(:h4 "Pending Product Approvals")
 	(:div :id "row"
 	      (:div :id "col-xs-6"
 		    (:div :id "col-xs-6" :align "right" 
-			  (:span :class "badge" (str (format nil "~A" (length products)))))))
+			  (:span :class "badge" (cl-who:str (format nil "~A" (length products)))))))
 	(:hr)
-   	(str (display-as-tiles products 'product-card-for-approval )))))))
+   	(cl-who:str (display-as-tiles products 'product-card-for-approval )))))))
    

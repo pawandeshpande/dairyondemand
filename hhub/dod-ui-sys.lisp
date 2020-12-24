@@ -1,4 +1,5 @@
-(in-package :dairyondemand)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
 
@@ -14,7 +15,7 @@
 (defun com-hhub-transaction-sadmin-profile ()
  (with-opr-session-check 
     (with-standard-admin-page (:title "welcome to highrisehub")
-       (:h3 "Welcome " (str (format nil "~a" (get-login-user-name))))
+       (:h3 "Welcome " (cl-who:str (format nil "~a" (get-login-user-name))))
        (:hr)
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6 col-xs-12"
 	     (:a :class "list-group-item" :href "#" "Reset Password")
@@ -26,38 +27,39 @@
   (let ((batchresult (run-daily-orders-batch 7)))
     (json:encode-json-to-string batchresult)))
 
-(defmacro with-admin-navigation-bar ()
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-admin-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
     `(cl-who:with-html-output (*standard-output* nil)
-	 (:div :class "navbar navbar-default navbar-inverse navbar-static-top"
+       (:div :class "navbar navbar-default navbar-inverse navbar-static-top"
 	     (:div :class "container-fluid"
-		 (:div :class "navbar-header"
-		     (:button :type "button" :class "navbar-toggle" :data-toggle "collapse" :data-target "#navHeaderCollapse"
-			 (:span :class "icon-bar")
-			 (:span :class "icon-bar")
-			 (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "HighriseHub" (:img :style "width: 30px; height: 30px;" :src "/img/logo.png" )  ))
-		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
-		     (:ul :class "nav navbar-nav navbar-left"
-			 (:li :class "active" :align "center" (:a :href "/hhub/sadminhome"  (:span :class "glyphicon glyphicon-home")  " Home"))
-			 (:li  (:a :href "/hhub/dasabacsecurity" "IAM Security"))
-			 (:li :align "center" (:a :href "#" (print-web-session-timeout))))
-		     
-		     (:ul :class "nav navbar-nav navbar-right"
-			 (:li :align "center" (:a :href "hhubsadminprofile"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
-			 (:li :align "center" (:a :href "dodlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
-
-
+		   (:div :class "navbar-header"
+			 (:button :type "button" :class "navbar-toggle" :data-toggle "collapse" :data-target "#navHeaderCollapse"
+				  (:span :class "icon-bar")
+				  (:span :class "icon-bar")
+				  (:span :class "icon-bar"))
+			 (:a :class "navbar-brand" :href "#" :title "HighriseHub" (:img :style "width: 30px; height: 30px;" :src "/img/logo.png" )  ))
+		   (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
+			 (:ul :class "nav navbar-nav navbar-left"
+			      (:li :class "active" :align "center" (:a :href "/hhub/sadminhome"  (:span :class "glyphicon glyphicon-home")  " Home"))
+			      (:li  (:a :href "/hhub/dasabacsecurity" "IAM Security"))
+			      (:li :align "center" (:a :href "#" (print-web-session-timeout))))
+			 
+			 (:ul :class "nav navbar-nav navbar-right"
+			      (:li :align "center" (:a :href "hhubsadminprofile"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
+			      (:li :align "center" (:a :href "dodlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  )))))))))
+  
+  
 (defun dod-controller-dbreset-page () 
   :documentation "No longer used now" 
-(with-standard-admin-page (:title "Restart Higirisehub.com")
-  (:div :class "row"
-	(:div :class "col-sm-12 col-md-12 col-lg-12"
-	      (:form :id "restartsiteform" :method "POST" :action "dbresetaction"
-		     (:div :class "form-group"
-			   (:input :class "form-control" :name "password" :placeholder "password"  :type "password"))
-		      (:div :class "form-group"
-			    (:input :type "submit" :name "submit" :class "btn btn-primary" :value "Go...      ")))))))
+  (with-standard-admin-page (:title "Restart Higirisehub.com")
+    (:div :class "row"
+	  (:div :class "col-sm-12 col-md-12 col-lg-12"
+		(:form :id "restartsiteform" :method "POST" :action "dbresetaction"
+		       (:div :class "form-group"
+			     (:input :class "form-control" :name "password" :placeholder "password"  :type "password"))
+		       (:div :class "form-group"
+			     (:input :type "submit" :name "submit" :class "btn btn-primary" :value "Go...      ")))))))
 
 
 
@@ -77,11 +79,11 @@
 
 
 (defun company-search-html ()
-(cl-who:with-html-output (*standard-output* nil)
-	(:div :class "row"
-	      (:div :id "custom-search-input"
-		    (:div :class "input-group col-xs-12 col-sm-6 col-md-6 col-lg-6"
-			  (with-html-search-form "dodsyssearchtenantaction" "Search for an Apartment/Group"))))))
+  (cl-who:with-html-output (*standard-output* nil)
+    (:div :class "row"
+	  (:div :id "custom-search-input"
+		(:div :class "input-group col-xs-12 col-sm-6 col-md-6 col-lg-6"
+		      (with-html-search-form "dodsyssearchtenantaction" "Search for an Apartment/Group"))))))
 
 (defun com-hhub-transaction-create-company-dialog (&optional id)
   (let* ((company (if id (select-company-by-id id)))
@@ -95,13 +97,13 @@
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		  (with-html-form "form-addcompany" "hhubnewcompanyreq"
-		    (if company (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+		    (if company (cl-who:htm (:input :class "form-control" :type "hidden" :value id :name "id")))
 		    (:img :class "profile-img" :src "/img/logo.png" :alt "")
 		    (:div :class "form-group"
 			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
 		    (:div :class "form-group"
 			  (:label :for "cmpaddress")
-			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
+			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (cl-who:str cmpaddress) ))
 		    (:div :class "form-group" :id "charcount")
 		    (:div :class "form-group"
 			  (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
@@ -164,7 +166,7 @@
 	       (:div :class "col-xs-3" 
 		     (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")))
 
-	 (str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
+	 (cl-who:str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
 	 (modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create-dialog))))))
 
 			
@@ -181,17 +183,17 @@
 				  (:div :class "container"
 					(:div :id "row"
 					      (:div :id "col-xs-6" 
-						    (:h3 "Welcome " (str (format nil "~A" (get-login-user-name))))))
+						    (:h3 "Welcome " (cl-who:str (format nil "~A" (get-login-user-name))))))
 					(company-search-html)
 					(:div :id "row"
 					      (:div :id "col-xs-6"
 					;  (:a :class "btn btn-primary" :role "button" :href "new-company" :data-toggle "modal" :data-target "#editcompany-modal" (:span :class "glyphicon glyphicon-shopping-plus") " Add New Group  ")
 						    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group"))
 					      (:div :id "col-xs-6" :align "right" 
-						    (:span :class "badge" (str (format nil "~A" (length companies))))))
+						    (:span :class "badge" (cl-who:str (format nil "~A" (length companies))))))
 					(:hr)
 					(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company-dialog))
-					(str (display-as-tiles companies 'company-card)))))))))
+					(cl-who:str (display-as-tiles companies 'company-card)))))))))
 
 
 
@@ -221,7 +223,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 			      (IAM-security-page-header)
 			      (:div :class "row"
 				    (:div :class "col-md-12" (:h4 "Business Objects")))
-			      (str (display-as-table (list "Name")  busobjs 'busobj-card))
+			      (cl-who:str (display-as-table (list "Name")  busobjs 'busobj-card))
 			      (:h4 "Note: To add new business objects to the system, follow these steps.")
 			      (:h4 "In the Lisp REPL call the function, (create-bus-object)")))))
 
@@ -235,7 +237,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 			      (IAM-security-page-header)
       (:div :class "row"
 	    (:div :class "col-md-12" (:h4 "Business Personas")))
-      (str (display-as-table (list "Name")  abacsubjects 'busobj-card))
+      (cl-who:str (display-as-table (list "Name")  abacsubjects 'busobj-card))
       (:h4 "Note: To add new Business Persona to the system, follow these steps.")
       (:h4 "In the Lisp REPL call the function, (create-abac-subject)")))))
 
@@ -252,7 +254,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 			      (:div :class "col-md-12" 
 				    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addtransaction-modal" "New Transaction"))
 			      
-			      (str (display-as-table (list "Name" "URI" "Function" "Action")  bustrans 'bustrans-card))
+			      (cl-who:str (display-as-table (list "Name" "URI" "Function" "Action")  bustrans 'bustrans-card))
 			      (modal-dialog "addtransaction-modal" "Add/Edit Transaction" (new-transaction-html))))))
 
 (defun dod-controller-list-attrs ()
@@ -266,7 +268,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	     (:div :class "col-md-12" 
 		   (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addattribute-modal" "Add New Attribute")))
        (:hr)		       
-       (str (display-as-table (list "Name" "Description" "Function" "Type" )  lstattributes 'attribute-card))
+       (cl-who:str (display-as-table (list "Name" "Description" "Function" "Type" )  lstattributes 'attribute-card))
 					;  (ui-list-attributes lstattributes)
        (modal-dialog "addattribute-modal" "Add/Edit Attribute" (com-hhub-transaction-create-attribute-dialog))))))
 
@@ -394,7 +396,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	 (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 	       (:form :class "form-addcompany" :role "form" :method "POST" :action "hhubnewcompanyreq" 
 		      (if company 
-			  (htm (:input :class "form-control" :type "hidden" :value id :name "id")))
+			  (cl-who:htm (:input :class "form-control" :type "hidden" :value id :name "id")))
 			  
 			  
 		      (:div :class "account-wall"
@@ -404,7 +406,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 				  (:input :class "form-control" :name "cmpname" :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
 			    (:div :class "form-group"
 				  (:label :for "cmpaddress")
-				  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (str cmpaddress) ))
+				  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (cl-who:str cmpaddress) ))
 			    (:div :class "form-group" :id "charcount")
 			    (:div :class "form-group"
 				   (:input :class "form-control" :type "text":value cmpcity :placeholder "City"  :name "cmpcity" ))
@@ -509,7 +511,6 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-customers" 'dod-controller-list-customers)
 	(hunchentoot:create-regex-dispatcher "^/hhub/orderdetails" 'dod-controller-list-order-details)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-vendors" 'dod-controller-list-vendors)
-	(hunchentoot:create-regex-dispatcher "^/hhub/list-orderprefs" 'dod-controller-list-orderprefs)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-products" 'dod-controller-list-products)
 	(hunchentoot:create-regex-dispatcher "^/hhub/user-added" 'dod-controller-user-added)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodlogout" 'dod-controller-logout)
@@ -608,7 +609,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresetmailsent.html"   'dod-controller-password-reset-mail-sent )
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpassresetmaillinksent.html"   'dod-controller-password-reset-mail-link-sent)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustsavepushsubscription"   'hhub-save-customer-push-subscription)
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustremovepushsubscription"   'hhub-remove-customer-push-subscription)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustremovepushsubscription"   'hhub-remove-vendor-push-subscription)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustonlinepayment"   'hhub-cust-online-payment)
 	
 	
@@ -666,8 +667,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendremovepushsubscription"   'hhub-remove-vendor-push-subscription )
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendgetpushsubscription"   'hhub-get-vendor-push-subscription )
 	
-	
-	
+		
 ))
 
 

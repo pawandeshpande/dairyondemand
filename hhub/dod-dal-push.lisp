@@ -1,5 +1,40 @@
-(in-package :dairyondemand)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
+
+;; Generic Functions
+
+;; Entity class
+;; Webpush notify general class
+(defclass WebPushNotify (BusinessObject) 
+  ((browser-name)
+   (endpoint)
+   (publickey)
+   (auth)
+   (perm-granted)
+   (expired)))
+
+
+;; Entity class
+;; Web Push Notify Customer class represents the webpush notify subscription for the customer. 
+(defclass WebPushNotifyCustomer (WebPushNotify)
+  ((customer)))
+
+;; Entity class. 
+;; Web Push Notify Vendor class represents the webpush notify subscription for the Vendor. 
+(defclass WebPushNotifyVendor (WebPushNotify)
+  ((vendor)))
+
+
+(defclass WebPushNotifyVendorContainer (BusinessObjectContainer)
+  ((WebPushNotifyVendor)))
+
+(defgeneric getWebPushNotifyVendorSubscriptions (BusinessObjectContainer Vendor)
+  (:documentation "Get Web Push Notify Subscriptions for a given Vendor"))
+  
+
+;; This is database releated class. 
+
 (clsql:def-view-class dod-webpush-notify ()
   ((row-id
     :db-kind :key
@@ -114,3 +149,24 @@
   (:BASE-TABLE DOD_WEBPUSH_NOTIFY))
 
 
+  (defmethod getWebPushNotifyVendorSubscriptions ((webpushsubscontainer BusinessObjectContainer) vendor)
+    (let ((db-vendor (getDBVendor vendor))
+	  (vendor-id (slot-value 'db-vendor 'row-id))
+	  (db-vendorpushsubs     (clsql:select 'dod-webpush-notify :where
+						[and
+						[= [:deleted-state] "N"]
+						[= [:active-flag] "Y"]
+						[= [:vendor-id] vendor-id]
+						[= [:person-type] "VENDOR"]
+						[= [:tenant-id] tenant-id]] :caching *dod-database-caching* :flatp t))
+	  (WebPushNotifyVendorSubs (slot-value webpushsubscontainer 'WebPushNotifyVendor)))
+      (mapcar (lambda (db-vendorpush)
+		(with-slots (browser-name  endpoint publickey auth perm-granted expired vendor) WebPushNotifyVendorSubs
+		  (setf browser-name (slot-value db-vendorpush 'browser-name)))) db-vendorpushsubs)))
+		  
+
+      
+
+
+
+  

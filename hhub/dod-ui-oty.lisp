@@ -1,5 +1,5 @@
-(in-package :dairyondemand)
-(clsql:file-enable-sql-reader-syntax)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 
 (defun crm-controller-delete-journal-entry ()
 (if (is-crm-session-valid?)
@@ -15,10 +15,10 @@
     (standard-page (:title "List Journal Entries")
       (:table :class "table table-striped" 
 	      (:tr  (:th "Name") (:th "Description") (:th "Action"))
-      (if (= (list-length journal-entries) 0) (htm (:tr (:td  :height "12px" (:p "No journal-entry Found"))))
+      (if (= (list-length journal-entries) 0) (cl-who:htm (:tr (:td  :height "12px" (:p "No journal-entry Found"))))
       (loop for journal-entry in journal-entries
-       do (htm (:tr (:td  (str (slot-value journal-entry 'name)))
-		    (:td  (str (slot-value journal-entry 'description)))
+       do (cl-who:htm (:tr (:td  (cl-who:str (slot-value journal-entry 'name)))
+		    (:td  (cl-who:str (slot-value journal-entry 'description)))
 		    (:td  (:a :href  (format nil  "/deljournal-entry?id=~A" (slot-value journal-entry 'row-id)) "Delete")))))))))
     (hunchentoot:redirect "/login")))
 
@@ -29,10 +29,10 @@
     (standard-page (:title "List Journal Entry Details")
       (:table :class "table table-striped" 
 	      (:tr (:th "Name") (:th "Description") (:th "Action"))
-      (if (= (list-length journal-entries) 0) (htm (:tr (:td  :height "12px" (:p "No journal-entry Found"))))
+      (if (= (list-length journal-entries) 0) (cl-who:htm (:tr (:td  :height "12px" (:p "No journal-entry Found"))))
       (loop for journal-entry in journal-entries
-       do (htm (:tr (:td  (str (slot-value journal-entry 'name)))
-		    (:td  (str (slot-value journal-entry 'description)))
+       do (cl-who:htm (:tr (:td  (cl-who:str (slot-value journal-entry 'name)))
+		    (:td  (cl-who:str (slot-value journal-entry 'description)))
 		    (:td  (:a :href  (format nil  "/deljournal-entry?id=~A" (slot-value journal-entry 'row-id)) "Delete")))))))))
     (hunchentoot:redirect "/login")))
 
@@ -43,15 +43,15 @@
     (standard-page (:title "List Journal Entry Details for Account")
       (:table :class "table table-striped" 
 	      (:tr (:th "Date") (:th "Name") (:th "Description")(:th "Debit") (:th "Credit") (:th "Action"))
-      (if (= (list-length jnr-entries) 0) (htm (:tr (:td  :height "12px" (:p "No journal-entry Found"))))
+      (if (= (list-length jnr-entries) 0) (cl-who:htm (:tr (:td  :height "12px" (:p "No journal-entry Found"))))
       (loop for jnr-entry in jnr-entries
 	 do (let ((jnr-entry-acct (journal-entry-account jnr-entry))
 		  (jnr-entry-opty (journal-entry-opty jnr-entry)))
 
-	   (htm (:tr 
-		     (:td  (str (slot-value jnr-entry-acct 'name)))
-		    (:td  (str (slot-value jnr-entry-opty 'name)))
-		    (:td  (str (slot-value jnr-entry-opty 'description)))
+	   (cl-who:htm (:tr 
+		     (:td  (cl-who:str (slot-value jnr-entry-acct 'name)))
+		    (:td  (cl-who:str (slot-value jnr-entry-opty 'name)))
+		    (:td  (cl-who:str (slot-value jnr-entry-opty 'description)))
 		    (:td  (str(slot-value jnr-entry 'amount)))
 		   ))))))))
     (hunchentoot:redirect "/login")))
@@ -118,18 +118,18 @@
 (defmacro accounts-dropdown (dropdown-name)
   `(cl-who:with-html-output (*standard-output* nil)
      (let ((accounts (list-crm-accounts (get-login-tenant-id))))
-     (htm (:select :name ',dropdown-name  
+     (cl-who:htm (:select :name ',dropdown-name  
       (loop for acct in accounts
-	 do (htm  (:option :value  (slot-value acct 'row-id) (str (slot-value acct 'name))))))))))
+	 do (cl-who:htm  (:option :value  (slot-value acct 'row-id) (cl-who:str (slot-value acct 'name))))))))))
 
 ;; This is a text control with account dropdown and debit and credit text fields.
 (defmacro drcr-entry-control (dropdown-name)
   `(cl-who:with-html-output (*standard-output* nil)
      (:p (:label :for ',dropdown-name "Account: ")
 	 (let ((accounts (list-crm-accounts (get-login-tenant-id))))
-	   (htm (:select :name ',dropdown-name  
+	   (cl-who:htm (:select :name ',dropdown-name  
 			 (loop for acct in accounts
-			    do (htm  (:option :value  (slot-value acct 'row-id)  (str (slot-value acct 'name)))))))))
+			    do (cl-who:htm  (:option :value  (slot-value acct 'row-id)  (cl-who:str (slot-value acct 'name)))))))))
 
      (:p "Debit" (:input :type "text"  
 			 :name ',(format nil "Debit-~A" dropdown-name)

@@ -1,5 +1,5 @@
-(in-package :dairyondemand)
-(clsql:file-enable-sql-reader-syntax)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 
 (clsql:def-view-class crm-journal-entry ()
   ((row-id

@@ -1,6 +1,6 @@
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 
-(in-package :dairyondemand)
-(clsql:file-enable-sql-reader-syntax)
 (clsql:def-view-class dod-auth-attr-lookup ()
   ((row-id
     :db-kind :key

@@ -1,5 +1,9 @@
-(in-package :dairyondemand)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
+
+
+
 (clsql:def-view-class dod-cust-profile ()
   ((row-id
     :db-kind :key
@@ -133,7 +137,7 @@
                           :SET nil))
    
    (all-customers
-    :ACCESSOR get-all-customers
+    :ACCESSOR all-customers
     :DB-KIND :JOIN
     :DB-INFO (:JOIN-CLASS dod-cust-profile
 	                  :HOME-KEY cust-id

@@ -1,4 +1,5 @@
-(in-package :dairyondemand)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
 (defun approve-product (id description company)
@@ -162,6 +163,17 @@
     (setf (slot-value dodproduct 'deleted-state) "N")
     (clsql:update-record-from-slot dodproduct 'deleted-state))) list )))
 
+(defun setAsSalesProduct (product)
+  :documentation "Sets the Product type as Sales Product"
+  (setf (slot-value product 'prd-type) "SALE")
+  (update-prd-details product))
+  
+
+(defun setAsServiceProduct (product)
+  :documentation "Sets the Product type as Service Product"
+  (setf (slot-value product 'prd-type) "SRVC")
+  (update-prd-details product))
+
    
 
   
@@ -180,6 +192,7 @@
 				    :active-flag "Y"
 				    :approved-flag "N"
 				    :approval-status "PENDING"
+				    :prd-type "SALE"
 				    :deleted-state "N")))
 
 (defun create-bulk-products (products)

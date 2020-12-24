@@ -1,5 +1,7 @@
-(in-package :dairyondemand)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
+
 
 
 (defun set-order-fulfilled ( value order-instance company-instance)
@@ -228,7 +230,16 @@
 		[= [:tenant-id] tenant-id]
 		[=[:context-id] context-id]]    :caching nil :flatp t ))))
 
-    
+(defun setAsSalesOrder (order)
+  :documentation "Sets the order type as Sales Order"
+  (setf (slot-value order 'order-type) "SALE")
+  (update-order order))
+
+(defun setAsServiceOrder (order)
+  :documentation "Sets the order type as Service Order"
+  (setf (slot-value order 'order-type) "SRVC")
+  (update-order order))
+
 
 
 (defun get-orders-for-customer (customer &optional (recordsfordays 30))
@@ -327,6 +338,7 @@
 					 :payment-mode payment-mode 
 					 :comments comments
 					 :status "PEN"
+					 :order-type "SALE"
 					 :order-amt order-amt
 					 :deleted-state "N")))
 
@@ -403,10 +415,10 @@
 		       (total (get-order-items-total-for-vendor vendor vitems))
 		       (vendor-email (slot-value vendor 'email))
 		       (order-disp-str (cl-who:with-html-output-to-string (*standard-output* nil)
-					 (str (ui-list-shopcart-for-email products vitems))
+					 (cl-who:str (ui-list-shopcart-for-email products vitems))
 					 (:hr)
 					 (:tr (:td
-					       (:h2 (:span :class "label label-default" (str (format nil "Total = Rs ~$" total)))))))))
+					       (:h2 (:span :class "label label-default" (cl-who:str (format nil "Total = Rs ~$" total)))))))))
 		   
 			    
 			    (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address payment-mode total )
@@ -445,7 +457,7 @@
     (let* ((orderdate (get-date-from-string odtstr))
 	      (requestdate (get-date-from-string reqstr))
 	      (dodcompany (select-company-by-id company-id))
-	      (customers (list-cust-profiles dodcompany)))
+	      (customers (get-all-customers dodcompany)))
 					;Get a list of all the customers belonging to the current company. 
 					; For each customer, get the order preference list and pass to the below function.
 	      (mapcar (lambda (customer)
@@ -465,7 +477,7 @@
 
 (defun run-daily-orders-batch (numdays)
   :documentation "datestr is of the format \"dd/mm/yyyy\" "
-  (let ((cmplist (list-dod-companies)))
+  (let ((cmplist (get-system-companies)))
     (loop for i from 1 to numdays do (mapcar (lambda (cmp) 
 	      (let ((id (slot-value cmp 'row-id)))
 		(create-daily-orders-for-company :company-id id :odtstr (get-date-string (clsql-sys:get-date)) :reqstr (get-date-string (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day i)))))) cmplist)))) 

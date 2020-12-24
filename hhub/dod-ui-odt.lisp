@@ -1,5 +1,5 @@
-(in-package :dairyondemand)
-(clsql:file-enable-sql-reader-syntax)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 
 (defun com-hhub-transaction-cust-edit-order-item ()
   (let ((params nil))
@@ -50,7 +50,7 @@
 			       (:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) 
 				   (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " "))))
 		 (with-html-form "form-orditemedit" "dodcustorditemedit" 
-		   (:div :class "form-group row"  (:label :for "product-id" (str (format nil  " ~a" prd-name ))))
+		   (:div :class "form-group row"  (:label :for "product-id" (cl-who:str (format nil  " ~a" prd-name ))))
 			(:input :type "hidden" :name "item-id" :value (format nil "~a" (slot-value order-item 'row-id)))
 			(:input :type "hidden" :name "order-id" :value (format nil "~a" order-id ))
 			(:div  :class "inputQty row" 
@@ -80,13 +80,13 @@
     (cl-who:with-html-output (*standard-output* nil)
 	(:h3 "Order Details") 
 	(:table :class "table table-striped"  (:thead (:tr
-				 (mapcar (lambda (item) (htm (:th (str item)))) header))) (:tbody
+				 (mapcar (lambda (item) (cl-who:htm (:th (cl-who:str item)))) header))) (:tbody
 				       (mapcar (lambda (odt)
 				   (let ((odt-product  (get-odt-product odt)))
-				     (htm (:tr (:td  :height "12px" (str (slot-value odt 'order-id)))
-				       (:td  :height "12px" (str (slot-value odt-product 'prd-name)))
-				       (:td  :height "12px" (str (slot-value odt 'prd-qty)))
-				       (:td  :height "12px" (str (slot-value odt 'unit-price)))
+				     (cl-who:htm (:tr (:td  :height "12px" (cl-who:str (slot-value odt 'order-id)))
+				       (:td  :height "12px" (cl-who:str (slot-value odt-product 'prd-name)))
+				       (:td  :height "12px" (cl-who:str (slot-value odt 'prd-qty)))
+				       (:td  :height "12px" (cl-who:str (slot-value odt 'unit-price)))
 				       (:td :height "12px" (:a :href  (format nil  "/hhub/delorderdetail?id=~A" (slot-value odt 'row-id)) :onclick "return false"  "Delete")
 					    (:a :href  (format nil  "/hhub/editorderdetail?id=~A" (slot-value odt 'row-id)) :onclick "return false"  "Edit")
 					    ))))) (if (not (typep data 'list)) (list data) data) )))))
@@ -99,7 +99,7 @@
 	   				; Data section.
 	      (:div :class "row-fluid"
 		    (mapcar (lambda (product odt)
-				    (htm (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-4" 
+				    (cl-who:htm (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-4" 
 					       (:div :class "product-box" (product-card-shopcart product odt)))))      products shopcart ))))
 
 
@@ -108,7 +108,7 @@
     (cl-who:with-html-output-to-string (*standard-output* nil)
       (:div :class "row-fluid"
 	    (mapcar (lambda (product odt)
-		      (htm (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-4" 
+		      (cl-who:htm (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-4" 
 				 (:div :class "product-box" (product-card-shopcart-readonly product odt)))))  products shopcart ))))
 
 
@@ -127,7 +127,7 @@
 	 (:div :class "panel-body"
 	       (:table :class "table table-hover"  
 		       (:thead (:tr
-				(mapcar (lambda (item) (htm (:th (str item)))) header))) 
+				(mapcar (lambda (item) (cl-who:htm (:th (cl-who:str item)))) header))) 
 		       (:tbody
 			(mapcar (lambda (odt)
 	(let* ((odt-product  (get-odt-product odt))
@@ -139,17 +139,17 @@
 	      (fulfilled (slot-value odt 'fulfilled))
 	      (status (slot-value odt 'status))
 	      (prd-qty (slot-value odt 'prd-qty)))
-	  (htm (:tr  (cond ((and (equal status "PEN") (equal fulfilled "N")) 
-			    (htm (:td  :height "12px" (str (format nil "Pending")))
+	  (cl-who:htm (:tr  (cond ((and (equal status "PEN") (equal fulfilled "N")) 
+			    (cl-who:htm (:td  :height "12px" (cl-who:str (format nil "Pending")))
 				 (:td  :height "12px" 
 				       (:a  :data-toggle "modal" :data-target (format nil "#orditemedit-modal~A" item-id)  :href "#" (:span :class "glyphicon glyphicon-pencil")) "&nbsp;&nbsp;"
 				       (if (not (equal payment-mode "OPY")) (modal-dialog (format nil "orditemedit-modal~A" item-id) "Order Item Edit" (order-item-edit-popup item-id)))
 				       (:a :onclick "return CancelConfirm();" :href  (format nil "/hhub/doddelcustorditem?id=~A&ord=~A" (slot-value odt 'row-id) ordid) :onclick "return false" (:span :class "glyphicon glyphicon-remove")))))
-			   ((and (equal status "CMP") (equal fulfilled "Y"))  (htm (:td  :height "12px" (str (format nil "Fulfilled"))))))
-		     (:td  :height "12px" (str (slot-value odt-product 'prd-name)))
-		     (:td  :height "12px" (str (format nil  "~d" prd-qty)))
-					;(:td  :height "12px" (str (format nil  "Rs. ~$" unit-price)))
-		     (:td  :height "12px" (str (format nil "Rs. ~$" (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty)))))
+			   ((and (equal status "CMP") (equal fulfilled "Y"))  (cl-who:htm (:td  :height "12px" (cl-who:str (format nil "Fulfilled"))))))
+		     (:td  :height "12px" (cl-who:str (slot-value odt-product 'prd-name)))
+		     (:td  :height "12px" (cl-who:str (format nil  "~d" prd-qty)))
+					;(:td  :height "12px" (cl-who:str (format nil  "Rs. ~$" unit-price)))
+		     (:td  :height "12px" (cl-who:str (format nil "Rs. ~$" (* (slot-value odt 'unit-price) (slot-value odt 'prd-qty)))))
 		     )))) (if (not (typep data 'list)) (list data) data))))))))
 
 
@@ -159,19 +159,19 @@
     (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "jumbotron"
 	    (:div :class "row" (:div :class "col-md-4"
-				   (:h5 "Order No:") (:h4 (str (slot-value order-instance 'row-id)))
-				   (:h5 "Payment Mode:") (:h4 (str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
+				   (:h5 "Order No:") (:h4 (cl-who:str (slot-value order-instance 'row-id)))
+				   (:h5 "Payment Mode:") (:h4 (cl-who:str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
 								       ((equal payment-mode "COD") "Cash On Demand")))))
 				  
 				  
 		(:div :class "col-md-4"
-		      (:h5 "Status: " ) (:h4 (str (slot-value order-instance 'status)))
-		      (:h5 "Order Date:") (:h4 (str (get-date-string (slot-value order-instance 'ord-date))))
-		    (:h5 "Requested On:")(:h4 (str (get-date-string (slot-value order-instance 'req-date))))
-		    (:h5 "Shipped On:")(:h4 (if shipped-date (str (get-date-string shipped-date)))))
+		      (:h5 "Status: " ) (:h4 (cl-who:str (slot-value order-instance 'status)))
+		      (:h5 "Order Date:") (:h4 (cl-who:str (get-date-string (slot-value order-instance 'ord-date))))
+		    (:h5 "Requested On:")(:h4 (cl-who:str (get-date-string (slot-value order-instance 'req-date))))
+		    (:h5 "Shipped On:")(:h4 (if shipped-date (cl-who:str (get-date-string shipped-date)))))
 		
 		(:div :class "col-md-4"
-		     (:h5 "Comments") (:h4 (str (slot-value order-instance 'comments))))
+		     (:h5 "Comments") (:h4 (cl-who:str (slot-value order-instance 'comments))))
 		)))))
 
 (defun display-order-header-for-vendor (order-instance)
@@ -185,20 +185,20 @@
       (:div :class "jumbotron"
 	    (:div :class "row" 
 		  (:div :class "col-md-4"
-			(:h5 "Order No:") (:h5 (str (slot-value order-instance 'row-id)))
-			(:h5 "Payment Mode:") (:h5 (str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
+			(:h5 "Order No:") (:h5 (cl-who:str (slot-value order-instance 'row-id)))
+			(:h5 "Payment Mode:") (:h5 (cl-who:str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
 							      ((equal payment-mode "COD") "Cash On Demand"))))
-			(if (equal payment-mode "PRE") (htm (:h5 "Wallet Balance:") (:h5 (str balance))))
-			(:h5 "Customer:") (:h5 (str (slot-value customer 'name)))
-			(if (equal customer-type "STANDARD") (htm (:h5 "Address:") (:h5 (str (slot-value customer 'address))))))
+			(if (equal payment-mode "PRE") (cl-who:htm (:h5 "Wallet Balance:") (:h5 (cl-who:str balance))))
+			(:h5 "Customer:") (:h5 (cl-who:str (slot-value customer 'name)))
+			(if (equal customer-type "STANDARD") (cl-who:htm (:h5 "Address:") (:h5 (cl-who:str (slot-value customer 'address))))))
 		  (:div :class "col-md-4"
-			(:h5 "Phone:") (:h5 (str (slot-value customer 'phone)))
-			(:h5 "Status: " ) (:h5 (str (slot-value order-instance 'status)))
-			(:h5 "Order Date:") (:h5 (str (get-date-string (slot-value order-instance 'ord-date))))
-			(:h5 "Requested On:")(:h5 (str (get-date-string (slot-value order-instance 'req-date))))
-			(:h5 "Shipped On:")(:h5 (if shipped-date (str (get-date-string shipped-date)))))
+			(:h5 "Phone:") (:h5 (cl-who:str (slot-value customer 'phone)))
+			(:h5 "Status: " ) (:h5 (cl-who:str (slot-value order-instance 'status)))
+			(:h5 "Order Date:") (:h5 (cl-who:str (get-date-string (slot-value order-instance 'ord-date))))
+			(:h5 "Requested On:")(:h5 (cl-who:str (get-date-string (slot-value order-instance 'req-date))))
+			(:h5 "Shipped On:")(:h5 (if shipped-date (cl-who:str (get-date-string shipped-date)))))
 		  (:div :class "col-md-4" 
 			(if (equal (slot-value order-instance 'order-fulfilled) "Y")
-			    (htm (:div :class "stampbox rotated" "FULFILLED")))
-			(if (equal customer-type "GUEST") (htm (:h5 "Comments") (:h5 (str (slot-value order-instance 'comments)))))
-			(:h5 "Customer Type:")(:h5 (str (slot-value customer 'cust-type)))))))))
+			    (cl-who:htm (:div :class "stampbox rotated" "FULFILLED")))
+			(if (equal customer-type "GUEST") (cl-who:htm (:h5 "Comments") (:h5 (cl-who:str (slot-value order-instance 'comments)))))
+			(:h5 "Customer Type:")(:h5 (cl-who:str (slot-value customer 'cust-type)))))))))

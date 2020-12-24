@@ -2,7 +2,7 @@
 ;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; Base: 10 -*-
 ;;; $Header: hhub.asd,v 1.6 2018/06/26 18:31:03 
 
-;;; Copyright (c) 2018-2019, Pawan Deshpande.  All rights reserved.
+;;; Copyright (c) 2018-2021, Pawan Deshpande.  All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -48,7 +48,10 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS"
 	       
 	       	; Util 
 	       (:file "dod-bl-utl" :depends-on ("packages"))
-	       (:file "dod-ui-utl" :depends-on ("packages") )
+	       (:file "dod-ui-utl" :depends-on ("packages"))
+	       (:file "dod-bl-err" :depends-on ("packages"))
+	       (:file "hhub-bl-ent" :depends-on ("packages"))
+	       (:file "email/templates/registration" :depends-on ("packages"))
 	  
 	       ; Initial System
 	       (:file "dod-ini-sys" :depends-on ("packages"))

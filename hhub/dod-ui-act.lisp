@@ -1,5 +1,5 @@
-
-(in-package :dairyondemand)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
 
@@ -23,8 +23,8 @@
 	      (:tr (:th "Account name") (:th "Account Type") (:th "Action"))
       (if (= (list-length accounts) 0) (htm (:tr (:td  :height "12px" (:p "No Accounts Found"))))
       (loop for account in accounts
-       do (htm (:tr (:td  :height "12px" (str (slot-value account 'name)))
-		    (:td :height "12px" (str (nth (decf (slot-value account 'account-type)) *crm-account-types*)))
+       do (htm (:tr (:td  :height "12px" (cl-who:str (slot-value account 'name)))
+		    (:td :height "12px" (cl-who:str (nth (decf (slot-value account 'account-type)) *crm-account-types*)))
 		    (:td :colspan "12px" (:a :href  (format nil  "/delaccount?id=~A" (slot-value account 'row-id)) "Delete")))))))))
     (hunchentoot:redirect "/login")))
 
@@ -35,7 +35,7 @@
      (let ((count 0))
      (htm (:select :name "accounttype"  
       (loop for acct-type in *crm-account-types*
-	 do (htm  (:option :value (incf count) (str acct-type)))))))))
+	 do (htm  (:option :value (incf count) (cl-who:str acct-type)))))))))
 
 
 (defun crm-controller-new-account ()

@@ -1,5 +1,5 @@
-(in-package :dairyondemand)
-(clsql:file-enable-sql-reader-syntax)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 
 
 (defun dod-controller-make-payment-request-html ()
@@ -43,8 +43,8 @@
       (:form :class "form-makepaymentrequest" :role "form" :method "POST" :action "https://biz.traknpay.in/v2/paymentrequest"
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		  (:h5 (str (format nil "For Vendor: ~A" (slot-value vendor 'name))))
-		  (:h5 (str (format nil "Amount  ~A. ~A" currency amount))))
+		  (:h5 (cl-who:str (format nil "For Vendor: ~A" (slot-value vendor 'name))))
+		  (:h5 (cl-who:str (format nil "Amount  ~A. ~A" currency amount))))
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		  (:div :class "form-group" 
 			  (:input :class "form-control" :type "hidden" :value amount :name "amount") 
@@ -141,23 +141,23 @@
 	 (with-standard-customer-page (:title "Payment Successful" ) 
 	      (:div :class "row" 
 		    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-			  (:h4 (str (format nil "Payment Successful for vendor: ~A" (slot-value vendor 'name))))))
+			  (:h4 (cl-who:str (format nil "Payment Successful for vendor: ~A" (slot-value vendor 'name))))))
 				 
 	      (:div :class "row" 
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
-			  (:h5 (str (format nil "Transaction ID: ~A" transaction-id)))) 
+			  (:h5 (cl-who:str (format nil "Transaction ID: ~A" transaction-id)))) 
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
-			  (:h5 (str (format nil "Payment Mode: ~A" payment-method)))))
+			  (:h5 (cl-who:str (format nil "Payment Mode: ~A" payment-method)))))
 	      (:div :class "row" 
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
-			  (:h5 (str (format nil "Response Message: ~A" response-message))))
+			  (:h5 (cl-who:str (format nil "Response Message: ~A" response-message))))
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
-			  (:h5 (str (format nil "Payment Date: ~A" payment-datetime)))))
-	      (if (equal udf2 "STANDARD") (htm (:div :class "row" 
+			  (:h5 (cl-who:str (format nil "Payment Date: ~A" payment-datetime)))))
+	      (if (equal udf2 "STANDARD") (cl-who:htm (:div :class "row" 
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
-			  (:h5 (str (format nil "Amount recharged: ~A.~A" currency amount))))
+			  (:h5 (cl-who:str (format nil "Amount recharged: ~A.~A" currency amount))))
 		    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
-			  (:h5 (str (format nil "Wallet Balance: ~A" (+ amount (slot-value wallet 'balance))))))))))))))
+			  (:h5 (cl-who:str (format nil "Wallet Balance: ~A" (+ amount (slot-value wallet 'balance))))))))))))))
 	
 
  

@@ -1,12 +1,6 @@
-(in-package :dairyondemand)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
-
-
-
-(defun list-cust-profiles (company)
- (with-database (dbinst *dod-dbconn-spec* :if-exists :old :pool t :database-type :mysql )
-  (let ((tenant-id (slot-value company 'row-id)))
-  (clsql:select 'dod-cust-profile  :where [and [= [:deleted-state] "N"] [= [:tenant-id] tenant-id]]  :database dbinst   :caching *dod-database-caching*  :flatp t ))))
 
 
 
@@ -28,6 +22,16 @@
 		[= [:active-flag] "Y"]
 		[like  [:phone] phone]]
 		:caching *dod-database-caching* :flatp t))))
+
+
+
+(defun get-all-customers (company)
+  (let ((tenant-id (slot-value company 'row-id)))
+    (clsql:select 'dod-cust-profile :where [and
+		       [= [:deleted-state] "N"]
+		       [= [:tenant-id] tenant-id]
+		       [= [:active-flag] "Y"]]
+		       :caching *dod-database-caching* :flatp t)))
 
 
 (defun select-guest-customer (company)

@@ -1,4 +1,7 @@
-(in-package :dairyondemand)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
+;;(clsql:file-enable-sql-reader-syntax)
+
 (clsql:def-view-class dod-company ()
   ((row-id
     :db-kind :key
@@ -70,6 +73,7 @@
                           :foreign-key tenant-id
                           :set t)))
   (:base-table dod_company))
+
 
 
 
