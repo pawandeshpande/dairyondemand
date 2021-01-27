@@ -78,4 +78,4 @@
 (path "~/dairyondemand/hhub/"))
 
 (mapcar (lambda (file)
-	  (load (concatenate 'string path file))) filelist)))
+	  (compile-file  (concatenate 'string path file) :verbose *compile-verbose*)) filelist)))

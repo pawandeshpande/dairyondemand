@@ -81,7 +81,8 @@
     (persist-auth-attr-lookup name description attr-func attr-type tenant-id)
      (with-open-file (stream "~/dairyondemand/hhub/dod-ui-attr.lisp" :if-exists :append :direction :output)
       (print (format stream "(defun ~A ())" attr-func))
-      (terpri stream))))
+       (terpri stream))
+        (setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* (hhub-gen-globally-cached-lists-functions))))
 
 
 
@@ -178,7 +179,8 @@
 
 (defun create-auth-policy (name description policy-func  company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id))) 
-	      (persist-auth-policy name description policy-func tenant-id)))
+    (persist-auth-policy name description policy-func tenant-id)
+        (setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* (hhub-gen-globally-cached-lists-functions))))
 
 
 

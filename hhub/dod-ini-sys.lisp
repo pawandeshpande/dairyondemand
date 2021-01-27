@@ -1,6 +1,8 @@
 ;; -*- mode: common-lisp; coding: utf-8 -*-
-(in-package :dairyondemand)
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
+
+
 ;; You must set these variables to appropriate values.
 (defvar *crm-database-type* :odbc
   "Possible values are :postgresql :postgresql-socket, :mysql,
@@ -26,6 +28,7 @@
 (defvar *HHUB-CUST-PASSWORD-RESET-FILE* "cust-pass-reset.html")
 (defvar *HHUB-CUST-TEMP-PASSWORD-FILE* "temppass.html")
 (defvar *HHUB-NEW-COMPANY-REQUEST* "newcompanyrequest.html")
+(defvar *HHUB-CONTACTUS-EMAIL-TEMPLATE* "contactustemplate.html")
 (defvar *HHUB-GUEST-CUST-ORDER-TEMPLATE-FILE* "guestcustorder.html")
 
 
@@ -48,6 +51,17 @@
 (defvar *HHUBRESOURCESDIR* "/data/www/highrisehub.com/public/img")
 (defvar *HHUBDEFAULTPRDIMG* "HHubDefaultPrdImg.png")
 (defvar *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* NIL)
+(defvar *HHUBGLOBALBUSINESSFUNCTIONS-HT* NIL)
+(defvar *HHUBBUSINESSFUNCTIONSLOGFILE* "/home/hunchentoot/hhublogs/highrisehub-busfunctions.log")
+
+;;; EXPERIMENTING WITH DDD 
+(defvar *HHUBENTITYINSTANCES-HT* nil)
+(defvar *HHUBENTITY-WEBPUSHNOTIFYVENDOR-HT* NIL)
+(defvar *HHUBBUSINESSSESSIONS-HT* NIL) 
+(defvar *HHUBBUSINESSLOCATION-VENDOR* NIL)
+(defvar *HHUBBUSINESSSERVER* NIL)
+(defvar *HHUBBUSINESSDOMAIN* NIL) 
+
 (defvar *HHUBGLOBALROLES* NIL) 
 (defvar *HHUBFEATURESWISHLISTURL* "https://goo.gl/forms/hI9LIM9ebPSFwOrm1")
 (defvar *HHUBBUGSURL* "https://goo.gl/forms/3iWb2BczvODhQiWW2") 
@@ -58,6 +72,8 @@
 (defvar *HHUBPASSRESETTIMEWINDOW* 20) ; 20 minutes. Depicts the reset password time window. 
 (defvar *HHUBGUESTCUSTOMERPHONE* "9999999999")
 (defvar *HHUBSUPERADMINEMAIL* "pawan.deshpande@gmail.com")
+(defvar *HHUBSUPPORTEMAIL* "support@highrisehub.com")
+
 
 (defun set-customer-page-title (name)
   (setf *customer-page-title* (format nil "Welcome to HighriseHub - ~A." name))) 
@@ -127,7 +143,13 @@ the hunchentoot server with ssl settings"
        (if withssl  (hunchentoot:start *ssl-http-server*) (hunchentoot:start *http-server*) )
        (crm-db-connect :servername *crm-database-server* :strdb *crm-database-name* :strusr *crm-database-user*  :strpwd *crm-database-password* :strdbtype :mysql)
        (setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* (hhub-gen-globally-cached-lists-functions))
-       (setf *HHUB-CUSTOMER-ORDER-CUTOFF-TIME* "23:00:00")))
+       (setf *HHUB-CUSTOMER-ORDER-CUTOFF-TIME* "23:00:00")
+       (setf *HHUBGLOBALBUSINESSFUNCTIONS-HT* (make-hash-table :test 'equal))
+       ;(setf *HHUBENTITYINSTANCES-HT* (make-hash-table))
+       ;(setf *HHUBENTITY-WEBPUSHNOTIFYVENDOR-HT* (make-hash-table))
+       (setf *HHUBBUSINESSSESSIONS-HT* (make-hash-table)) 
+       (hhub-init-business-functions)
+       (setf *HHUBBUSINESSDOMAIN* (initbusinessdomain))))
 
 
 
@@ -155,7 +177,11 @@ the hunchentoot server with ssl settings"
 (progn (if *ssl-http-server*  (hunchentoot:stop *ssl-http-server*) (hunchentoot:stop *http-server*))
 (setf *ssl-http-server* nil) 
 (setf *http-server* nil)
-(setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* NIL)))
+(setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* NIL)
+(setf *HHUBGLOBALBUSINESSFUNCTIONS-HT* NIL)
+;(setf *HHUBENTITY-WEBPUSHNOTIFYVENDOR-HT* NIL)
+;(setf *HHUBBUSINESSSESSIONS-HT* NIL)
+(setf *HHUBBUSINESSDOMAIN* NIL)))
 
 ;;;;*********** Globally Cached lists and their accessor functions *********************************
 
@@ -230,3 +256,105 @@ the hunchentoot server with ssl settings"
   (let ((policiesfunc-ht (nth 8 *HHUBGLOBALLYCACHEDLISTSFUNCTIONS*)))
     (funcall policiesfunc-ht)))
 
+
+(defun hhub-init-business-function-registrations ()
+  :documentation "This function will be called at system startup time to register all the business functions"
+  (hhub-register-business-function "com.hhub.businessfunction.getpushnotifysubscriptionforvendor" "com-hhub-businessfunction-getpushnotifysubscriptionforvendor"))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; HIGHRISEHUB GLOBAL BUSINESS FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun hhub-register-business-function (name funcsymbol)
+:documentation "This function registers a new business function and adds it to the *HHUBGLOBALBUSINESSFUNCTIONS-HT* Hash Table."
+  (multiple-value-bind (ret1) (ppcre:scan "com.hhub.businessfunction.*" name)
+    (unless (null ret1)
+      (multiple-value-bind (ret1) (ppcre:scan "com-hhub-businessfunction-*" funcsymbol)
+	(unless (null ret1)
+	  (setf (gethash name  *HHUBGLOBALBUSINESSFUNCTIONS-HT*) funcsymbol))))))
+
+
+(defun hhub-execute-business-function (name params) 
+  :documentation "This is a general business function adapter for HHub. It takes parameters in a association list"
+(handler-case 
+    (let ((funcsymbol (gethash name *HHUBGLOBALBUSINESSFUNCTIONS-HT*)))
+      (if (null funcsymbol) (error 'hhub-business-function-error :errstring "Business function not registered"))
+      (multiple-value-bind (returnvalues exception) (funcall (intern  (string-upcase funcsymbol) :hhub) params)
+	;Return a list of return values and exception as nil. 
+	(list returnvalues exception)))
+  (hhub-business-function-error (condition)
+    (list nil (format nil "HHUB Business Function error triggered in Function - ~A. Error: ~A" (string-upcase name) (getExceptionStr condition))))
+  ; If we get any general error we will not throw it to the upper levels. Instead set the exception and log it. 
+  (error (c)
+    (let ((exceptionstr (format nil  "HHUB General Business Function Error: ~A  ~a~%" (string-upcase name) c)))
+      (with-open-file (stream *HHUBBUSINESSFUNCTIONSLOGFILE* 
+			   :direction :output
+			   :if-exists :supersede
+			   :if-does-not-exist :create)
+	(format stream "~A" exceptionstr))
+      (list nil (format nil "HHUB General Business Function Error. See logs for more details."))))))
+
+
+
+(defun hhub-init-business-functions ()
+  (hhub-register-business-function "com.hhub.businessfunction.bl.getpushnotifysubscriptionforvendor" "com-hhub-businessfunction-bl-getpushnotifysubscriptionforvendor")
+  (hhub-register-business-function "com.hhub.businessfunction.tempstorage.getpushnotifysubscriptionforvendor" "com-hhub-businessfunction-tempstorage-getpushnotifysubscriptionforvendor")
+  (hhub-register-business-function "com.hhub.businessfunction.db.getpushnotifysubscriptionforvendor" "com-hhub-businessfunction-db-getpushnotifysubscriptionforvendor")
+  ;; Business functions for Creating Push Notify Subscription for Vendor 
+  (hhub-register-business-function "com.hhub.businessfunction.bl.createpushnotifysubscriptionforvendor" "com-hhub-businessfunction-bl-createpushnotifysubscriptionforvendor")
+  (hhub-register-business-function "com.hhub.businessfunction.tempstorage.createpushnotifysubscriptionforvendor" "com-hhub-businessfunction-tempstorage-createpushnotifysubscriptionforvendor")
+  (hhub-register-business-function "com.hhub.businessfunction.db.createpushnotifysubscriptionforvendor" "com-hhub-businessfunction-db-createpushnotifysubscriptionforvendor"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; HIGHRISEHUB GLOBAL BUSINESS FUNCTIONS END ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; EXPERIMENTING WITH DOMAIN DRIVEN DESIGN ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defgeneric initBusinessContexts (BusinessServer ListContextNames)
+  (:documentation "This generic function will initialize the business contexts for the business server"))
+
+
+
+(defmethod initBusinessContexts ((server BusinessServer) ListContextNames)
+  (let* ((contexts (mapcar (lambda (contextname) 
+			     (let ((site (make-instance 'BusinessContext)))
+			       (setf (slot-value site 'id)  (format nil "~A" (uuid:make-v1-uuid )))
+			       (setf (slot-value site 'name) contextname)
+			       (initBusinessObjectRepositories site)
+			       site)) ListContextNames)))
+    contexts))
+
+
+(defmethod initBusinessObjectRepositories ((bc BusinessContext))
+  (let ((br-ht (make-hash-table))
+	(vr (make-instance 'BusinessObjectRepository)))
+    (loadAllVendors vr)
+    (setf (gethash "VendorRepository" br-ht) vr)
+    (setf (slot-value bc 'BusinessObjectRepositories) br-ht)))
+
+    
+(defun initBusinessDomain ()
+  (let ((business-server  (make-instance 'BusinessServer)))
+    (setf (slot-value business-server 'ipaddress) "127.0.0.1") ;; Not useful Today. May be on future.
+    (setf (slot-value business-server 'name) "HighriseHub")
+    (setf (slot-value business-server 'id)  (format nil "~A" (uuid:make-v1-uuid )))
+    (setf (slot-value business-server 'BusinessContexts) (initBusinessContexts business-server (list "vendorsite")))
+    business-server))
+
+
+(defun deleteBusinessDomain ()
+  (setf *HHUBBUSINESSSERVER* NIL)
+  (sb-ext:gc :full t))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; EXPERIMENTING WITH DOMAIN DRIVEN DESIGN -- END  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  
