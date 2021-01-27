@@ -5,6 +5,22 @@
 ;;;;;;;;;;;;;; HERE WE DEFINE ALL THE POLICIES FOR HIGHRISEHUB ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun com-hhub-policy-vendor-add-product-action (&optional (params nil))
+  (let* ((company (cdr (assoc "company" params :test 'equal))))
+    (if (com-hhub-attribute-company-issuspended company)
+	(error 'hhub-abac-transaction-error :errstring "This Account is Suspended."))))
+
+(defun com-hhub-policy-restore-account (&optional (params nil))
+  :documentation "This policy governs the Account suspension"
+  (let ((rolename (cdr (assoc "rolename" params :test 'equal))))
+    (equal rolename "SUPERADMIN")))
+
+
+(defun com-hhub-policy-suspend-account (&optional (params nil))
+  :documentation "This policy governs the Account suspension"
+  (let ((rolename (cdr (assoc "rolename" params :test 'equal))))
+    (equal rolename "SUPERADMIN")))
+						  
 
 (defun com-hhub-policy-vendor-bulk-product-add (&optional  (params nil))
   :documentation "Vendor Add bulk products using CSV file. "
@@ -65,10 +81,14 @@
 
 (defun com-hhub-policy-sadmin-home (&optional (params nil))
   :documentation "Check whether role of the login user is SUPERADMIN or not" 
-  (equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
+  (values (equal (cdr (assoc "username" params :test 'equal))  "superadmin") nil))
+   
+	
 
 (defun com-hhub-policy-create-company (&optional  (params nil))
-  (equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
+  (let ((rolename (cdr (assoc "rolename" params :test 'equal))))
+    (equal rolename "SUPERADMIN")))
+
 
 (defun com-hhub-policy-create-attribute (&optional (params nil))
   (equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
@@ -142,7 +162,7 @@
     (with-hhub-transaction "com-hhub-transaction-create-attribute" params
       (let* ((company (get-login-company))
 	    (id (hunchentoot:parameter "id"))
-	    (attribute (select-auth-attr-by-id id))
+	    (attribute (if id (select-auth-attr-by-id id)))
 	    (attrtype (hunchentoot:parameter "attrtype"))
 	    (attrname (hunchentoot:parameter "attrname"))
 	    (attrdesc (hunchentoot:parameter "attrdesc"))

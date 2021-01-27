@@ -128,8 +128,15 @@
 	 (cmpcountry (slot-value object 'country))
 	 (cmpwebsite (slot-value object 'website))
 	 (temp-str-email (format nil temp-str cmpname cmpaddress cmpcity cmpstate cmpzipcode cmpcountry cmpwebsite )))
-  (hhubsendmail *HHUBSUPERADMINEMAIL*  "Highrisehub - New company registration request" temp-str-email)))
+  (hhubsendmail *HHUBSUPPORTEMAIL*  "Highrisehub - New company registration request" temp-str-email)))
 
+(defun send-contactus-email (firstname lastname businessname email subject message)
+  :documentation "Send the email with data filled from the contact us form"
+(let* ((temp-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER*  *HHUB-CONTACTUS-EMAIL-TEMPLATE* )))
+      (temp-str-email (format nil temp-str firstname lastname businessname email message)))
+  (hhubsendmail *HHUBSUPPORTEMAIL* subject temp-str-email)))
+
+  
 (defun send-registration-email (name email)
   (let* ((reg-templ-str (hhub-read-file (format nil "~A/~A" *HHUB-EMAIL-TEMPLATES-FOLDER* *HHUB-CUST-REG-TEMPLATE-FILE*)))
 	 (cust-reg-email (format nil reg-templ-str name)))

@@ -77,18 +77,18 @@
 
 
 
-(defun hhubsendmail (to subject body &optional attachments-list)
+(defun hhubsendmail (to subject body &optional (from *HHUBSMTPSENDER*) attachments-list)
   (let ((username *HHUBSMTPUSERNAME*) 
 	(password  *HHUBSMTPPASSWORD*))  
     
     (cl-smtp:send-email *HHUBSMTPSERVER*
-			*HHUBSMTPSENDER* to 
-			subject "Ok, the HTML version of this email is totally impressive. Just trust me on this." 
+			from to 
+			subject "HighriseHub Email."
 			:authentication (list :login username password) 
 			:ssl
 			:tls
 			:html-message body
-			:display-name subject
+			:display-name "HighriseHub No Reply"
 			:attachments attachments-list)))
 
 
@@ -234,17 +234,20 @@
   (defmacro with-hhub-transaction (name &optional params  &body body)
     :documentation "This is the Policy Enforcement Point for HighriseHub" 
     `(let* ((transaction (get-ht-val ,name (hhub-get-cached-transactions-ht)))
-	    (uri (cdr (assoc "uri" params :test 'equal))))
-       (hunchentoot:log-message* :info "In the transaction ~A" (slot-value transaction 'name))
-       (hunchentoot:log-message* :info "URI -  ~A" uri)
-       (hunchentoot:log-message* :info "URI in DB  -  ~A" (slot-value transaction 'uri))
-       (if (and (has-permission transaction ,params)
-		(>= (search  (slot-value transaction 'uri) uri) 0))
-	   ,@body
+	    (uri (cdr (assoc "uri" params :test 'equal)))
+	    (returnlist (has-permission transaction ,params))
+	    (errorstring (nth 1 returnlist)))
+
+	    (hunchentoot:log-message* :info "In the transaction ~A" (slot-value transaction 'name))
+	    (hunchentoot:log-message* :info "URI -  ~A" uri)
+	    (hunchentoot:log-message* :info "URI in DB  -  ~A" (slot-value transaction 'uri))
+	    (if (and (null errorstring) ; check for any exeptions from business function. If there are no exceptions, then we will go ahead with the data processing.  
+		     (>= (search  (slot-value transaction 'uri) uri) 0))
+		,@body
 					;else
-	   (progn 
-	     (hunchentoot:log-message* :info "Permission denied for transaction ~A" (slot-value transaction 'name))
-	     "Permission Denied")))))
+		(progn 
+		  (hunchentoot:log-message* :info "Permission denied for transaction ~A. Error: ~A " (slot-value transaction 'name) errorstring)
+		  (format nil "Permission Denied: ~A" errorstring))))))
 
 ; Policy Enforcement Point for HHUB
 (eval-when (:compile-toplevel :load-toplevel :execute)

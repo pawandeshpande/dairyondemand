@@ -154,7 +154,8 @@
 
 (defun create-bus-transaction (name  uri trans-type trans-func company-instance)
   (let ((tenant-id (slot-value company-instance 'row-id)))
-	(persist-bus-transaction name  uri trans-type trans-func  tenant-id)))
+    (persist-bus-transaction name  uri trans-type trans-func  tenant-id)
+        (setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* (hhub-gen-globally-cached-lists-functions))))
 
 
 ; POLICY ENFORCEMENT POINT 
@@ -166,11 +167,27 @@
 
 (defun has-permission (transaction &optional params)
   :documentation "This function is the PEP (Policy Enforcement Point) in the ABAC system"
+  ;; Execute permission logic here. 
   (let* ((policy-id (if transaction (slot-value transaction 'auth-policy-id)))
-	(policy (if policy-id (get-ht-val policy-id (HHUB-GET-CACHED-AUTH-POLICIES-HT))))
+	 (policy (if policy-id (get-ht-val policy-id (HHUB-GET-CACHED-AUTH-POLICIES-HT))))
+	 (policy-name (if policy (slot-value policy 'name)))
 	 (policy-func (if policy (slot-value policy 'policy-func))))
-    ;; Try not to send the Transaction parameter to the Policy function. The Policy function should only be responsible for
-    ;; executing the policy with the parameters sent if any. 
-     (if policy-func (funcall (intern  (string-upcase policy-func) :hhub) params))))
+    (handler-case 
+	(multiple-value-bind (returnvalues exception) (funcall (intern  (string-upcase policy-func) :hhub) params)
+					;Return a list of return values and exception as nil. 
+	  (list returnvalues exception))
+    
+  ; If we get any general error we will not throw it to the upper levels. Instead set the exception and log it. 
+  (error (c)
+    (let ((exceptionstr (format nil  "HHUB General ABAC Policy Error: ~A :: ~a~%" (string-upcase policy-name) c)))
+      (with-open-file (stream *HHUBBUSINESSFUNCTIONSLOGFILE* 
+			   :direction :output
+			   :if-exists :supersede
+			   :if-does-not-exist :create)
+	(format stream "~A" exceptionstr))
+      (list nil (format nil "HHUB General ABAC Policy Error. See logs for more details.")))))))
+
+  
+;    (if policy-func (funcall (intern  (string-upcase policy-func) :hhub) params))))
 
 

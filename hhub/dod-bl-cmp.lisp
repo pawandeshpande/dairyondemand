@@ -19,6 +19,22 @@
 
 
 
+(defun suspendaccount (tenant-id)
+  (let ((company (select-company-by-id tenant-id)))
+    (unless (com-hhub-attribute-company-issuspended company)
+      (setf (slot-value company 'suspend-flag) "Y"))
+    (update-company company)
+    (setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* (hhub-gen-globally-cached-lists-functions))))
+
+(defun restoreaccount (tenant-id)
+  (let ((company (select-company-by-id tenant-id)))
+    (when (com-hhub-attribute-company-issuspended company)
+      (setf (slot-value company 'suspend-flag) "N"))
+    (update-company company)
+    (setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* (hhub-gen-globally-cached-lists-functions))))
+
+
+
 ;(defun get-count-company-customers (company) 
 ;  (let ((old-func (symbol-function 'count-company-customers))
 ;	(previous (make-hash-table)))

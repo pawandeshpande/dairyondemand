@@ -64,7 +64,12 @@
     :type (string 1)
     :void-value "N"
     :initarg :deleted-state)
-  
+
+   (suspend-flag
+    :type (string 1)
+    :void-value "N"
+    :initarg :suspend-flag)
+   
    (employees
     :reader company-employees
     :db-kind :join

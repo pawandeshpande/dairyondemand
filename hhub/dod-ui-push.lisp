@@ -1,79 +1,117 @@
-(in-package :dairyondemand)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
 
-(defun hhub-get-vendor-push-subscription ()
-  (let ((templist '())
-	(mylist '())
-	(appendlist '())
-	(vendor-subs (get-push-notify-subscription-for-vendor (get-login-vendor))))
 
-    (mapcar (lambda(sub)
-	      (let ((ep (endpoint sub)))
-		(setf templist (acons "endpoint" ep templist))
-		(setf appendlist (append appendlist (list templist))) 
-		(setf templist nil))) vendor-subs)
+(defun hhub-controller-get-vendor-push-subscription ()
+  (let ((params nil))
+	(setf params (acons "vendor" (get-login-vendor)  params))
+    (let ((templist '())
+	  (mylist '())
+	  (appendlist '())
+	  (returnlist (hhub-execute-business-function  "com.hhub.businessfunction.bl.getpushnotifysubscriptionforvendor" params)))
+      (if (null (nth 1 returnlist)) ; check for any exeptions from business function. If there are no exceptions, then we will go ahead with the data processing.  
+	  (progn (mapcar (lambda(sub)
+		    (let ((ep (endpoint sub)))
+		      (setf templist (acons "endpoint" ep templist))
+		      (setf appendlist (append appendlist (list templist))) 
+		      (setf templist nil))) (nth 0 returnlist))
+		 (setf mylist (acons "result" appendlist  mylist))    
+		 (setf mylist (acons "success" 1 mylist)))
+					; else
+	  (progn
+	    (setf mylist (acons "exception" (nth 1 returnlist) mylist)) 
+	    (setf mylist (acons "success" 0 mylist))))
 
-    (setf mylist (acons "result" appendlist  mylist))    
-    (setf mylist (acons "success" 1 mylist))
-    (json:encode-json-to-string mylist)))
-
+      (json:encode-json-to-string mylist))))
+  
 	
 
 (defun hhub-save-customer-push-subscription ()
   (let ((endpoint (hunchentoot:parameter "notificationEndPoint"))
 	(publicKey (hunchentoot:parameter "publicKey"))
-	(auth (hunchentoot:parameter "auth")))
-    (create-push-notify-subscription-for-customer (get-login-customer) endpoint publicKey auth "chrome"  (select-user-by-id 1 1) (get-login-cust-tenant-id))
+	(auth (hunchentoot:parameter "auth"))
+	(params nil))
+	
+    (setf params (acons "customer" (get-login-customer) params))
+    (setf params (acons "endpoint" endpoint params))
+    (setf params (acons "publickey" publickey params))
+    (setf params (acons "auth" auth params))
+    (setf params (acons "browser-name" "chrome" params))
+    (setf params (acons "created-by" (select-user-by-id 1 1) params))
+    (setf params (acons "tenant-id" (get-login-cust-tenant-id) params))
+
+    (hhub-business-adapter 'create-push-notify-subscription-for-customer params)
     "Subscription Accepted"))
 
 
-(defun hhub-save-vendor-push-subscription ()
+(defun hhub-controller-save-vendor-push-subscription ()
   (let ((endpoint (hunchentoot:parameter "notificationEndPoint"))
 	(publicKey (hunchentoot:parameter "publicKey"))
-	(auth (hunchentoot:parameter "auth")))
-    (create-push-notify-subscription-for-vendor (get-login-vendor) endpoint publicKey auth  "chrome" (select-user-by-id 1 1) (get-login-vend-tenant-id))
-    "Subscription Accepted"))
+	(auth (hunchentoot:parameter "auth"))
+	(params nil))
+	
+    (setf params (acons "endpoint" endpoint params))
+    (setf params (acons "publickey" publickey params))
+    (setf params (acons "auth" auth params))
+    (setf params (acons "browser-name" "chrome" params))
+    (setf params (acons "created-by" (select-user-by-id 1 1) params))
+    (setf params (acons "data-storage-in" "tempstorage" params))
+    (setf params (acons "business-session" (gethash (hunchentoot:session-value :login-vendor-business-session-id) *HHUBBUSINESSSESSIONS-HT*) params))
+
+    (let ((returnlist (hhub-execute-business-function  "com.hhub.businessfunction.bl.createpushnotifysubscriptionforvendor" params)))
+      (if (nth 1 returnlist)
+      "Subscription Accepted"))))
 
 
 (defun hhub-remove-customer-push-subscription ()
-  (let* ((customer (get-login-customer))
-	 (subscriptions-list (get-push-notify-subscription-for-customer customer)))
-    (remove-webpush-subscription-for-customer subscriptions-list )
-    "Customer Subscription Removed"))
-
-
+  (let ((params nil))
+    (setf params (acons "customer" (get-login-customer) params))
+    (let* ((subscription-list (hhub-business-adapter 'get-push-notify-subscription-for-customer params)))
+      (setf params nil)
+      (if subscription-list (setf params (acons "subscription-list" subscription-list params)))
+      (hhub-business-adapter 'remove-webpush-subscription params)
+    "Customer Subscription Removed")))
 
 (defun hhub-remove-vendor-push-subscription ()
-  (let* ((subscription-list (get-push-notify-subscription-for-vendor (get-login-vendor))))
-    (if subscription-list (remove-webpush-subscription-for-vendor subscription-list))
-    "Vendor Subscription Removed"))
-
+  (let ((params nil))
+    (setf params (acons "vendor" (get-login-vendor) params))
+    (let* ((subscription-list (hhub-business-adapter 'get-push-notify-subscription-for-vendor  params)))
+      (setf params nil)
+      (if subscription-list (setf params (acons "subscription-list" subscription-list params)))
+      (hhub-business-adapter 'remove-webpush-subscription params)
+    "Vendor Subscription Removed")))
 
 
 (defun test-webpush-notification-for-vendor (vendor)
   (let* ((title "HighriseHub")
 	 (message (format nil "Welcome to HighriseHub - ~A" (slot-value vendor 'name)))
 	 (clickTarget "https://www.highrisehub.com")
-	 (subscriptions (get-push-notify-subscription-for-vendor vendor)))
-    (mapcar (lambda (subscription)
-	      (let ((endpoint (slot-value subscription 'endpoint))
-		    (publickey (slot-value subscription 'publickey))
-		    (auth  (slot-value subscription 'auth)))
-		(send-webpush-notification title message clickTarget endpoint publickey auth))) subscriptions)))
+	 (params nil))
+    (setf params (acons "vendor" vendor params))
+    (let ((returnlist (hhub-execute-business-function  "com.hhub.businessfunction.bl.getpushnotifysubscriptionforvendor" (setf params (acons "vendor" vendor  params))))) 
+      (if (null (nth 1 returnlist))
+	  (mapcar (lambda (subscription)
+		    (let ((endpoint (slot-value subscription 'endpoint))
+			  (publickey (slot-value subscription 'publickey))
+			  (auth  (slot-value subscription 'auth)))
+		      (send-webpush-notification title message clickTarget endpoint publickey auth))) (nth 0 returnlist))))))
 
 
 
 (defun send-webpush-message (person message)
   (let* ((title "HighriseHub")
-	 (subscriptions (cond ((equal 'DOD-CUST-PROFILE (type-of person)) (get-push-notify-subscription-for-customer person))
-			      ((equal 'DOD-VEND-PROFILE (type-of person)) (get-push-notify-subscription-for-vendor person))))
+	 (params nil)
+	 (returnlist  (cond ((equal 'DOD-CUST-PROFILE (type-of person)) (hhub-execute-business-function  "com.hhub.businessfunction.bl.getpushnotifysubscriptionforcustomer" (setf params (acons "customer" person params))))
+			    ((equal 'DOD-VEND-PROFILE (type-of person)) (hhub-execute-business-function  "com.hhub.businessfunction.bl.getpushnotifysubscriptionforvendor" (setf params (acons "vendor" person params))))))
 	 (clickTarget "https://www.highrisehub.com"))
-    (mapcar (lambda (subscription)
-	      (let ((endpoint (slot-value subscription 'endpoint))
-		    (publickey (slot-value subscription 'publickey))
-		    (auth  (slot-value subscription 'auth)))
-		(send-webpush-notification title message clickTarget endpoint publickey auth))) subscriptions)))
+    (if (null (nth 1 returnlist)) ; check for any exeptions from business function. If there are no exceptions, then we will go ahead with the data processing.  
+	(mapcar (lambda (subscription)
+		  (let ((endpoint (slot-value subscription 'endpoint))
+			(publickey (slot-value subscription 'publickey))
+			(auth  (slot-value subscription 'auth)))
+		    (send-webpush-notification title message clickTarget endpoint publickey auth))) (nth 0 returnlist)))))
 
 
 

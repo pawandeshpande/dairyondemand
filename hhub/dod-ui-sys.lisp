@@ -1,11 +1,31 @@
-;; -*- mode: common-lisp; coding: utf-8 -*-
+;; -*- mode: common%-lisp; coding: utf-8 -*-
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
-
 
 (defvar *logged-in-users* nil)
 (defvar *current-user-session* nil)
 
+(defun com-hhub-transaction-suspend-account ()
+  :documentation "This is a controller method which will suspend an Account"
+  (with-opr-session-check
+    (let ((params nil)
+	  (tenant-id (hunchentoot:parameter "tenant-id")))
+      (setf params (acons "rolename" (com-hhub-attribute-role-name) params))
+      (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+      (with-hhub-transaction "com-hhub-transaction-suspend-account" params 
+	(suspendaccount tenant-id))
+      (hunchentoot:redirect "/hhub/sadminhome"))))
+
+(defun com-hhub-transaction-restore-account ()
+  :documentation "This is a controller method which will suspend an Account"
+  (with-opr-session-check
+    (let ((params nil)
+	  (tenant-id (hunchentoot:parameter "tenant-id")))
+      (setf params (acons "rolename" (com-hhub-attribute-role-name) params))
+      (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+      (with-hhub-transaction "com-hhub-transaction-restore-account" params 
+	(restoreaccount tenant-id))
+      (hunchentoot:redirect "/hhub/sadminhome"))))
 
 
 (defun com-hhub-transaction-system-dashboard ()
@@ -96,14 +116,14 @@
     (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		  (with-html-form "form-addcompany" "hhubnewcompanyreq"
+		  (with-html-form "form-addcompany" "createcompanyaction"
 		    (if company (cl-who:htm (:input :class "form-control" :type "hidden" :value id :name "id")))
 		    (:img :class "profile-img" :src "/img/logo.png" :alt "")
 		    (:div :class "form-group"
-			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
+			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value cmpname :placeholder "Name ( max 30 characters) " :type "text" ))
 		    (:div :class "form-group"
 			  (:label :for "cmpaddress")
-			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (cl-who:str cmpaddress) ))
+			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (cl-who:str cmpaddress) ))
 		    (:div :class "form-group" :id "charcount")
 		    (:div :class "form-group"
 			  (:input :class "form-control" :type "text" :value cmpcity :placeholder "City"  :name "cmpcity" ))
@@ -127,21 +147,28 @@
 		  (with-html-form "form-addcompany" "hhubnewcompreqemailaction"
 		    (:img :class "profile-img" :src "/img/logo.png" :alt "")
 		    (:div :class "form-group"
-			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value ""  :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
+			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value "" :required T  :placeholder "Enter Community Store Name ( max 30 characters) " :type "text" ))
 		    (:div :class "form-group"
 			  (:label :for "cmpaddress")
-			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" "" ))
+			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Address ( max 400 characters) " :required T  :rows "5" :onkeyup "countChar(this, 400)" "" ))
 		    (:div :class "form-group" :id "charcount")
 		    (:div :class "form-group"
-			  (:input :class "form-control" :type "text" :value "" :placeholder "City"  :name "cmpcity" ))
+			  (:input :class "form-control" :type "text" :value "" :placeholder "City"  :required T :name "cmpcity" ))
 		    (:div :class "form-group"
-			  (:input :class "form-control" :type "text" :value "" :placeholder "State"  :name "cmpstate" ))
+			  (:input :class "form-control" :type "text" :value "" :placeholder "State" :required T  :name "cmpstate" ))
 		    (:div :class "form-group"
 			  (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
 		    (:div :class "form-group"
-			      (:input :class "form-control" :type "text" :maxlength "6" :value "" :placeholder "Pincode" :name "cmpzipcode" ))
+			      (:input :class "form-control" :type "text" :maxlength "6" :value "" :placeholder "Pincode" :required T  :name "cmpzipcode" ))
 		    (:div :class "form-group"
 			  (:input :class "form-control" :type "text" :maxlength "256" :value "" :placeholder "Website" :name "cmpwebsite" ))
+		    (:div :class "form-group checkbox" 
+			  (:input :type "checkbox" :name "tnccheck" :value  "tncagreed" :required T "Agree Terms and Conditions.  "))
+		    (:a  :href "https://www.highrisehub.com/tnc.html"  (:span :class "glyphicon glyphicon-eye-open") " Terms and Conditions.  ")
+		    (:div :class "form-group checkbox" 
+			  (:input :type "checkbox" :name "privacycheck" :value "privacyagreed" :required T  "Agree Privacy Policy.  "))
+		   
+		    (:a  :href "https://www.highrisehub.com/tnc.html"  (:span :class "glyphicon glyphicon-eye-open") " Privacy Policy. ")
 		    (:div :class "form-group"
 			  (:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
 		    (:div :class "form-group"
@@ -153,21 +180,24 @@
 	  (company-list (if (not (equal "" qrystr)) (select-companies-by-name qrystr))))
     (display-as-tiles company-list 'company-card)))
 
+(defun com-hhub-transaction-refresh-iam-settings () 
+  (with-opr-session-check 
+      (progn 
+	(refreshiamsettings)
+	(hunchentoot:redirect "/hhub/dasabacsecurity"))))
+
 (defun dod-controller-abac-security ()
   (let ((policies (hhub-get-cached-auth-policies)))
     (with-opr-session-check 
       (with-standard-admin-page (:title "Welcome to Highrisehub")
-
-				(iam-security-page-header)
-		
-	 (:hr)
-	 (:div :class "row"
-	       (:div :class "col-xs-3" (:h4 "Business Policies"))
-	       (:div :class "col-xs-3" 
-		     (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")))
-
-	 (cl-who:str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
-	 (modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create-dialog))))))
+	(iam-security-page-header)
+	(:hr)
+	(:div :class "row"
+	      (:div :class "col-xs-3" (:h4 "Business Policies"))
+	      (:div :class "col-xs-3" 
+		    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")))
+	(cl-who:str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
+	(modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create-dialog))))))
 
 			
 
@@ -176,7 +206,7 @@
   (with-opr-session-check
     (let ((params nil))
       (setf params (acons "username" (get-login-user-name) params))
-      ;(setf params (acons "uri" (hunchentoot:request-uri*)  params))
+      (setf params (acons "uri" (hunchentoot:request-uri*)  params))
       (with-hhub-transaction "com-hhub-transaction-sadmin-home" params 
       (let (( companies (hhub-get-cached-companies)))
 	(with-standard-admin-page (:title "Welcome to Highrisehub.")
@@ -198,19 +228,24 @@
 
 
 (defun IAM-security-page-header ()
-(cl-who:with-html-output (*standard-output* nil)
-      (:div :class "row"
-	       (:div :class "col-sm-12"
-		     (:h5 (:span :class "label label-warning" "Note: Any changes saved will not get reflected  when you refresh the screen. Please stop and start HighriseHub system 
-using (stop-das) followed by (start-das) in the Lisp REPL."))))
-      (:div :class "row"
-	    (:div :class "col-xs-2"
-		  (:a :class "btn btn-primary" :role "button" :href "/hhub/dasabacsecurity"  " Business Policies  "))
-	    (:div :class "col-xs-2"
-		  (:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Business Attributes  "))
-	    (:div :class "col-xs-2"
-		  (:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Business Transactions  ")))
-      (:div :class "row" )))
+  (cl-who:with-html-output (*standard-output* nil)
+    (:div :class "row"
+	  (:div :class "col-sm-12"
+		(:h4 (:span :class "label label-warning" "Note: Any changes saved will not get reflected unless you click the refresh button."))))
+    (:div :class "row"
+	  (:div :class "col-xs-2"
+		(:a :class "btn btn-primary" :role "button" :href "/hhub/dasabacsecurity"  " Business Policies  "))
+	  (:div :class "col-xs-2"
+		(:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Business Attributes/Tags  "))
+	  (:div :class "col-xs-2"
+		(:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objectss  "))
+	  (:div :class "col-xs-2"
+		(:a :class "btn btn-primary" :role "button" :href "/hhub/listabacsubjects"  " ABAC Subjects  "))
+	  (:div :class "col-xs-2"
+		(:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Business Transactions  "))
+	  (:div :class "col-xs-2"
+		(:a :class "btn btn-primary btn-xs" :role "button" :href "/hhub/refreshiamsettings" (:span :class "glyphicon glyphicon-refresh"))))
+    (:div :class "row" )))
 
 (setq *logged-in-users* (make-hash-table :test 'equal))
 
@@ -433,11 +468,13 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	  (cmpstate (hunchentoot:parameter "cmpstate"))
 	  (cmpcountry (hunchentoot:parameter "cmpcountry"))
 	  (cmpzipcode (hunchentoot:parameter "cmpzipcode"))
+	  (tnccheck (hunchentoot:parameter "tnccheck"))
+	  (privacycheck (hunchentoot:parameter "privacycheck"))
 	  (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
 	  (paramname (list "secret" "response" ) ) 
-	 (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
-	 (param-alist (pairlis paramname paramvalue ))
-	 (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
+	  (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
+	  (param-alist (pairlis paramname paramvalue ))
+	  (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
                        :method :POST
                        :parameters param-alist  ))))
      	  (cmpwebsite (hunchentoot:parameter "cmpwebsite"))
@@ -456,17 +493,21 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 		     ( or (null cmpaddress) (zerop (length cmpaddress)))
 		     ( or (null cmpzipcode) (zerop (length cmpzipcode))))
 	  (cond 
+	   
 	    ((null (cdr (car json-response))) (dod-response-captcha-error))
-	    (company (send-new-company-registration-email company))))
+	    ((and company
+		  (equal tnccheck "tncagreed")
+		  (equal privacycheck "privacyagreed")) (send-new-company-registration-email company))))
 	(hunchentoot:redirect "/hhub/hhubnewcompreqemailsent")))
 	    
 	  
 
-(defun 	com-hhub-policy-create-company ()
+(defun 	com-hhub-transaction-create-company ()
   (with-opr-session-check
     (let ((params nil))
       (setf params (acons "uri" (hunchentoot:request-uri*)  params))
-      (with-hhub-transaction "com-hhub-policy-create-company" params  
+      (setf params (acons "rolename" (com-hhub-attribute-role-name) params))
+      (with-hhub-transaction "com-hhub-transaction-create-company" params  
       (let*  ((id (hunchentoot:parameter "id"))
 	      (company (if id (select-company-by-id id)))
 	      (cmpname (hunchentoot:parameter "cmpname"))
@@ -504,8 +545,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubnewcompanyreq" 'dod-controller-new-company-request)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubnewcompreqemailaction" 'dod-controller-new-company-request-email)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubnewcompreqemailsent" 'dod-controller-new-company-registration-email-sent) 
-	(hunchentoot:create-regex-dispatcher "^/hhub/new-company" 'dod-controller-new-company)
-	(hunchentoot:create-regex-dispatcher "^/hhub/editcompany" 'dod-controller-new-company)
+	(hunchentoot:create-regex-dispatcher "^/hhub/createcompanyaction" 'com-hhub-transaction-create-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/opr-login.html" 'dod-controller-loginpage)
 	(hunchentoot:create-regex-dispatcher "^/hhub/sadminlogin" 'com-hhub-transaction-sadmin-login)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-customers" 'dod-controller-list-customers)
@@ -536,6 +576,12 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasadduseraction" 'dod-controller-add-user-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubsadminprofile" 'com-hhub-transaction-sadmin-profile)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubdiagnostics" 'com-hhub-transaction-system-dashboard)
+	(hunchentoot:create-regex-dispatcher "^/hhub/suspendaccount" 'com-hhub-transaction-suspend-account)
+	(hunchentoot:create-regex-dispatcher "^/hhub/restoreaccount" 'com-hhub-transaction-restore-account)
+	(hunchentoot:create-regex-dispatcher "^/hhub/refreshiamsettings" 'com-hhub-transaction-refresh-iam-settings)
+	(hunchentoot:create-regex-dispatcher "^/hhub/pricing" 'hhub-controller-pricing)
+	(hunchentoot:create-regex-dispatcher "^/hhub/contactuspage" 'hhub-controller-contactus-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/contactusaction" 'hhub-controller-contactus-action)
 	
 	;***************** COMPADMIN/COMPANYHELPDESK/COMPANYOPERATOR  RELATED ********************
      
@@ -651,7 +697,7 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvendororderdetails" 'dod-controller-vendor-orderdetails)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenaddprodpage" 'dod-controller-vendor-add-product-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenbulkaddprodpage" 'dod-controller-vendor-bulk-add-products-page)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenaddproductaction" 'dod-controller-vendor-add-product-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenaddproductaction" 'com-hhub-transaction-vendor-product-add-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenuploadproductsimagesaction" 'dod-controller-vendor-upload-products-images-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenuploadproductscsvfileaction" 'com-hhub-transaction-vendor-bulk-products-add)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodvenordcancel" 'dod-controller-vendor-order-cancel)
@@ -663,9 +709,9 @@ using (stop-das) followed by (start-das) in the Lisp REPL."))))
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendgentemppass"   'dod-controller-vendor-generate-temp-password) 
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendpassreset"   'dod-controller-vendor-password-reset-action)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendpushsubscribepage"   'dod-controller-vendor-pushsubscribe-page)
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendsavepushsubscription"   'hhub-save-vendor-push-subscription )
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendsavepushsubscription"   'hhub-controller-save-vendor-push-subscription )
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendremovepushsubscription"   'hhub-remove-vendor-push-subscription )
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendgetpushsubscription"   'hhub-get-vendor-push-subscription )
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubvendgetpushsubscription"   'hhub-controller-get-vendor-push-subscription )
 	
 		
 ))

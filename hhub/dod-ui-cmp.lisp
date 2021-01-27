@@ -9,6 +9,7 @@
      (hunchentoot:redirect "/login")))
 
 
+
 (defun company-card (instance)
     (let ((comp-name (slot-value instance 'name))
 	  (address  (slot-value instance 'address))
@@ -16,6 +17,7 @@
 	  (state (slot-value instance 'state)) 
 	  (country (slot-value instance 'country))
 	  (zipcode (slot-value instance 'zipcode))
+	  (suspended (slot-value instance 'suspend-flag))
 	  (row-id (slot-value instance 'row-id)))
 	(cl-who:with-html-output (*standard-output* nil)
 	 (:div :class "product-box" 
@@ -29,6 +31,12 @@
 		      (:button :class "btn btn-primary dropdown-toggle" :type "button" :id "dropdownMenu1" :data-toggle "dropdown" :aria-haspopup "true" :aria-expanded "false" (:span :class "glyphicon glyphicon-option-vertical"))
 		      (:ul :class "dropdown-menu" :aria-labelledby "dropdownMenu1"
 			   (:li (:a :href (format nil "/hhub/list-users?tenant-id=~a" row-id) "Manage Users"))
+			   (if (equal suspended "Y")
+			       (cl-who:htm 
+				(:li (:a :href (format nil "/hhub/restoreaccount?tenant-id=~a" row-id) "Restore Account")))
+			       ;else
+			       (cl-who:htm 
+				(:li (:a :href (format nil "/hhub/suspendaccount?tenant-id=~a" row-id) "Suspend Account"))))
 			   (:li :role "separator" :class "divider" )
 			   (:li (:a :href "#" "Delete")))))
 		 
@@ -41,6 +49,8 @@
 		(:div :class "col-xs-6" (cl-who:str country)))
 	  (:div :class "row"
 		(:div :class "col-xs-6" (cl-who:str zipcode)))
+	  (if (equal suspended "Y")
+	      (cl-who:htm (:div :class "stampbox rotated" "SUSPENDED")))
 	  (:div :class "row" 
 		(:div :class "col-xs-6" (:b (:h5 (cl-who:str (format nil "No of Customers: ~A " (count-company-customers instance))))))
 	  (:div :class "col-xs-6" (:b (:h5 (cl-who:str (format nil  "No of Vendors: ~A " (count-company-vendors instance )))))))

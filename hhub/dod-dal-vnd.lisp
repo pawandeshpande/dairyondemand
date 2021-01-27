@@ -1,5 +1,8 @@
-(in-package :dairyondemand)
-(clsql:file-enable-sql-reader-syntax)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
+
+
+
 (clsql:def-view-class dod-vendors ()
   ((row-id
     :db-kind :key

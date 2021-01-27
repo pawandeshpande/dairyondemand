@@ -1,5 +1,34 @@
-(in-package :dairyondemand)
+;; -*- mode: common-lisp; coding: utf-8 -*-
+(in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
+
+(defclass Vendor (BusinessObject)
+  ((name)
+   (address)
+   (phone) 
+   (email)
+   (firstname)
+   (lastname)
+   (salutation)
+   (title)
+   (birthdate)
+   (city)
+   (state)
+   (country)
+   (zipcode)
+   (picture-path)
+   (password)
+   (salt)
+   (payment-gateway-mode)
+   (payment-api-key)
+   (payment-api-salt)
+   (push-notify-subs-flag)
+   (email-add-verified)
+   (tenantobj)))
+
+
+
+
 (clsql:def-view-class dod-vend-profile ()
   ((row-id
     :db-kind :key
@@ -134,6 +163,11 @@
 
 ; DOD_VENDOR_TENANTS table is created to support multiple tenants for a given vendor. 
 
+(defclass HHUBVendorTenants (BusinessObject) 
+  ((vendor)
+   (tenant)
+   (default-flag)))
+
 (clsql:def-view-class dod-vendor-tenants ()
   ((row-id
     :db-kind :key
@@ -165,3 +199,97 @@
     :void-value "N"
     :initarg :deleted-state))
   (:BASE-TABLE dod_vendor_tenants))
+
+;;;;;;;;;;; Generic functions ;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defgeneric loadVendors (BusinessObjectRepository Company)
+  (:documentation "Loads all the Vendors from database"))
+(defgeneric getVendor (BusinessObjectRepository Phone)
+  (:documentation "Returns the single instance of Vendor object stored in the repository. Key being the phone number."))
+
+
+;;;;;;;;;; Method implementations ;;;;;;;;;;;;;;;;;;;;
+
+(defmethod getVendor ((vr BusinessObjectRepository) Phone)
+  (gethash Phone (slot-value vr 'BusinessObjects)))
+
+
+(defun transform (db-vendor vendor)
+  (with-slots (id name address phone email firstname lastname salutation title birthdate city state country zipcode picture-path password salt payment-gateway-mode payment-api-key
+		     payment-api-salt push-notify-subs-flag email-add-verified tenantobj)
+      vendor
+    (setf id (slot-value db-vendor 'row-id))
+    (setf name (slot-value db-vendor 'name))
+    (setf address (slot-value db-vendor 'address))
+    (setf phone (slot-value db-vendor 'phone))
+    (setf email (slot-value db-vendor 'email))
+    (setf firstname (slot-value db-vendor 'firstname))
+    (setf lastname (slot-value db-vendor 'lastname))
+    (setf salutation (slot-value db-vendor 'salutation))
+    (setf title (slot-value db-vendor 'title))
+    (setf birthdate (slot-value db-vendor 'birthdate))
+    (setf city (slot-value db-vendor 'city))
+    (setf state (slot-value db-vendor 'state))
+    (setf country (slot-value db-vendor 'country))
+    (setf zipcode (slot-value db-vendor 'zipcode))
+    (setf picture-path (slot-value db-vendor 'picture-path))
+    (setf password (slot-value db-vendor 'password))
+    (setf salt (slot-value db-vendor 'salt))
+    (setf payment-gateway-mode  (slot-value db-vendor 'payment-gateway-mode))
+    (setf payment-api-key (slot-value db-vendor 'payment-api-key))
+    (setf payment-api-salt (slot-value db-vendor 'payment-api-salt))
+    (setf push-notify-subs-flag (slot-value db-vendor 'push-notify-subs-flag))
+    (setf email-add-verified (slot-value db-vendor 'email-add-verified))
+    (setf tenantobj (vendor-company db-vendor))))
+
+
+(defmethod getVendorCompany ((vendor BusinessObject))
+  (slot-value vendor 'tenantobj))
+
+
+(defmethod loadVendorByPhone ((vr BusinessObjectRepository) Phone)
+  :documentation "This method will load the vendor by phone"
+  (let* ((ht (make-hash-table :test 'equal))
+	 (allvendors (clsql:select 'dod-vend-profile  :where  [and [= [:phone] Phone] [= [:deleted-state] "N"]] :caching nil :flatp t)))
+    (loop for db-vendor in allvendors do
+      (let ((key (slot-value db-vendor 'phone))
+	    (vendor (make-instance 'Vendor)))
+	(transform db-vendor vendor)
+	(setf (gethash key ht) vendor)))
+    ;; Return  the hash table. 
+    (setf (slot-value vr 'BusinessObjects) ht)))
+  
+
+(defmethod loadAllVendors ((vr BusinessObjectRepository))
+  :documentation "This method will load all the vendors from the database irrespective of the company they belong to."
+  (let* ((ht (make-hash-table :test 'equal))
+	 (allvendors (clsql:select 'dod-vend-profile  :where  [= [:deleted-state] "N"] :caching nil :flatp t)))
+    (loop for db-vendor in allvendors do
+      (let ((key (slot-value db-vendor 'phone))
+	    (vendor (make-instance 'Vendor)))
+	(transform db-vendor vendor)
+	(setf (gethash key ht) vendor)))
+    ;; Return  the hash table. 
+    (setf (slot-value vr 'BusinessObjects) ht)))
+  
+
+(defmethod loadVendors ((vr BusinessObjectRepository) company)
+  :documentation "This method will load all the vendors from database by company."
+  (let* ((tenant-id (slot-value company 'id))
+	 (ht (make-hash-table :test 'equal))
+	 (allvendors (clsql:select 'dod-vend-profile  :where [and [= [:tenant-id] tenant-id] [= [:deleted-state] "N"]] :caching nil :flatp t)))
+    (loop for db-vendor in allvendors do
+      (let ((key (slot-value db-vendor 'phone))
+	    (vendor (make-instance 'Vendor)))
+	(transform db-vendor vendor)
+	(setf (gethash key ht) vendor)))
+    ;; Return  the hash table. 
+    (setf (slot-value vr 'BusinessObjects) ht)))
+
+
+
+
+
+
+
+

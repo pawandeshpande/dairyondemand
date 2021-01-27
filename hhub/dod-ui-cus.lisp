@@ -152,7 +152,7 @@
 	(hunchentoot:remove-session hunchentoot:*session*)
 	(if company-website (hunchentoot:redirect (format nil "http://~A" company-website)) 
 	    ;else
-	    (hunchentoot:redirect (hunchentoot:redirect "/index.html"))))))
+	    (hunchentoot:redirect (hunchentoot:redirect "https://www.highrisehub.com"))))))
 
 
 
@@ -690,14 +690,14 @@
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
 	      (with-standard-customer-page (:title "Welcome to HighriseHub platform") 
 		(:div :class "row"
-		      (:h2 "Search Apartment/Group")
+		      (:h2 "Search Your Community Store.")
 		      (:div :id "custom-search-input"
 			    (:div :class "input-group col-md-12"
 				  (with-html-search-form "companysearchaction" "Name Starts With...")
 				  (:div :id "searchresult"))
 			    (:hr)
-			    (:a :class "btn btn-primary" :onclick "window.history.back();"  :role "button" :href "#"  (:span :class "glyphicon glyphicon-arrow-left"))
-			    (:a :class "btn btn-primary" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#" (:span :class "glyphicon glyphicon-plus") " New Store")
+			    (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-arrow-left"))
+			    (:a :class "btn btn-primary" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#" (:span :class "glyphicon glyphicon-plus") " New Community Store (FREE!)")
 			    (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company))))))
 		      
     (clsql:sql-database-data-error (condition)
