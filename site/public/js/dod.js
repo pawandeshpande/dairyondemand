@@ -1,8 +1,17 @@
 
 var $busyindicator = document.getElementById('busy-indicator');
-var $error = $("#dod-error");
+var $error = document.getElementById('dod-error');
 var  $formcustsignin = $(".form-custsignin"),  $formvendsignin = $(".form-vendorsignin");
 
+
+
+
+function copyshiptobillto()
+{
+    var shipaddress  = document.getElementById("shipaddress");
+    var billaddress = document.getElementById("billaddress");
+    billaddress.value = shipaddress.value;
+}
 
 
 const copyToClipboard = str => {
