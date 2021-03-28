@@ -1,6 +1,4 @@
 *.fasl
-*.jpg
-*.png
 *.log
 *.*~
 *#*#
@@ -8,4 +6,3 @@
 hhub/resources/*.*
 hhub/secretkeys.lisp
 privatekey.key
-webpushserver/node_modules/*
