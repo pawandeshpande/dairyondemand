@@ -52,6 +52,7 @@
 		  ;  "dod-seed-data.lisp"
 		    "dod-test-ord.lisp"
 		    "dod-bl-err.lisp"
+		    "dod-bl-sys.lisp"
 		    
 ;;;;;;;;;;;;;; UI LAYER
 		    "dod-ui-push.lisp" 
@@ -72,6 +73,7 @@
 		    "dod-ui-usr.lisp"
 		    "dod-ui-vad.lisp"
 		    "dod-ui-ven.lisp"
+		    "dod-ui-site.lisp"
 		  ;  "unit-tests.lisp"
 		    "/email/templates/registration.lisp"))
 	

@@ -6,6 +6,16 @@ const app = express();
 require('dotenv').config();
 
 var AWS = require('aws-sdk');
+//Auth secret used to authentication notification requests.
+let AUTH_SECRET = "highrisehub1234"; //process.env.AUTH_SECRET;
+
+
+if (!AUTH_SECRET) {
+  return console.error("AUTH_SECRET environment variable not found.");
+}
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("static"));
 
 
 app.get("/sms/status", function(req, res) {
@@ -16,6 +26,11 @@ app.get("/sms/status", function(req, res) {
 
 app.get('/sms/sendsms', (req, res) => {
 
+    if (req.get("auth-secret") != AUTH_SECRET) {
+	console.log("Missing or incorrect auth-secret header. Rejecting request.");
+	return res.sendStatus(401);
+    }
+    
     console.log("Message = " + req.query.message);
     console.log("Number = " + req.query.number);
     console.log("SenderID = " + req.query.senderid);
