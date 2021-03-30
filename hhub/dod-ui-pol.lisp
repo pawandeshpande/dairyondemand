@@ -8,7 +8,7 @@
 (defun com-hhub-policy-vendor-add-product-action (&optional (params nil))
   (let* ((company (cdr (assoc "company" params :test 'equal))))
     (if (com-hhub-attribute-company-issuspended company)
-	(error 'hhub-abac-transaction-error :errstring "This Account is Suspended."))))
+	(error 'hhub-abac-transaction-error :errstring (format nil "Account Name: ~A. This Account is Suspended." (slot-value company 'name))))))
 
 (defun com-hhub-policy-restore-account (&optional (params nil))
   :documentation "This policy governs the Account suspension"
@@ -227,8 +227,7 @@
 	 
 	 (modal-dialog (format nil "editattribute-modal~a" row-id) "Add/Edit Attribute" (com-hhub-transaction-create-attribute-dialog attribute-instance))))))
 
-
-(defun policy-card (policy-instance)
+(defun policy-row (policy-instance)
   (let ((name (slot-value policy-instance 'name))
 	(description (slot-value policy-instance 'description))
 	(policy-func (slot-value policy-instance 'policy-func))
@@ -236,14 +235,14 @@
     (cl-who:with-html-output (*standard-output* nil)
       
       (:td :height "10px" 
-	(:h6 :class "policy-name"  (cl-who:str name)))
+	   (:h6 :class "policy-name"  (cl-who:str name)))
       (:td :height "10px" 
-	(:h6 :class "policy-desc"  (cl-who:str description)))
+	   (:h6 :class "policy-desc"  (cl-who:str description)))
       (:td :height "10px" 
-       	 (:h6 :class "policy-func-name"  (cl-who:str policy-func) ))
+	   (:h6 :class "policy-func-name"  (cl-who:str policy-func) ))
       (:td :height "10px" 
-       (:a  :data-toggle "modal" :data-target (format nil "#editpolicy-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
-	(modal-dialog (format nil "editpolicy-modal~a" row-id) "Add/Edit Policy" (com-hhub-transaction-policy-create-dialog  policy-instance))))))
+	   (:a  :data-toggle "modal" :data-target (format nil "#editpolicy-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
+	   (modal-dialog (format nil "editpolicy-modal~a" row-id) "Add/Edit Policy" (com-hhub-transaction-policy-create-dialog  policy-instance))))))
 
 ;; @@ deprecated : start using with-html-dropdown instead. 
 (defun  attribute-type-dropdown (selectedkey)
