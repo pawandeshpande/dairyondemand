@@ -29,6 +29,7 @@
 
 
 (defun com-hhub-transaction-system-dashboard ()
+
 )
 
 
@@ -196,7 +197,7 @@
 	      (:div :class "col-xs-3" (:h4 "Business Policies"))
 	      (:div :class "col-xs-3" 
 		    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#addpolicy-modal" "Add New Policy")))
-	(cl-who:str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-card))
+	(cl-who:str (display-as-table (list  "Name" "Description" "Policy Function" "Action")  policies 'policy-row))
 	(modal-dialog "addpolicy-modal" "Add/Edit Policy" (com-hhub-transaction-policy-create-dialog))))))
 
 			
