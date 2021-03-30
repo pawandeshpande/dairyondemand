@@ -142,3 +142,16 @@
 			 :additional-headers headers
 			     :parameters param-alist)))
 
+
+
+(defun send-sms-notification (number senderid message)
+  (let* ((paramnames (list "number" "senderid" "message"))
+	 (paramvalues (list number senderid message))
+	 (param-alist (pairlis paramnames paramvalues))
+	 (headers nil) 
+	 (headers (acons "auth-secret" "highrisehub1234" headers)))
+    ; Execution
+    (drakma:http-request "https://www.highrisehub.com/sms/sendsms"
+			 :additional-headers headers
+			     :parameters param-alist)))
+  

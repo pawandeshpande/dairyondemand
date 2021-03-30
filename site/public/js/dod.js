@@ -14,6 +14,15 @@ function copyshiptobillto()
 }
 
 
+$( ":text" ).each(function( index ) {
+    $( this ).focusout(function() {
+      var text = $(this).val();
+      text = $.trim(text);
+      $(this).val(text);
+    });
+});
+
+
 const copyToClipboard = str => {
   const el = document.createElement('textarea');
   el.value = str;

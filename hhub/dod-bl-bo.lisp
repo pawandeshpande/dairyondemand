@@ -171,23 +171,31 @@
   (let* ((policy-id (if transaction (slot-value transaction 'auth-policy-id)))
 	 (policy (if policy-id (get-ht-val policy-id (HHUB-GET-CACHED-AUTH-POLICIES-HT))))
 	 (policy-name (if policy (slot-value policy 'name)))
-	 (policy-func (if policy (slot-value policy 'policy-func))))
+	 (policy-func (if policy (slot-value policy 'policy-func)))
+	 (exceptionstr nil))
     (handler-case 
-	(multiple-value-bind (returnvalues exception) (funcall (intern  (string-upcase policy-func) :hhub) params)
+	(multiple-value-bind (returnvalues) (funcall (intern  (string-upcase policy-func) :hhub) params)
 					;Return a list of return values and exception as nil. 
-	  (list returnvalues exception))
-    
-  ; If we get any general error we will not throw it to the upper levels. Instead set the exception and log it. 
-  (error (c)
-    (let ((exceptionstr (format nil  "HHUB General ABAC Policy Error: ~A :: ~a~%" (string-upcase policy-name) c)))
-      (with-open-file (stream *HHUBBUSINESSFUNCTIONSLOGFILE* 
-			   :direction :output
-			   :if-exists :supersede
-			   :if-does-not-exist :create)
-	(format stream "~A" exceptionstr))
-      (list nil (format nil "HHUB General ABAC Policy Error. See logs for more details.")))))))
+	  (list returnvalues nil))
 
+      ;; If we get an ABAC Transaction exception
+      (hhub-abac-transaction-error (condition)
+	(setf exceptionstr (format nil "HHUB ABAC Transaction error - ~A. Error: ~A~%" (string-upcase policy-name) (getExceptionStr condition)))
+	(with-open-file (stream *HHUBBUSINESSFUNCTIONSLOGFILE* 
+				:direction :output
+				:if-exists :append
+				:if-does-not-exist :create)
+	  (format stream "~A" exceptionstr))
+	(list nil (format nil "HighriseHub General Authorization Error. Contact your system administrator.")))
   
-;    (if policy-func (funcall (intern  (string-upcase policy-func) :hhub) params))))
+      ;; If we get any general error we will not throw it to the upper levels. Instead set the exception and log it. 
+      (error (c)
+	(setf exceptionstr (format nil  "HHUB General ABAC Policy Error: ~A :: ~A~%" (string-upcase policy-name) c))
+	(with-open-file (stream *HHUBBUSINESSFUNCTIONSLOGFILE* 
+				:direction :output
+			      :if-exists :append
+				:if-does-not-exist :create)
+	  (format stream "~A" exceptionstr))
+	(list nil (format nil "HHUB General Authorization Error. Contact your system administrator."))))))
 
 
