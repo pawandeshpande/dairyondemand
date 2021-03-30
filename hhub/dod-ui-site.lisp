@@ -20,9 +20,27 @@
 			 (:li (:a :href "tnc.html" "Terms and Conditions"))
 			 (:li :class "footer-menu-divider" "&sdot;")
 			 (:li (:a :href "privacy.html" "Privacy Policy"))
-			 (:li :class "footer-menu-divider" "&sdot;"))
-                    (:p :class="copyright text-muted small" "Copyright &copy; HighriseHub 2021. All Rights Reserved")))))))
+			 (:li :class "footer-menu-divider" "&sdot;")
+			 (:li (:a :id "hhubcookiepolidylink" :data-toggle "modal" :data-target (format nil "#hhubcookiepolicy-modal")  :href "#"  "Cookie Policy")))))
+	    (:div :class "row"
+		  (:div :class "col-lg-12" 
+			 (:p :class="copyright text-muted small" "Copyright &copy; HighriseHub 2021. All Rights Reserved")))))
+        (modal-dialog (format nil "hhubcookiepolicy-modal") "Accept Cookies" (modal.hhub-cookie-policy))))
 
+(defun modal.hhub-cookie-policy ()
+  (cl-who:with-html-output (*standard-output* nil)
+    (:div :class "panel panel-default"
+	  (:div :class "panel-heading" "Cookie Policy"
+	  (:div :class "row"
+		(:div :class "col-lg-12"
+		      (:p :class "small"  "To enrich and perfect your online experience, HighriseHub uses Cookies, similar technologies and services provided by others to display personalized content, appropriate advertising and store your preferences on your computer.")
+
+(:p :class "small" "A cookie is a string of information that a website stores on a visitor's computer, and that the visitor's browser provides to the website each time the visitor returns. HighriseHub uses cookies to help HighriseHub identify and track visitors, their usage of https://www.highrisehub.com, and their website access preferences. HighriseHub visitors who do not wish to have cookies placed on their computers should set their browsers to refuse cookies before using HighriseHub's websites, with the drawback that certain features of HighriseHub's websites may not function properly without the aid of cookies.")
+
+(:p :class "small" "By continuing to navigate our website without changing your cookie settings, you hereby acknowledge and agree to HighriseHub's use of cookies.")))
+	  (with-html-form "hhubcookiesacceptform" "hhubcookiesacceptaction"
+	    (:div :class "form-group"
+		  	      (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Accept and Continue")))))))
 
 (defun hhub-controller-contactus-page ()
   (with-standard-admin-page (:title "HighriseHub - Contact Us")
@@ -96,7 +114,7 @@
 		  
 
 (defun hhub-controller-pricing ()
-  (let ((names (list  "Free (90 Days)" "Basic" "Professional"))
+  (let ((names (list  "Free - 30 Days" "Basic" "Professional"))
 	(prices (list "00" "499" "999"))
 	(pricing-features 
 	  (list  "No of Vendors" "No of Customers" "Revenue/Month" "Inventory Control" "Product Images & Zoom" "Guest Login/Phone Order" "Products" "Shipping Integration" "Payment Gateway Integration" 
