@@ -5,6 +5,22 @@
 ;;;;;;;;;;;;;; HERE WE DEFINE ALL THE POLICIES FOR HIGHRISEHUB ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun com-hhub-policy-customer&vendor-create (&optional (params nil))
+  (let* ((company (cdr (assoc "company" params :test 'equal)))
+	 (currvendorcount (length (select-vendors-for-company company)))
+	 (currcustomercount (length (select-customers-for-company company)))
+	 (maxcustomercount (com-hhub-attribute-company-maxcustomercount company))
+	 (maxvendorcount (com-hhub-attribute-company-maxvendorcount company)))
+    (cond ((not (> 0 (- maxvendorcount currvendorcount)))
+	   (error 'hhub-abac-transaction-error :errstring (format nil "Account Name: ~A. You have exceeded maximum numbers of vendors allowed to be created." (slot-value company 'name))))
+	  ((not (> 0 (- maxcustomercount  currcustomercount)))
+	   (error 'hhub-abac-transaction-error :errstring (format nil "Account Name: ~A. You have exceeded maximum numbers of customer allowed to be created." (slot-value company 'name))))
+	  ((com-hhub-attribute-company-issuspended company)
+	   (error 'hhub-abac-transaction-error :errstring (format nil "Account Name: ~A. This Account is Suspended." (slot-value company 'name))))
+	  (() T))))
+
+
+
 (defun com-hhub-policy-vendor-add-product-action (&optional (params nil))
   (let* ((company (cdr (assoc "company" params :test 'equal))))
     (if (com-hhub-attribute-company-issuspended company)
@@ -24,7 +40,11 @@
 
 (defun com-hhub-policy-vendor-bulk-product-add (&optional  (params nil))
   :documentation "Vendor Add bulk products using CSV file. "
-  (<  (cdr (assoc "prdcount" params :test 'equal)) (com-hhub-attribute-vendor-bulk-product-count)))
+  (let* ((company (cdr (assoc "company" params :test 'equal))))
+    (cond
+      ((com-hhub-attribute-company-issuspended company)
+       (error 'hhub-abac-transaction-error :errstring (format nil "Account Name: ~A. This Account is Suspended." (slot-value company 'name))))
+      ((<  (cdr (assoc "prdcount" params :test 'equal)) (com-hhub-attribute-vendor-bulk-product-count)) T))))
 
 
 (defun com-hhub-policy-cad-login-page (&optional (params nil))
