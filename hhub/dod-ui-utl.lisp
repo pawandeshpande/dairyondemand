@@ -24,18 +24,18 @@
 
 
 (defun dod-controller-new-company-registration-email-sent ()
-  (with-standard-customer-page 
+  (with-standard-customer-page  "New Company Registration Request"
     (:div :class "row" 
-	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
+	     (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		   (with-html-form "form-customerchangepin" "hhubcustpassreset"  
 					;(:div :class "account-wall"
-		  (:h1 :class "text-center login-title"  "New Store details have been sent. You will be contacted soon. ")
-		  (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-home")))))))
-
+		     (:h1 :class "text-center login-title"  "New Store details have been sent. You will be contacted soon. ")
+		     (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-home")))))))
+  
 
 
 (defun dod-controller-password-reset-mail-link-sent ()
-  (with-standard-customer-page 
+  (with-standard-customer-page  "Password reset mail" 
     (:div :class "row" 
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
@@ -45,7 +45,7 @@
 
 
 (defun dod-controller-password-reset-mail-sent ()
-(with-standard-customer-page 
+(with-standard-customer-page  "Password reset mail"
     (:div :class "row" 
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
@@ -55,7 +55,7 @@
   
 
 (defun dod-controller-invalid-email-error ()
-  (with-standard-customer-page 
+  (with-standard-customer-page  "Invalid email error"
     (:div :class "row" 
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
@@ -66,7 +66,7 @@
 
 
 (defun dod-controller-password-reset-token-expired ()
-  (with-standard-customer-page 
+  (with-standard-customer-page "Password reset token expired"
     (:div :class "row" 
 	  (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		(with-html-form "form-customerchangepin" "hhubcustpassreset"  
@@ -88,7 +88,7 @@
 			:ssl
 			:tls
 			:html-message body
-			:display-name "HighriseHub No Reply"
+			:display-name "HighriseHub"
 			:attachments attachments-list)))
 
 
@@ -118,7 +118,7 @@
 	,@body)))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute) 
-  (defmacro with-standard-page-template ((&key title nav-func)  &body body)
+  (defmacro with-standard-page-template (title nav-func  &body body)
     `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
        (:html  :xmlns "http://www.w3.org/1999/xhtml"
 	       :xml\:lang "en" 
@@ -135,13 +135,16 @@
 					; Link to the app manifest for PWA. 
 		(:link :rel "manifest" :href "/manifest.json")
 		(:link :href "/css/style.css" :rel "stylesheet")
-		(:link :href "/css/bootstrap.min.css" :rel "stylesheet")
+		;; Bootstrap CSS
+		(:link :href "/css/bootstrap.css" :rel "stylesheet")
 		(:link :href "/css/bootstrap-theme.min.css" :rel "stylesheet")
 		(:link :href "https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" :rel "stylesheet")
 		(:link :href "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" :rel "stylesheet")
 		(:link :href "https://fonts.googleapis.com/css?family=Merriweather:400,900,900i" :rel "stylesheet")
 		(:link :href "/css/theme.css" :rel "stylesheet")
-		;; js files
+
+
+				;; js files related to bootstrap and jquery. Jquery must come first. 
 		(:script :src "https://code.jquery.com/jquery-3.5.1.min.js" :integrity "sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" :crossorigin "anonymous")
 		(:script :src "https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" :integrity "sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" :crossorigin "anonymous")
 		(:script :src "/js/spin.min.js")
@@ -157,26 +160,28 @@
 		      (if hunchentoot:*session* (,nav-func)) 
 					;(if (is-dod-cust-session-valid?) (with-customer-navigation-bar))
 		      (:div :class "container theme-showcase" :role "main" 
-			    (:div :id "header"  ,@body))
+			    (:div :class "sidebar-nav" 
+			    (:div :id "header"  ,@body))))
 		      ;; rangeslider
 		      ;; bootstrap core javascript
-		      (:script :src "/js/bootstrap.min.js")
-		      (:script :src "/js/dod.js")))))))
+		(:script :src "/js/bootstrap.js")
+		(:script :src "/js/dod.js"))))))
   
 (eval-when (:compile-toplevel :load-toplevel :execute) 
-  (defmacro with-standard-customer-page (&body body)
-    `(with-standard-page-template (:title "Welcome Customer" :nav-func with-customer-navigation-bar )  ,@body)))
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro with-standard-vendor-page (&body body)
-    `(with-standard-page-template (:title "Welcome Vendor" :nav-func with-vendor-navigation-bar )  ,@body)))
+  (defmacro with-standard-customer-page (title &body body)
+    `(with-standard-page-template  ,title  with-customer-navigation-bar ,@body)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro with-standard-admin-page (&body body)
-    `(with-standard-page-template (:title "Welcome System Administrator" :nav-func with-admin-navigation-bar )  ,@body)))
+  (defmacro with-standard-vendor-page ( title &body body)
+    `(with-standard-page-template  ,title with-vendor-navigation-bar  ,@body)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro with-standard-compadmin-page (&body body)
-    `(with-standard-page-template (:title "Welcome Company Administrator" :nav-func with-compadmin-navigation-bar )  ,@body)))
+  (defmacro with-standard-admin-page ( title &body body)
+    `(with-standard-page-template ,title   with-admin-navigation-bar   ,@body)))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-standard-compadmin-page (title &body body)
+    `(with-standard-page-template  ,title  with-compadmin-navigation-bar  ,@body)))
 
 
 
@@ -192,6 +197,15 @@
 	(format t "Threads count: ~a" tc)) 
       nil)
 
+(defun delete-threads (count)
+  :description "This function will kill x number of threads"
+  (let* ((all-threads (bt:all-threads)))
+    (loop for item in all-threads for i from 1 to count do
+      (if (and (not (eql item (bt:current-thread)))
+	       (bt:thread-alive-p item)) 
+	  (progn
+	    (format t "Deleting thread: ~a~%~%" item)
+	    (bt:interrupt-thread  item (lambda () (abort))))))))
 
 
 (defun print-web-session-timeout ()
@@ -328,20 +342,25 @@ individual tiles. It also supports search functionality by including the searchr
        do (setf (gethash key ht) value)
        finally (return ht))))
 
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro modal-dialog (id title &rest body )
     :documentation "This macro returns the html text for generating a modal dialog using bootstrap."
-    `(cl-who:with-html-output (*standard-output* nil)
-       (:div :class "modal fade" :id ,id :role "dialog"
-	     (:div :class "modal-dialog" 
-		   (:div :class "modal-content" 
-			 (:div :class "modal-header" 
-			       (:button :type "button" :class "close" :data-dismiss "modal") 
-			       (:h4 :class "modal-title" ,title))
-			 (:div :class "modal-body" ,@body)
-			 (:div :class "modal-footer" 
-			       (:button :type "button" :class "btn btn-default" :data-dismiss "modal" "Close"))))))))
-  
+    `(let ((arialabelledby (format nil "~ALabel" ,id)))
+       (cl-who:with-html-output (*standard-output* nil)
+	 (:div :class "modal fade" :id ,id :tabindex "-1" :aria-labelledby arialabelledby  :aria-hidden "true"
+	       (:div :class "modal-dialog"
+		     (:div :class "modal-content" 
+			   (:div :class "modal-header" 
+				 (:h5 :class "modal-title" ,title)
+				 (:button :type "button" :class "btn-close" :data-bs-dismiss "modal" :aria-label "Close"
+					   (:span :aria-hidden "true" "&times;")))
+				 
+			   (:div :class "modal-body" ,@body)
+			   (:div :class "modal-footer"
+				 (:button :type "button" :class "btn btn-secondary" :data-bs-dismiss "modal" "Close")))))))))
+
+
 
 
 
