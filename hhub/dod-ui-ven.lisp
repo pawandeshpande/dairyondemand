@@ -585,7 +585,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
        (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
        (paramname (list "secret" "response" ))
        (url (format nil "https://www.highrisehub.com/hhub/hhubvendgentemppass?token=~A" token))
-       (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
+       (paramvalue (list *HHUBRECAPTCHAv2SECRET*  captcha-resp))
        (param-alist (pairlis paramname paramvalue ))
        (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
 												 :method :POST
@@ -621,7 +621,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 			    (:input :class "form-control" :name "email" :value "" :placeholder "Email" :type "text")
 			    (:input :class "form-control" :name "user-type" :value "VENDOR"  :type "hidden" :required "true"))
 		      (:div :class "form-group"
-			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
+			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAV2KEY* ))
 		      (:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Reset Password")))))))
 
@@ -646,14 +646,10 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 						   (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
 					     (:div :class "form-group"
 						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))
-					     
-					     (:div :class ""
-					     (:a :data-toggle "modal" :data-target (format nil "#dasvendforgotpass-modal")  :href "#"  "Forgot Password?"))
-					     (modal-dialog (format nil "dasvendforgotpass-modal") "Forgot Password?" (modal.vendor-forgot-password))
-				       
-					     
-					     ))))))
-	      (clsql:sql-database-data-error (condition)
+
+					     (:button :type "button" :class "btn btn-primary" :data-bs-toggle "modal" :data-bs-target (format nil "#dasvendforgotpass-modal") "Forgot Password" ))))
+					     (modal-dialog (format nil "dasvendforgotpass-modal") "Forgot Password?" (modal.vendor-forgot-password)))))
+    (clsql:sql-database-data-error (condition)
 					     (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
 												      (stop-das) 
 												      (start-das)
@@ -750,29 +746,24 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 
 (defmacro with-vendor-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
-    `(cl-who:with-html-output (*standard-output* nil)
-	 (:div :class "navbar navbar-default navbar-inverse navbar-static-top"
-	     (:div :class "container-fluid"
-		 (:div :class "navbar-header"
-		     (:button :type "button" :class "navbar-toggle" :data-toggle "collapse" :data-target "#navHeaderCollapse"
-			 (:span :class "icon-bar")
-			 (:span :class "icon-bar")
-			 (:span :class "icon-bar"))
-		     (:a :class "navbar-brand" :href "#" :title "HHUB" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" ))
-		     (:a :class "navbar-brand" :onclick "window.history.back();"  :href "#"  (:span :class "glyphicon glyphicon-arrow-left")))
-		 (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
-		     (:ul :class "nav navbar-nav navbar-left"
-			 (:li :class "active" :align "center" (:a :href "dodvendindex?context=home"  (:span :class "glyphicon glyphicon-home")  " Home"))
-			 (:li :align "center" (:a :href "dodvenproducts"  "My Products"))
-			 (:li :align "center" (:a :href "dodvendindex?context=completedorders"  "Completed Orders"))
-			 (:li :align "center" (:a :href "#" (print-web-session-timeout)))
-			 (:li :align "center" (:a :href "#" (cl-who:str (format nil "Group: ~A" (get-login-vendor-company-name))))))
-		     
-		     (:ul :class "nav navbar-nav navbar-right"
-			 (:li :align "center" (:a :href "dodvendprofile?context=home"   (:span :class "glyphicon glyphicon-user") " My Profile" )) 
-			 (:li :align "center" (:a :href "https://goo.gl/forms/XaZdzF30Z6K43gQm2"  (:span :class "glyphicon glyphicon-envelope") " " ))
-			     (:li :align "center" (:a :href "https://goo.gl/forms/SGizZXYwXDUiTgVY2" (:span :class "glyphicon glyphicon-bug") " Bug" ))
-			     (:li :align "center" (:a :href "dodvendlogout"  (:span :class "glyphicon glyphicon-off") " Logout "  ))))))))
+ `(cl-who:with-html-output (*standard-output* nil)
+    (:nav :class "navbar navbar-expand-sm bg-dark navbar-dark fixed-top"
+	  (:a :class "navbar-brand" :href "#" :title "HHUB" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" ))
+	;;  (:a :class "navbar-brand" :onclick "window.history.back();"  :href "#"  (:span :class "glyphicon glyphicon-arrow-left"))
+	  (:button :class "navbar-toggler" :type "button" :data-toggle "collapse" :data-target "#navbarVendor" :aria-controls "navbarVendor" :aria-expanded "false" :aria-label "Toggle navigation"
+		   (:span :class "navbar-toggler-icon"))
+	  (:div :class "collapse navbar-collapse" :id "navbarVendor"
+		(:ul :class "navbar-nav mr-auto navbar-left"
+		     (:li :class "nav-item active"  (:a :class "nav-link" :href "dodvendindex?context=home"  (:i :class "fa fa-home" :aria-hidden "true")  " Home"))
+		     (:li :align "nav-item" (:a :class "nav-link" :href "dodvenproducts"  "My Products"))
+		     (:li :align "nav-item" (:a :class "nav-link" :href "dodvendindex?context=completedorders"  "Completed Orders"))
+		     (:li :align "nav-item" (:a :class "nav-link" :href "#" (print-web-session-timeout)))
+		     (:li :align "nav-item" (:a :class "nav-link" :href "#" (cl-who:str (format nil "Group: ~A" (get-login-vendor-company-name))))))
+		(:ul :class "navbar-nav mr-auto navbar-right"
+		     (:li :align "nav-item" (:a :class "nav-link" :href "dodvendprofile?context=home"   (:i :class "fa fa-user-circle" :aria-hidden "true") "&nbsp;&nbsp;" )) 
+		     (:li :align "nav-item" (:a :class "nav-link" :href "https://goo.gl/forms/XaZdzF30Z6K43gQm2"  (:i :class "fa fa-envelope-o" :aria-hidden "true") "&nbsp;&nbsp;"))
+		     (:li :align "nav-item" (:a :class "nav-link" :href "https://goo.gl/forms/SGizZXYwXDUiTgVY2" (:i :class "fa fa-bug" :aria-hidden "true") "&nbsp;&nbsp;" ))
+		     (:li :align "nav-item" (:a :class "nav-link" :href "dodvendlogout"  (:i :class "fa fa-sign-out" :aria-hidden"true") "&nbsp;&nbsp; "  )))))))
 
 
 
@@ -982,8 +973,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 	  (reqdate (hunchentoot:parameter "reqdate"))
 	  (btnexpexl (hunchentoot:parameter "btnexpexl"))
 	  (context (hunchentoot:parameter "context")))
-      (with-standard-vendor-page
-	(cl-who:with-html-output (*standard-output* nil :prologue t :indent t)
+      (with-standard-vendor-page "Welcome Vendor"
 	  (:h3 "Welcome " (cl-who:str (format nil "~A" (get-login-vendor-name))))
 	  (:hr)
 	  (:form :class "form-venorders" :method "POST" :action "dodvendindex"
@@ -1022,7 +1012,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 											       (:span :class "badge" (cl-who:str (format nil " ~d " (length vorders)))) 
 											       (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=completedorders" "Export To Excel")
 											       (:hr))
-										   (cl-who:str(display-as-tiles vorders 'vendor-order-card)))))))))))
+										   (cl-who:str(display-as-tiles vorders 'vendor-order-card))))))))))
   
 
 

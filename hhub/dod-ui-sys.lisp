@@ -171,7 +171,7 @@
 		   
 		    (:a  :href "https://www.highrisehub.com/tnc.html"  (:span :class "glyphicon glyphicon-eye-open") " Privacy Policy. ")
 		    (:div :class "form-group"
-			  (:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
+			  (:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAV2KEY* ))
 		    (:div :class "form-group"
 			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
     
@@ -235,15 +235,15 @@
 		(:h4 (:span :class "label label-warning" "Note: Any changes saved will not get reflected unless you click the refresh button."))))
     (:div :class "row"
 	  (:div :class "col-xs-2"
-		(:a :class "btn btn-primary" :role "button" :href "/hhub/dasabacsecurity"  " Business Policies  "))
+		(:a :class "btn btn-primary" :role "button" :href "/hhub/dasabacsecurity"  "Policies"))
 	  (:div :class "col-xs-2"
-		(:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  " Business Attributes/Tags  "))
+		(:a :class "btn btn-primary" :role "button" :href "/hhub/listattributes"  "Attributes/Tags"))
 	  (:div :class "col-xs-2"
-		(:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  " Business Objectss  "))
+		(:a :class "btn btn-primary" :role "button" :href "/hhub/listbusobjects"  "Business Objects"))
 	  (:div :class "col-xs-2"
-		(:a :class "btn btn-primary" :role "button" :href "/hhub/listabacsubjects"  " ABAC Subjects  "))
+		(:a :class "btn btn-primary" :role "button" :href "/hhub/listabacsubjects"  "Business Personas"))
 	  (:div :class "col-xs-2"
-		(:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  " Business Transactions  "))
+		(:a :class "btn btn-primary" :role "button" :href "/hhub/listbustrans"  "Transactions"))
 	  (:div :class "col-xs-2"
 		(:a :class "btn btn-primary btn-xs" :role "button" :href "/hhub/refreshiamsettings" (:span :class "glyphicon glyphicon-refresh"))))
     (:div :class "row" )))
@@ -473,7 +473,7 @@
 	  (privacycheck (hunchentoot:parameter "privacycheck"))
 	  (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
 	  (paramname (list "secret" "response" ) ) 
-	  (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
+	  (paramvalue (list *HHUBRECAPTCHAV2SECRET*  captcha-resp))
 	  (param-alist (pairlis paramname paramvalue ))
 	  (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
                        :method :POST
@@ -486,7 +486,8 @@
 				  :state cmpstate 
 				  :country cmpcountry
 				  :zipcode cmpzipcode
-				  :website cmpwebsite 
+				  :website cmpwebsite
+				  :cmp-type "TRIAL"
 				  :deleted-state "N"
 				  :created-by nil
 				  :updated-by nil)))
@@ -631,7 +632,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustlowbalanceorderitems" 'dod-controller-low-wallet-balance-for-orderitems)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustwallet" 'dod-controller-cust-wallet-display)
 	(hunchentoot:create-regex-dispatcher "^/hhub/custsignup1action" 'dod-controller-cust-register-page)
-	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustregisteraction" 'dod-controller-cust-register-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/dodcustregisteraction" 'com-hhub-transaction-customer&vendor-create)
 	(hunchentoot:create-regex-dispatcher "^/hhub/duplicate-cust.html" 'dod-controller-duplicate-customer)
 	(hunchentoot:create-regex-dispatcher "^/hhub/custsignup1.html" 'dod-controller-company-search-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/companysearchaction" 'dod-controller-company-search-action)

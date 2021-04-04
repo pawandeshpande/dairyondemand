@@ -71,7 +71,7 @@
 			      (:textarea :class "form-control" :name "contactusemailmessage"  :placeholder "Message ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" :required T ))
 			(:div :class "form-group" :id "charcount")
 			(:div :class "form-group"
-			  (:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
+			  (:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAV2KEY* ))
 			(:div :class "form-group"
 			      (:label "By clicking submit, you consent to allow HighriseHub to store and process the personal information submitted above to provide you the content requested. We will not share your information with other companies."))
 			(:div :class "form-group"
@@ -83,7 +83,7 @@
 	 (lastname (hunchentoot:parameter "lastname"))
 	 (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
 	  (paramname (list "secret" "response" ) ) 
-	  (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
+	  (paramvalue (list *HHUBRECAPTCHAV2SECRET*  captcha-resp))
 	  (param-alist (pairlis paramname paramvalue ))
 	  (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
                        :method :POST
@@ -126,14 +126,14 @@
 	   (list "1"  "50"   "Upto &#8377; 1 Lac"   "Y" "1"  "Y" "100"  "Y" "Y" "Y" "N" "Y" "Y" "Y" "N" "N" "N" "N" "N")
 	   (list "5"  "500"  "Upto &#8377; 5 Lacs"  "Y" "5"  "Y" "1000" "Y" "Y" "Y" "2" "Y" "Y" "Y" "Y" "Y" "N" "N" "N")
 	   (list "10" "1000" "Upto &#8377; 10 Lacs" "Y" "10" "Y" "3000" "Y" "Y" "Y" "5" "Y" "Y" "Y" "Y" "Y" "Y" "Y" "Y" ))))
-    (with-standard-admin-page 
+    (with-standard-admin-page "HighriseHub Pricing" 
       (:link :href "/css/pricing.css" :rel "stylesheet")
 	   (:div :id "hhub_pt"  
 		 (:section
 		  (:div :class "container"
 			(:div :class "row"
 			      (:div :class "col-md-12"
-			     (:div  :class="price-heading clearfix"
+			     (:div  :class "price-heading clearfix"
 				    (:h1 "HighriseHub Pricing")))))
 		  (:div  :class  "container"  
 			 (:div  :class  "row"
@@ -199,5 +199,7 @@
 			   ((equal obj "N") (cl-who:htm (:li (:span "&#10005"))))
 			   (T (cl-who:htm (:li (:span (cl-who:str obj))))))))   plans active-plans)))
        (:div  :class  "generic_price_btn clearfix"  
-	      (:a :class  "" :href  ""  "Sign up"))))))
+	      (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#"  "Sign Up")
+	      (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company)))))))
+	
     

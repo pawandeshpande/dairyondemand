@@ -457,7 +457,7 @@
     (let* ((orderdate (get-date-from-string odtstr))
 	      (requestdate (get-date-from-string reqstr))
 	      (dodcompany (select-company-by-id company-id))
-	      (customers (get-all-customers dodcompany)))
+	      (customers (select-customers-for-company dodcompany)))
 					;Get a list of all the customers belonging to the current company. 
 					; For each customer, get the order preference list and pass to the below function.
 	      (mapcar (lambda (customer)

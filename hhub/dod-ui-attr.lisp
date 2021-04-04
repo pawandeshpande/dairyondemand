@@ -48,22 +48,48 @@
 (defun com-hhub-attribute-company-issuspended (company)
   (equal (slot-value company 'suspend-flag) "Y"))
 
+
+
 (defun com-hhub-attribute-company-maxvendorcount (company)
   (let ((company-type (slot-value company 'cmp-type)))
     (cond ((equal company-type "BASIC") 5)
 	  ((equal company-type "PROFESSIONAL") 10)
-	  ((equal company-type "HHUBTEST") 1))))
+	  ((equal company-type "TRIAL") 1))))
 
 (defun com-hhub-attribute-company-maxproductcount (company)
-    (let ((company-type (slot-value company 'cmp-type)))
+  (let ((company-type (slot-value company 'cmp-type)))
     (cond ((equal company-type "BASIC") 1000)
 	  ((equal company-type "PROFESSIONAL") 3000)
-	  ((equal company-type "HHUBTEST") 100))))
+	  ((equal company-type "TRIAL") 100))))
 
 
 (defun com-hhub-attribute-company-prdbulkupload-enabled (company)
     (let ((company-type (slot-value company 'cmp-type)))
     (cond ((equal company-type "BASIC") T)
 	  ((equal company-type "PROFESSIONAL") T)
-	  ((equal company-type "HHUBTEST") NIL))))
+	  ((equal company-type "TRIAL") NIL))))
 
+(defun com-hhub-attribute-company-prdsubs-enabled (company)
+    (let ((company-type (slot-value company 'cmp-type)))
+    (cond ((equal company-type "BASIC") T)
+	  ((equal company-type "PROFESSIONAL") T)
+	  ((equal company-type "TRIAL") NIL))))
+
+(defun com-hhub-attribute-company-wallets-enabled (company)
+    (let ((company-type (slot-value company 'cmp-type)))
+    (cond ((equal company-type "BASIC") NIL)
+	  ((equal company-type "PROFESSIONAL") T)
+	  ((equal company-type "TRIAL") NIL))))
+
+(defun com-hhub-attribute-company-codorders-enabled (company)
+    (let ((company-type (slot-value company 'cmp-type)))
+    (cond ((equal company-type "BASIC") NIL)
+	  ((equal company-type "PROFESSIONAL") T)
+	  ((equal company-type "TRIAL") NIL))))
+
+(defun com-hhub-attribute-company-maxcustomercount (company)
+  (let ((company-type (slot-value company 'cmp-type)))
+    (cond ((equal company-type "BASIC") 500)
+	  ((equal company-type "PROFESSIONAL") 1000)
+	  ((equal company-type "TRIAL") 50))))
+  

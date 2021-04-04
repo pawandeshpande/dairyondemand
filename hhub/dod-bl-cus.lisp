@@ -25,7 +25,7 @@
 
 
 
-(defun get-all-customers (company)
+(defun select-customers-for-company (company) 
   (let ((tenant-id (slot-value company 'row-id)))
     (clsql:select 'dod-cust-profile :where [and
 		       [= [:deleted-state] "N"]

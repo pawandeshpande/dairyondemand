@@ -585,7 +585,7 @@
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "confirmpass" :placeholder "Confirm Password" :type "password" :required T :data-match "#inputpass"  :data-match-error "Passwords dont match" ))
 		  (:div :class "form-group"
-			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* )
+			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAV2KEY* )
 			(:div :class "form-group"
 			      (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))
 	        )))))
@@ -599,11 +599,13 @@
        (encrypt password salt)))
 
 
-(defun dod-controller-cust-register-action ()
+
+
+(defun com-hhub-transaction-customer&vendor-create ()
   (let* ((reg-type (hunchentoot:parameter "reg-type"))
 	 (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
 	 (paramname (list "secret" "response" ) ) 
-	 (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
+	 (paramvalue (list *HHUBRECAPTCHAV2SECRET*  captcha-resp))
 	 (param-alist (pairlis paramname paramvalue ))
 	 (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
 												   :method :POST
@@ -621,21 +623,23 @@
 	 (salt (flexi-streams:octets-to-string  salt-octet))
 	 (encryptedpass (check&encrypt password confirmpass salt))
 	 (tenant-name (hunchentoot:parameter "tenant-name"))
-	 (company (select-company-by-name tenant-name)))
-    
-    
+	 (company (select-company-by-name tenant-name))
+	 (params nil))
+
+    (setf params (acons "company" company params))
   ; If we receive a True from the google verifysite then, add the user to the backend. 
-    (cond
+    (with-hhub-transaction "com-hhub-transaction-customer&vendor-create" params 
+      (cond
       
 					; Check for duplicate customer
       ((duplicate-customerp phone company) (hunchentoot:redirect "/hhub/duplicate-cust.html"))
 					; Check whether captcha has been solved 
-      ((null (cdr (car json-response))) (dod-response-captcha-error)  )
+      ((null (cdr (car json-response))) (dod-response-captcha-error))
       
 					; Check whether password was entered correctly 
       ((null encryptedpass) (dod-response-passwords-do-not-match-error)) 
-      
-      ((and encryptedpass (equal reg-type "VEN"))  
+      ((and encryptedpass
+	    (equal reg-type "VEN"))
        (progn 
 					; 1 
 	 (create-vendor name address phone email  encryptedpass salt nil nil nil company)
@@ -658,7 +662,10 @@
 					;3
 	 (with-standard-customer-page (:title "Welcome to HighriseHub platform")
 				      (:h3 (cl-who:str(format nil "Your record has been successfully added" )))
-				      (:a :href "/hhub/customer-login.html" "Login now")))))))
+				      (:a :href "/hhub/customer-login.html" "Login now"))))))))
+
+
+
 
 (defun dod-response-passwords-do-not-match-error ()
    (with-standard-customer-page (:title "Passwords do not match error.")
@@ -698,7 +705,9 @@
 			    (:hr)
 			    (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-arrow-left"))
 			    (:a :class "btn btn-primary" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#" (:span :class "glyphicon glyphicon-plus") " New Community Store (FREE!)")
-			    (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company))))))
+			    (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company))))
+		(:hr)
+		(hhub-html-page-footer)))
 		      
     (clsql:sql-database-data-error (condition)
       (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
@@ -788,7 +797,7 @@
 	 (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
 	 (url (format nil "https://www.highrisehub.com/hhub/hhubcustgentemppass?token=~A" token))
 	 (paramname (list "secret" "response" ) ) 
-	 (paramvalue (list *HHUBRECAPTCHASECRET*  captcha-resp))
+	 (paramvalue (list *HHUBRECAPTCHAV2SECRET*  captcha-resp))
 	 (param-alist (pairlis paramname paramvalue ))
 	 (json-response (json:decode-json-from-string  (map 'string 'code-char(drakma:http-request "https://www.google.com/recaptcha/api/siteverify"
 												 :method :POST
@@ -821,7 +830,7 @@
 			    (:input :class "form-control" :name "user-type" :value "CUSTOMER"  :type "hidden" :required "true"))
 			    
 	 	     (:div :class "form-group"
-			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAKEY* ))
+			(:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAV2KEY* ))
 		      (:div :class "form-group"
 			    (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Reset Password")))))))
 
@@ -832,7 +841,7 @@
 	(if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)      
 	(if (is-dod-cust-session-valid?)
 	    (hunchentoot:redirect "/hhub/dodcustindex")
-	    (with-standard-customer-page 
+	    (with-standard-customer-page "Welcome Customer" 
 	      (:div :class "row" 
 		    (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 			   (:div :class "account-wall"
@@ -1004,23 +1013,111 @@
 
 (defun guest-cust-add-order-page (&optional paymentmode)
   (cl-who:with-html-output-to-string (*standard-output* nil)
-      (:div :class "row" 
-		(:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+    (:form :class "form-order" :role "form" :id "hhubordcustdetails"  :method "POST" :action (if (equal paymentmode "OPY") "hhubcustonlinepayment" "dodcustshopcartro") :data-toggle "validator"
+	   (:div :class "row" 
+		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 		      (:h1 :class "text-center login-title"  "Customer - Add order ")
-		      (:form :class "form-order" :role "form" :method "POST" :action (if (equal paymentmode "OPY") "hhubcustonlinepayment" "dodcustshopcartro") :data-toggle "validator"
+		 
 			     (:div  :class "form-group" (:label :for "orddate" "Order Date" )
-				    (:input :class "form-control" :name "orddate" :value (cl-who:str (get-date-string (clsql-sys::get-date))) :type "text"  :readonly "true"  ))
+				    (:input :class "form-control" :name "orddate" :value (cl-who:str (get-date-string (clsql-sys::get-date))) :type "text"  :readonly T  ))
 			     (:div :class "form-group"  (:label :for "reqdate" "Required On - Click To Change" )
-				   (:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (cl-who:str (format nil "~A. Click to change" (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1))))) :type "text" :value (get-date-string (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day 1)))))
-			       (:div :class "form-group" (:label :for "phone" "Phone" )
-				   (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Phone" :required "true" ))
-			     (:div :class "form-group" (:label :for "email" "Email" )
-				   (:input :class "form-control" :type "email" :class "form-control" :name "email" :placeholder "Email" :data-error "That email address is invalid"  :required "true" ))
-			     (:div :class "form-group" (:label :for "shipaddress" "Ship Address" )
-				   (:textarea :class "form-control" :name "shipaddress" :rows "4" :required "true" ))
-			     (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
-				    (guest-cust-payment-mode-dropdown paymentmode))
-		      (:input :type "submit"  :class "btn btn-primary" :value "Confirm"))))))
+				   (:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (cl-who:str (format nil "~A. Click to change" (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1))))) :type "text" :value (get-date-string (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day 1)))))))
+	   (:div :class "row" 
+		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+		       (:div :class "form-group" (:label :for "shipfirstname" "Firstname" )
+			     (:input :class "form-control" :type "text" :class "form-control" :name "shipfirstname" :placeholder "Firstname" :tabindex "1" :required T))
+		       (:div :class "form-group" (:label :for "phone" "Phone" )
+			     (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Phone" :tabindex "3"  :required T )))
+		 
+		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+		       (:div :class "form-group" (:label :for "lastname" "Lastname" )
+			     (:input :class "form-control" :type "text" :class "form-control" :name "shiplastname" :placeholder "Lastname" :tabindex "2" :required T))
+		       (:div :class "form-group" (:label :for "email" "Email" )
+			     (:input :class "form-control" :type "email" :class "form-control" :name "email" :placeholder "Email" :data-error "That email address is invalid" :tabindex "4"  :required T ))))
+	   (:div :class "row"
+		 (:hr))
+	   ;; Row for Shipping and Billing Address. 
+	   (:div :class "row"
+		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+		       (:div :class "row"
+			     (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+				   (:h5 "Shipping Address Details")
+				   (:br)))
+		       
+		       (:div :class "row"
+			     (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+				   (:div :class "form-group" (:label :for "shipaddress" "Shipping Address" )
+					 (:textarea :class "form-control" :name "shipaddress" :rows "4" :required "true" :tabindex "5" ))
+				   
+				   (:div :class "form-group" (:label :for "zipcode" "Pincode" )
+					 (:input :class "form-control" :type "text" :class "form-control" :inputmode "numeric" :maxlength "6" :name "shipzipcode" :placeholder "Pincode" :tabindex "8" ))
+				   (:div :class "form-group" (:label :for "city" "City" )
+					 (:input :class "form-control" :type "text" :class "form-control" :name "shipcity" :placeholder "City" :readonly T))
+				   (:div :class "form-group" (:label :for "state" "State" )
+					 (:input :class "form-control" :type "text" :class "form-control" :name "shipstate" :placeholder "State"  :readonly T )))))
+		 
+	   (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6" 
+		 (:div :class "row"
+		       (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+			     (:h5 "Billing Address Details"))
+		       (:div :class "form-check"
+			     (:input :type "checkbox" :id "billsameasshipchecked" :name "billsameasshipchecked" :value  "billsameasshipchecked" :onclick "displaybillingaddress();" :tabindex "9"  :checked "true")
+			     (:label :class= "form-check-label" :for "billsameasshipchecked" "&nbsp;&nbsp;Same as Shipping Address")))
+		 
+		 (:div :class "row"  :id "billingaddressrow" :style "display: none;"
+		       	     (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+				   (:div :class "form-group" (:label :for "shipaddress" "Billing Address" )
+					 (:textarea :class "form-control" :name "billaddress" :rows "4"  :tabindex "7"))
+				   (:div :class "form-group" (:label :for "zipcode" "Pincode" )
+					 (:input :class "form-control" :type "text" :class "form-control" :inputmode "numeric" :maxlength "6" :name "billzipcode" :tabindex "8" :placeholder "Pincode" ))
+				   (:div :class "form-group" (:label :for "city" "City" )
+					 (:input :class "form-control" :type "text" :class "form-control" :name "billcity" :placeholder "City" :readonly T  ))
+				   (:div :class "form-group" (:label :for "state" "State" )
+					 (:input :class "form-control" :type "text" :class "form-control" :name "billstate" :placeholder "State" :readonly T ))))))
+	
+	   
+	   (:div :class "row"
+		 (:hr))
+	   
+	    (:div :class "row"
+		  (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+			(:h4 "(optional)" ))
+		  (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+			(:div :class "form-check"
+		       (:input :type "checkbox" :id "claimitcchecked" :name "claimitcchecked" :value  "claimitcchecked" :onclick "displaygstdetails();")
+				   (:label :class= "form-check-label" :for "claimitcchecked" "&nbsp;&nbsp;GST Invoice"))))
+		 
+	   (:div :class "row" :id "gstdetailsfororder" :style "display:none;"
+		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+		 		       (:div :class "form-group" (:label :for "gstnumber" "GST Number" )
+			     (:input :class "form-control" :type "text" :class "form-control" :name "gstnumber" :tabindex "9" :placeholder "GST Number" )))
+		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+		       (:div :class "form-group" (:label :for "gstorgname" "Organization/Firm/Company Name" )
+			     (:input :class "form-control" :type "text" :class "form-control" :name "gstorgname" :tabindex "10"  :placeholder "Org/Firm/Company Name" ))))
+	   (:div :class "row"
+		 (:hr))
+
+	   (:div :class "row" :style "display:none;"
+		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+		       (:div  :class "form-group" (:label :for "payment-mode" "Payment Mode" )
+			      (guest-cust-payment-mode-dropdown paymentmode))))
+	   (:div :class "row" :style "display:block;"
+		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+		       (:div :class "form-check"
+			     (:input :type "checkbox" :name "tnccheck" :value  "tncagreed" :tabindex "11" :required T)
+			     (:label :class= "form-check-label" :for "tnccheck" "&nbsp;&nbsp;Agree Terms and Conditions")
+			     (:a  :href "https://www.highrisehub.com/tnc.html"  (:i :class "fa fa-eye" :aria-hidden "true") "&nbsp;&nbsp;Terms"))
+		       (:div :class "form-check" 
+			     (:input :type "checkbox" :name "privacycheck" :value "privacyagreed" :tabindex "12" :required T)
+			     (:label :class= "form-check-label" :for "tnccheck" "&nbsp;&nbsp;Agree Privacy Policy")
+			     (:a  :href "https://www.highrisehub.com/tnc.html"  (:i :class "fa fa-eye" :aria-hidden "true") "&nbsp;&nbsp;Privacy"))
+		       (:div :class "form-group"
+			     (:div :class "g-recaptcha" :required T  :data-sitekey *HHUBRECAPTCHAV2KEY* ))
+		       (:input :type "submit"  :class "btn btn-primary" :tabindex "13" :value (if (equal paymentmode "OPY") "Proceed for Online Payment" "Confirm Cash On Delivery Order"))))
+
+	   (:div :class "row"
+		 (:hr)))))
+
 
 
 
@@ -1266,6 +1363,7 @@
 	   (products (hunchentoot:session-value :login-prd-cache))
 	   (payment-mode (hunchentoot:parameter "payment-mode"))
 	   (odate  (hunchentoot:parameter "orddate"))
+
 	   (shipaddress (hunchentoot:parameter "shipaddress"))
 	   (reqdate (hunchentoot:parameter "reqdate"))
 	   (phone (hunchentoot:parameter "phone"))
