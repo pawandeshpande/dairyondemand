@@ -5,6 +5,17 @@
 ;;;;;;;;;;;;;; HERE WE DEFINE ALL THE POLICIES FOR HIGHRISEHUB ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun com-hhub-policy-vendor-order-setfulfilled (&optional (params nil))
+  (let* ((company (cdr (assoc "company" params :test 'equal))))
+    (cond
+        ((com-hhub-attribute-company-issuspended company)
+	   (error 'hhub-abac-transaction-error :errstring (format nil "Account Name: ~A. This Account is Suspended." (slot-value company 'name))))
+	  (() T))))
+
+	
+	 
+	
+
 (defun com-hhub-policy-customer&vendor-create (&optional (params nil))
   (let* ((company (cdr (assoc "company" params :test 'equal)))
 	 (currvendorcount (length (select-vendors-for-company company)))
@@ -55,7 +66,8 @@
 
 (defun com-hhub-policy-cad-login-action (&optional (params nil))
   :documentation "Company Administrator login action is open to all. This policy is dummy as the request is initiated by the Browser."
-  T)
+  (let ((rolename (cdr (assoc "rolename" params :test 'equal))))
+    (equal rolename "COMPADMIN")))
 
 (defun com-hhub-policy-cad-logout (&optional (params nil) )
   :documentation "Company Administrator logout action is open to all. This policy is dummy as the request is initiated by the Browser."
@@ -92,7 +104,11 @@
 
 
 (defun com-hhub-policy-create-order (&optional (params nil))
- (< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-customer-order-cutoff-time))))
+  (let* ((company (cdr (assoc "company" params :test 'equal))))
+    (cond  ;; Check whether the account is suspended. 
+      ((com-hhub-attribute-company-issuspended company)
+       (error 'hhub-abac-transaction-error :errstring (format nil "Account Name: ~A. This Account is Suspended." (slot-value company 'name))))
+      ((< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-customer-order-cutoff-time))) T))))
 
 
 (defun com-hhub-policy-edit-user (&optional (params nil))
