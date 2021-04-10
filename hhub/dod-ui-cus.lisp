@@ -93,7 +93,7 @@
 
 (defun dod-controller-customer-profile ()
   (with-cust-session-check
-    (with-standard-customer-page
+    (with-standard-customer-page "HighriseHub - Customer Profile"
       (cl-who:with-html-output (*standard-output* nil :prologue t :indent t)
 	(:h3 "Welcome " (cl-who:str (format nil "~a" (get-login-cust-name))))
 	(:hr)
@@ -176,7 +176,7 @@
 	 (header (list "Vendor" "Phone" "Balance" "Recharge"))
 	 (wallets (get-cust-wallets customer company)))
     (with-cust-session-check
-      (with-standard-customer-page
+      (with-standard-customer-page "HighriseHub - Customer Wallets"
 	(cl-who:str (display-as-table header wallets 'cust-wallet-as-row))))))
 					;     (cl-who:str (display-as-tiles wallets 'wallet-card))))))
 
@@ -566,20 +566,17 @@
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "name" :placeholder "Full Name (Required)" :type "text" :required T ))
 		  (:div :class "form-group"
-			(:input :class "form-control" :id "housenum" :name "housenum" :placeholder "Apt/Flat (Required)" :type "text" :required T ))
+			(:input :class "form-control" :id "housenum" :name "housenum" :placeholder "Apt/Flat" :type "text"  ))
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "email" :placeholder "Email (Required)" :type "text" :required T ))
 		  
 		  (:hr))
 	    
 	    (:div :class "col-lg-6 col-md-6 col-sm-6"     
-		  
-		  
 					; (:label :for "tenant-id" (cl-who:str "Group/Apartment"))
 					; (company-dropdown "tenant-id" (list-dod-companies)) )
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "phone" :placeholder "Your Mobile Number (Required)" :type "text" :required T))
-		  
 		  (:div :class "form-group"
 			(:input :class "form-control" :name "password" :id "inputpass"  :placeholder "Password" :type "password" :required T ))
 		  (:div :class "form-group"
@@ -695,7 +692,7 @@
 (defun dod-controller-company-search-page ()
   (handler-case
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
-	      (with-standard-customer-page (:title "Welcome to HighriseHub platform") 
+	      (with-standard-customer-page "Welcome to HighriseHub platform" 
 		(:div :class "row"
 		      (:h2 "Search Your Community Store.")
 		      (:div :id "custom-search-input"
@@ -1126,13 +1123,13 @@
 	(paymentmode (hunchentoot:parameter "paymentmode")))
     (with-cust-session-check
       (with-standard-customer-page (:title "Add Customer Order")
-				   (cl-who:str (cust-add-order-page cust-type paymentmode))))))
+	(cl-who:str (cust-add-order-page cust-type paymentmode))))))
 
 ;;; This function has been separated from the controller function because it is independently testable.
 
 (defun cust-add-order-page(cust-type paymentmode)
-					;We are using a hash table to store the function references to call them later.
-					; This is a good practice to avoid IF condition.
+  ;; We are using a hash table to store the function references to call them later.
+  ;; This is a good practice to avoid IF condition.
   (let ((temp-ht (make-hash-table :test 'equal)))
     (setf (gethash "STANDARD"  temp-ht) (symbol-function 'standard-cust-add-order-page))
     (setf (gethash "GUEST" temp-ht) (symbol-function 'guest-cust-add-order-page))
@@ -1321,7 +1318,8 @@
   (with-cust-session-check
     (let ((params nil))
       (setf params (acons "uri" (hunchentoot:request-uri*)  params))
-            
+      (setf params (acons "company" (get-login-customer-company)  params))
+      
       (with-hhub-transaction "com-hhub-transaction-create-order" params
        (multiple-value-bind (odts products odate reqdate ship-date shipaddress shopcart-total payment-mode comments cust custcomp order-cxt phone email )
 		  (values-list (get-cust-order-params))
