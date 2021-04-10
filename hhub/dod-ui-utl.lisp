@@ -153,8 +153,9 @@
 		) ;; header completes here.
 	       (:body
 		(:div :id "dod-main-container"
-		      (:a :id "scrollup" "" ) 
-		      (:div :id "dod-error" (:h2 "error..."))
+		      (:a :id "scrollup" "" )
+		      (:div :id "hhub-error" :class "hhub-error-alert" :style "display:none;" )
+		      
 		      (:div :id "busy-indicator")
 		      (:script :src "/js/hhubbusy.js")
 		      (if hunchentoot:*session* (,nav-func)) 
@@ -261,7 +262,9 @@
 					;else
 		(progn 
 		  (hunchentoot:log-message* :info "Permission denied for transaction ~A. Error: ~A " (slot-value transaction 'name) errorstring)
+		  (setf (hunchentoot:return-code hunchentoot:*reply*) 500)
 		  (format nil "Permission Denied: ~A" errorstring))))))
+
 
 ; Policy Enforcement Point for HHUB
 (eval-when (:compile-toplevel :load-toplevel :execute)
