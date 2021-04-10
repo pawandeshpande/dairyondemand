@@ -222,22 +222,20 @@ body {
     margin-top: 10px;
 }
 
-
-#dod-error
+.hhub-error-alert
 {
-
-    font-size: 18px;
-    font-weight: 400;
-   background-color: #FF0000;
-  position: fixed;
-  left: 100px;
-  top: 50px;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-  display: none;
-
+    font-size: 14px;
+    font-weight: 200;
+    position: fixed;
+    color: grey;
+    left: 30%;
+    top: 30%;
+    width: 50%;
+    height: 30% ;
+    z-index: 9999;
+    display: none;
 }
+
 
 
 .product-box{
