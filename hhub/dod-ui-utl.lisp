@@ -356,12 +356,13 @@ individual tiles. It also supports search functionality by including the searchr
 		     (:div :class "modal-content" 
 			   (:div :class "modal-header" 
 				 (:h5 :class "modal-title" ,title)
-				 (:button :type "button" :class "btn-close" :data-bs-dismiss "modal" :aria-label "Close"
+				 (:button :type "button" :class "close" :data-dismiss "modal" :aria-label "Close"
 					   (:span :aria-hidden "true" "&times;")))
 				 
 			   (:div :class "modal-body" ,@body)
 			   (:div :class "modal-footer"
-				 (:button :type "button" :class "btn btn-secondary" :data-bs-dismiss "modal" "Close")))))))))
+				 (:button :type "button" :class "btn btn-secondary" :data-dismiss "modal" "Close")))))))))
+
 
 
 
