@@ -633,7 +633,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
 	      (if (is-dod-vend-session-valid?)
 		  (hunchentoot:redirect "/hhub/dodvendindex?context=home")
-		  (with-standard-vendor-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
+		  (with-standard-vendor-page  "Welcome to HighriseHub Platform - Vendor Login "
 		    (:div :class "row" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
@@ -646,8 +646,8 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 						   (:input :class "form-control" :name "password" :placeholder "password=demo" :type "password" ))
 					     (:div :class "form-group"
 						   (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))
-
-					     (:button :type "button" :class "btn btn-primary" :data-bs-toggle "modal" :data-bs-target (format nil "#dasvendforgotpass-modal") "Forgot Password" ))))
+					     (:div :class "form-group"
+					     (:a :data-toggle "modal" :data-target (format nil "#dasvendforgotpass-modal") :href "#" "Forgot Password" )))))
 					     (modal-dialog (format nil "dasvendforgotpass-modal") "Forgot Password?" (modal.vendor-forgot-password)))))
     (clsql:sql-database-data-error (condition)
 					     (if (equal (clsql:sql-error-error-id condition) 2006 ) (progn
@@ -725,7 +725,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
    
 (defun dod-controller-vend-profile ()
 (if (is-dod-vend-session-valid?)
-    (with-standard-vendor-page (:title "Welcome to Highrisehub")
+    (with-standard-vendor-page "HighriseHub - Vendor Profile"
        (:h3 "Welcome " (cl-who:str (format nil "~A" (get-login-vendor-name))))
        (:hr)
        (:div :class "list-group col-sm-6 col-md-6 col-lg-6"
@@ -743,29 +743,33 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
     (hunchentoot:redirect "/hhub/vendor-login.html")))
 
 
-
-(defmacro with-vendor-navigation-bar ()
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-vendor-navigation-bar ()
     :documentation "This macro returns the html text for generating a navigation bar using bootstrap."
- `(cl-who:with-html-output (*standard-output* nil)
-    (:nav :class "navbar navbar-expand-sm bg-dark navbar-dark fixed-top"
-	  (:a :class "navbar-brand" :href "#" :title "HHUB" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" ))
-	;;  (:a :class "navbar-brand" :onclick "window.history.back();"  :href "#"  (:span :class "glyphicon glyphicon-arrow-left"))
-	  (:button :class "navbar-toggler" :type "button" :data-toggle "collapse" :data-target "#navbarVendor" :aria-controls "navbarVendor" :aria-expanded "false" :aria-label "Toggle navigation"
-		   (:span :class "navbar-toggler-icon"))
-	  (:div :class "collapse navbar-collapse" :id "navbarVendor"
-		(:ul :class "navbar-nav mr-auto navbar-left"
-		     (:li :class "nav-item active"  (:a :class "nav-link" :href "dodvendindex?context=home"  (:i :class "fa fa-home" :aria-hidden "true")  " Home"))
-		     (:li :align "nav-item" (:a :class "nav-link" :href "dodvenproducts"  "My Products"))
-		     (:li :align "nav-item" (:a :class "nav-link" :href "dodvendindex?context=completedorders"  "Completed Orders"))
-		     (:li :align "nav-item" (:a :class "nav-link" :href "#" (print-web-session-timeout)))
-		     (:li :align "nav-item" (:a :class "nav-link" :href "#" (cl-who:str (format nil "Group: ~A" (get-login-vendor-company-name))))))
-		(:ul :class "navbar-nav mr-auto navbar-right"
-		     (:li :align "nav-item" (:a :class "nav-link" :href "dodvendprofile?context=home"   (:i :class "fa fa-user-circle" :aria-hidden "true") "&nbsp;&nbsp;" )) 
-		     (:li :align "nav-item" (:a :class "nav-link" :href "https://goo.gl/forms/XaZdzF30Z6K43gQm2"  (:i :class "fa fa-envelope-o" :aria-hidden "true") "&nbsp;&nbsp;"))
-		     (:li :align "nav-item" (:a :class "nav-link" :href "https://goo.gl/forms/SGizZXYwXDUiTgVY2" (:i :class "fa fa-bug" :aria-hidden "true") "&nbsp;&nbsp;" ))
-		     (:li :align "nav-item" (:a :class "nav-link" :href "dodvendlogout"  (:i :class "fa fa-sign-out" :aria-hidden"true") "&nbsp;&nbsp; "  )))))))
-
-
+    `(cl-who:with-html-output (*standard-output* nil)
+       (:div :class "navbar  navbar-inverse navbar-static-top"
+	     (:div :class "container-fluid"
+		   (:div :class "navbar-header"
+			 (:button :type "button" :class "navbar-toggle" :data-toggle "collapse" :data-target "#navheadercollapse"
+				  (:span :class "icon-bar")
+				  (:span :class "icon-bar")
+				  (:span :class "icon-bar"))
+			 (:a :class "navbar-brand" :href "#" :title "highrisehub" (:img :style "width: 50px; height: 50px;" :src "/img/logo.png" )))
+		   ;;  (:a :class "navbar-brand" :onclick "window.history.back();"  :href "#"  (:span :class "glyphicon glyphicon-arrow-left"))
+		   (:div :class "collapse navbar-collapse" :id "navheadercollapse"
+			 (:ul :class "nav navbar-nav navbar-left"
+			      (:li :class "active" :align "center" (:a :href "dodvendindex?context=home"  (:span :class "glyphicon glyphicon-home")  "Home"))
+			      (:li :align "center" (:a :href "dodvenproducts"  "My Products"))
+			      (:li :align "center" (:a :href "dodvendindex?context=completedorders"  "Completed Orders"))
+			      (:li :align "center" (:a :href "#" (print-web-session-timeout)))
+			      (:li :align "center" (:a :href "#" (cl-who:str (format nil "Group: ~A" (get-login-vendor-company-name))))))
+			 (:ul :class "nav navbar-nav navbar-right"
+			      (:li :align "center" (:a :href "dodvendprofile?context=home"   (:span :class "glyphicon glyphicon-user") "&nbsp;&nbsp;" )) 
+				(:li :align "center" (:a :href "https://goo.gl/forms/XaZdzF30Z6K43gQm2"  (:span :class "glyphicon glyphicon-envelope") "&nbsp;&nbsp;"))
+				(:li :align "center" (:a :href "https://goo.gl/forms/SGizZXYwXDUiTgVY2"  "Bug" ))
+				(:li :align "center" (:a :href "dodvendlogout"  (:i :class "fa fa-sign-out" :aria-hidden"true") "&nbsp;&nbsp; "  )))))))))
+  
+  
 
 (defun dod-controller-vend-login ()
   (let  ((phone (hunchentoot:parameter "phone"))
@@ -889,7 +893,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 (defun dod-controller-vendor-products ()
   (let ((vendor-products (hhub-get-cached-vendor-products)))
     (with-vend-session-check 
-      (with-standard-vendor-page (:title "Welcome to HighriseHub  - Vendor")
+      (with-standard-vendor-page "Welcome to HighriseHub  - Vendor"
 				 (:div :class "row" 
 				       (:div :class "col-xs-4 col-sm-4 col-md-4 col-lg-4" 
 					     (:a :class "btn btn-primary" :role "button" :href "dodvenaddprodpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Product  "))
@@ -1016,7 +1020,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
   
 
 
-(defun dod-controller-ven-order-fulfilled ()
+(defun com-hhub-transaction-vendor-order-setfulfilled ()
   (with-vend-session-check 
 	(let* ((id (hunchentoot:parameter "id"))
 	       (company-instance (hunchentoot:session-value :login-vendor-company))
@@ -1025,15 +1029,17 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 	       (customer (get-customer order-instance)) 
 	       (vendor (get-login-vendor))
 	       (wallet (get-cust-wallet-by-vendor customer vendor company-instance))
-	       (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance (get-login-vendor) )))
-	  
-	  (progn (if (equal payment-mode "PRE")
-		     (if (not (check-wallet-balance (get-order-items-total-for-vendor vendor  vendor-order-items) wallet))
-			 (display-wallet-for-customer wallet "Not enough balance for the transaction.")))
-		 (set-order-fulfilled "Y"  order-instance company-instance)
-		 (hunchentoot:redirect "/hhub/dodvendindex?context=pendingorders")))))
-	
+	       (vendor-order-items (get-order-items-for-vendor-by-order-id  order-instance (get-login-vendor) ))
+	       (params nil))
 
+	 (setf params (acons "uri" (hunchentoot:request-uri*)  params))
+	 (setf params (acons "company" company-instance params))
+	 (with-hhub-transaction "com-hhub-transaction-vendor-order-setfulfilled"  params   
+	   (progn (if (equal payment-mode "PRE")
+		      (if (not (check-wallet-balance (get-order-items-total-for-vendor vendor  vendor-order-items) wallet))
+			  (display-wallet-for-customer wallet "Not enough balance for the transaction.")))
+		  (set-order-fulfilled "Y"  order-instance company-instance)
+		  (hunchentoot:redirect "/hhub/dodvendindex?context=pendingorders"))))))
 
 (defun display-wallet-for-customer (wallet-instance custom-message)
   (with-standard-vendor-page (:title "Wallet Display")

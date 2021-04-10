@@ -1,6 +1,6 @@
 
 var $busyindicator = document.getElementById('busy-indicator');
-var $error = document.getElementById('dod-error');
+var $error = document.getElementById('hhub-error-alert');
 var  $formcustsignin = $(".form-custsignin"),  $formvendsignin = $(".form-vendorsignin");
 
 
@@ -163,6 +163,15 @@ $formvendsignin.submit ( function() {
     
 })
 
+function displayError(elem, message, timeout) {
+    $(elem).show().html('<div class="alert alert-danger alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span aria-hidden="true">&times;</span></button><strong class="text-primary">Warning!&nbsp;&nbsp;</strong><span class="text-primary">'+message+'</span></div>');
+    if (timeout || timeout === 0) {
+    setTimeout(function() { 
+      $(elem).alert('close');
+    }, timeout);    
+  }
+};
+
 
 
 $(".form-vendordercomplete").on('submit', function (e) {
@@ -172,12 +181,21 @@ $(".form-vendordercomplete").on('submit', function (e) {
             type: 'POST',
           url: $(theForm).attr("action"), 
             data: $(theForm).serialize(),
-            success: function (response) {
+	  error: function (jqXHR, textStatus, errorThrown) {
+                  if (jqXHR.status == 500) {
+		      displayError("#hhub-error", jqXHR.responseText);
+		  }
+	      else{
+                      alert('Unexpected error.');
+                  }},
+	  success: function (response) {
 		console.log("Completing the Order "); 
 		location.reload();
             }
       });
       e.preventDefault();});
+
+
 
 
 $(".form-product").on('submit', function (e) {
