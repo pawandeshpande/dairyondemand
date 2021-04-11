@@ -7,11 +7,11 @@
     (let (( dodorderprefs (hunchentoot:session-value :login-cusopf-cache))
 	   (header (list  "Product"  "Day"  "Qty" "Qty Per Unit" "Price"  "Actions")))
       (with-cust-session-check
-	(with-standard-customer-page (:title "Customer Order Subscriptions")
-				     (:h3 "My Subscriptions.")      
-				     (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustindex") "Shop Now")
-				     (cl-who:str (display-as-table header dodorderprefs 'cust-opf-as-row))))))
-					; (das-cust-page-with-tiles 'ui-list-cust-orderprefs "customer order preferences" header dodorderprefs)))
+	(with-standard-customer-page  "Customer Order Subscriptions"
+	  (:h3 "My Subscriptions.")      
+	  (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustindex") "Shop Now")
+	  (cl-who:str (display-as-table header dodorderprefs 'cust-opf-as-row))))))
+;; (das-cust-page-with-tiles 'ui-list-cust-orderprefs "customer order preferences" header dodorderprefs)))
 
 
 
