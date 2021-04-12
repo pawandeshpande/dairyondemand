@@ -64,7 +64,7 @@
                           </li>
 			 			  
 			  <li>
-                               <a href="http://www.highrisehub.com/hhub/custsignup1.html" class="btn btn-default btn-lg"> <span class="network-name">Community Stores</span></a>
+                               <a href="http://www.highrisehub.com/hhub/custsignup1.html" class="btn btn-default btn-lg"> <span class="network-name">Stores</span></a>
                           </li>
 			  <hr>
 			  <li>
@@ -153,7 +153,15 @@
 	
       }
 
-	 	  
+      function show_cookie_policy (){
+	  var cookiePolicyAccepted = getCookie('hhubcookiepolicyaccepted');
+	  if (null == cookiePolicyAccepted){
+	      // Show the Accept cookies dialog. Clicking on this button, the user will be redirected to the cookies page. 
+	      
+	  }
+	      
+      }
+      
 
       
       function getCookie(k)
