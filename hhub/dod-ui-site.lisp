@@ -17,15 +17,15 @@
 			 (:li :class "footer-menu-divider" "&sdot;")
 			 (:li (:a :href "pricing" "Pricing"))
 			 (:li :class "footer-menu-divider" "&sdot;")
-			 (:li (:a :href "tnc.html" "Terms and Conditions"))
+			 (:li (:a :href "/tnc.html" "Terms and Conditions"))
 			 (:li :class "footer-menu-divider" "&sdot;")
-			 (:li (:a :href "privacy.html" "Privacy Policy"))
-			 (:li :class "footer-menu-divider" "&sdot;")
-			 (:li (:a :id "hhubcookiepolidylink" :data-toggle "modal" :data-target (format nil "#hhubcookiepolicy-modal")  :href "#"  "Cookie Policy")))))
+			 (:li (:a :href "/privacy.html" "Privacy Policy"))
+			 (:li :class "footer-menu-divider" "&sdot;"))))
+			 ;;(:li (:a :id "hhubcookiepolicylink" :data-toggle "modal" :data-target (format nil "#hhubcookiepolicy-modal")  :href "#"  "Cookie Policy")))))
 	    (:div :class "row"
 		  (:div :class "col-lg-12" 
-			 (:p :class="copyright text-muted small" "Copyright &copy; HighriseHub 2021. All Rights Reserved")))))
-        (modal-dialog (format nil "hhubcookiepolicy-modal") "Accept Cookies" (modal.hhub-cookie-policy))))
+			 (:p :class="copyright text-muted small" "Copyright &copy; HighriseHub 2021. All Rights Reserved")))))))
+      ;;  (modal-dialog (format nil "hhubcookiepolicy-modal") "Accept Cookies" (modal.hhub-cookie-policy))))
 
 (defun modal.hhub-cookie-policy ()
   (cl-who:with-html-output (*standard-output* nil)
