@@ -1,17 +1,23 @@
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
+
   
-(defun dod-controller-list-users ()
-(if (is-dod-session-valid?)
-   (let* ((tenant-id (hunchentoot:parameter "tenant-id"))
-	 (users (get-users-for-company tenant-id)))
-     (with-standard-admin-page (:title "List HHUB Users")
-       (:h3 "Users")
-       (:a  :data-toggle "modal" :data-target (format nil "#adduser-modal")  :href "#"  (:span :class "glyphicon glyphicon-plus") " Add User")
-	(modal-dialog (format nil "adduser-modal") "Add/Edit Policy" (com-hhub-transaction-edit-user tenant-id "NEW"))
-       (cl-who:str (display-as-table (list "Name" "Phone number" "Email" "Action")  users 'user-card))))
-   (hunchentoot:redirect "/hhub/opr-login.html")))
+(defun com-hhub-transaction-sadmin-create-users ()
+ (with-opr-session-check 
+      (let* ((tenant-id (hunchentoot:parameter "tenant-id"))
+	     (users (get-users-for-company tenant-id))
+	     (params nil))
+	(setf params (acons "uri" (hunchentoot:request-uri*)  params))
+	(setf params (acons "username" (get-login-user-name)  params))
+	
+	(with-hhub-transaction "com-hhub-transaction-sadmin-create-users" params
+	  (with-standard-admin-page "List HHUB Users"
+	    (:h3 "Users")
+	    (:a  :data-toggle "modal" :data-target (format nil "#adduser-modal")  :href "#"  (:span :class "glyphicon glyphicon-plus") " Add User")
+	    (modal-dialog (format nil "adduser-modal") "Add/Edit Policy" (modal.com-hhub-transaction-sadmin-create-users tenant-id "NEW"))
+	    (cl-who:str (display-as-table (list "Name" "Phone number" "Email" "Action")  users 'user-card)))))))
+
 
 
 (defun user-card (user-instance)
@@ -28,13 +34,13 @@
        	 (:h6 :class "user-email"  (cl-who:str email) ))
       (:td :height "10px" 
        (:a  :data-toggle "modal" :data-target (format nil "#edituser-modal~A" row-id)  :href "#"  (:span :class "glyphicon glyphicon-pencil"))
-	(modal-dialog (format nil "edituser-modal~a" row-id) "Add/Edit Policy" (com-hhub-transaction-edit-user nil "EDIT" user-instance))))))
+	(modal-dialog (format nil "edituser-modal~a" row-id) "Add/Edit Policy" (modal.com-hhub-transaction-sadmin-create-users nil "EDIT" user-instance))))))
 
 
 
-(defun com-hhub-transaction-edit-user (for-tenant-id mode  &optional user)
+
+(defun modal.com-hhub-transaction-sadmin-create-users (for-tenant-id mode  &optional (user nil))
   (let* ((fullname (if user (slot-value user 'name)))
-	 (params nil)
 	 (username (if user (slot-value user 'username)))
 	 (email (if user (slot-value user 'email)))
 	 (phone (if user (slot-value user 'phone-mobile)))
@@ -42,9 +48,8 @@
 	 (tenant-id (if user (slot-value user 'tenant-id)))
 	 (userrole-instance (if user (select-user-role-by-userid row-id tenant-id)))
 	 (userrolename (if userrole-instance (slot-value (get-user-roles.role userrole-instance) 'name))))
-          (setf params (acons "uri" (hunchentoot:request-uri*)  params))
-    (with-hhub-transaction "com-hhub-transaction-edit-user" params
-      (cl-who:with-html-output (*standard-output* nil)
+
+       (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "row" 
 	      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 		    (:form :class "form-adduser" :role "form" :method "POST" :action "dasadduseraction" :data-toggle "validator"
@@ -81,8 +86,7 @@
 				 (:input :class "form-control" :name "userid" :type "hidden" :value row-id))
 			   
 			   (:div :class "form-group"
-				 (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))))
-
+				 (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
 
 
 (defun dod-controller-add-user-action ()
