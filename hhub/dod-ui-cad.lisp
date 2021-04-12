@@ -16,8 +16,8 @@
 		   (:div :class "collapse navbar-collapse" :id "navHeaderCollapse"
 			 (:ul :class "nav navbar-nav navbar-left"
 			      (:li :class "active" :align "center" (:a :href "/hhub/hhubcadindex"  (:span :class "glyphicon glyphicon-home")  " Home"))
-			      (:li  (:a :href "/hhub/dasproductapprovals" "Customer Approvals"))
-			      (:li  (:a :href "/hhub/dasproductapprovals" "Vendor Approvals"))
+			      ;;(:li  (:a :href "/hhub/dasproductapprovals" "Customer Approvals"))
+			      ;;(:li  (:a :href "/hhub/dasproductapprovals" "Vendor Approvals"))
 			      (:li :align "center" (:a :href "#" (cl-who:str (format nil "Group: ~a" (slot-value (get-login-company) 'name)))))
 			      (:li :align "center" (:a :href "#" (print-web-session-timeout))))
 			 
@@ -32,7 +32,7 @@
 	      (if (is-dod-session-valid?)
 		  (hunchentoot:redirect "/hhub/hhubcadindex")
 		  ;else
-		  (with-standard-compadmin-page
+		  (with-standard-compadmin-page "Company Administrator Login"
 						(:div :class "row"
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
@@ -61,7 +61,7 @@
     (setf params (acons "rolename" (com-hhub-attribute-role-name) params))
     (with-hhub-transaction "com-hhub-transaction-compadmin-home" params
 	(let ((products (get-products-for-approval (get-login-tenant-id))))
-	  (with-standard-compadmin-page (:title "Welcome to Highrisehub.")
+	  (with-standard-compadmin-page  "Welcome to Highrisehub."
 	    (:div :class "container"
 		  (:div :id "row"
 			(:div :id "col-xs-6" 
@@ -165,7 +165,7 @@
   :documentation "This controller function is used by the System admin and Company Admin to approve products" 
  (with-cad-session-check
    (let ((products (get-products-for-approval (get-login-tenant-id))))
-     (with-standard-compadmin-page (:title "New products approval") 
+     (with-standard-compadmin-page "New products approval" 
 	(:div :class "container"
 	(:div :id "row"
 	      (:div :id "col-xs-6" 
