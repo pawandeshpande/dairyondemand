@@ -624,6 +624,7 @@
 	 (params nil))
 
     (setf params (acons "company" company params))
+    (setf params (acons "uri" (hunchentoot:request-uri*)  params))
   ; If we receive a True from the google verifysite then, add the user to the backend. 
     (with-hhub-transaction "com-hhub-transaction-customer&vendor-create" params 
       (cond
@@ -694,7 +695,7 @@
       (progn  (if (equal (caar (clsql:query "select 1" :flatp nil :field-names nil :database *dod-db-instance*)) 1) T)	      
 	      (with-standard-customer-page "Welcome to HighriseHub platform" 
 		(:div :class "row"
-		      (:h2 "Search Your Community Store.")
+		      (:h2 "Search Your Store.")
 		      (:div :id "custom-search-input"
 			    (:div :class "input-group col-md-12"
 				  (with-html-search-form "companysearchaction" "Name Starts With...")
@@ -1549,7 +1550,7 @@
 	 (lstcount (length lstshopcart))
 	 (lstproducts (hunchentoot:session-value :login-prd-cache)))
 					;(sleep 5)
-     (with-standard-customer-page (:title "Welcome to HighriseHub - customer")
+     (with-standard-customer-page "Welcome to HighriseHub - customer"
        (:form :id "theForm" :name "theForm" :method "POST" :action "dodsearchproducts" :onSubmit "return false"
 	      (:div :class "container" 
 		    (:div :class "col-lg-6 col-md-6 col-sm-12" 
