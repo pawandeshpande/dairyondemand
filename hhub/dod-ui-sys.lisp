@@ -148,7 +148,7 @@
 		  (with-html-form "form-addcompany" "hhubnewcompreqemailaction"
 		    (:img :class "profile-img" :src "/img/logo.png" :alt "")
 		    (:div :class "form-group"
-			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value "" :required T  :placeholder "Enter Community Store Name ( max 30 characters) " :type "text" ))
+			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value "" :required T  :placeholder "Enter Store Name ( max 30 characters) " :type "text" ))
 		    (:div :class "form-group"
 			  (:label :for "cmpaddress")
 			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Address ( max 400 characters) " :required T  :rows "5" :onkeyup "countChar(this, 400)" "" ))
@@ -190,7 +190,7 @@
 (defun dod-controller-abac-security ()
   (let ((policies (hhub-get-cached-auth-policies)))
     (with-opr-session-check 
-      (with-standard-admin-page (:title "Welcome to Highrisehub")
+      (with-standard-admin-page "Welcome to Highrisehub"
 	(iam-security-page-header)
 	(:hr)
 	(:div :class "row"
@@ -210,7 +210,7 @@
       (setf params (acons "uri" (hunchentoot:request-uri*)  params))
       (with-hhub-transaction "com-hhub-transaction-sadmin-home" params 
       (let (( companies (hhub-get-cached-companies)))
-	(with-standard-admin-page (:title "Welcome to Highrisehub.")
+	(with-standard-admin-page "Welcome to Highrisehub."
 				  (:div :class "container"
 					(:div :id "row"
 					      (:div :id "col-xs-6" 
@@ -255,7 +255,7 @@
 :documentation "List all the business objects"
 (with-opr-session-check 
   (let ((busobjs (hhub-get-cached-bus-objects)))
-    (with-standard-admin-page (:title "Business Objects ...")
+    (with-standard-admin-page "Business Objects ..."
 			      (IAM-security-page-header)
 			      (:div :class "row"
 				    (:div :class "col-md-12" (:h4 "Business Objects")))
@@ -269,7 +269,7 @@
 :documentation "List all the business objects"
 (with-opr-session-check 
   (let ((abacsubjects (select-abac-subject-by-company (get-login-company))))
-    (with-standard-admin-page (:title "Business Personas ...")
+    (with-standard-admin-page "Business Personas ..."
 			      (IAM-security-page-header)
       (:div :class "row"
 	    (:div :class "col-md-12" (:h4 "Business Personas")))
@@ -282,7 +282,7 @@
 :documentation "List all the business transactions" 
 (with-opr-session-check 
   (let ((bustrans (hhub-get-cached-transactions)))
-    (with-standard-admin-page (:title "Business Transactions...")
+    (with-standard-admin-page "Business Transactions..."
 			      (IAM-security-page-header)
 			      (:div :class "row"
 				    (:div :class "col-md-12" 
@@ -297,7 +297,7 @@
 :documentation "This function lists the attributes used in policy making"
  (with-opr-session-check 
    (let ((lstattributes (hhub-get-cached-abac-attributes)))
-     (with-standard-admin-page (:title "attributes ...")
+     (with-standard-admin-page  "attributes ..."
 			       (iam-security-page-header)
        (:div :class "row"
 	     (:div :class "col-md-12" (:h4 "Attributes"))
@@ -314,7 +314,7 @@
 	      (if (is-dod-session-valid?)
 		  (hunchentoot:redirect "/hhub/sadminhome")
 		  ;else
-		  (with-standard-admin-page (:title "Welcome to HighriseHub")
+		  (with-standard-admin-page "Welcome to HighriseHub"
 		    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
 			  (:div :class "col-sm-6 col-md-4 col-md-offset-4"
 				(:div :class "account-wall"
@@ -559,7 +559,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/delcomp" 'dod-controller-delete-company)
 	(hunchentoot:create-regex-dispatcher "^/hhub/journal-entry-added" 'dod-controller-journal-entry-added)
         (hunchentoot:create-regex-dispatcher "^/hhub/account-added" 'dod-controller-account-added)
-	(hunchentoot:create-regex-dispatcher "^/hhub/list-users" 'dod-controller-list-users)
+	(hunchentoot:create-regex-dispatcher "^/hhub/sadmincreateusers" 'com-hhub-transaction-sadmin-create-users)
 	(hunchentoot:create-regex-dispatcher "^/hhub/list-accounts" 'dod-controller-list-accounts)
 	(hunchentoot:create-regex-dispatcher "^/hhub/listattributes" 'dod-controller-list-attrs)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dbreset.html" 'dod-controller-dbreset-page)

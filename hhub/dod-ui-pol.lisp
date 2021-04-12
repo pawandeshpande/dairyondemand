@@ -111,7 +111,7 @@
       ((< (parse-time-string (current-time-string)) (parse-time-string (com-hhub-attribute-customer-order-cutoff-time))) T))))
 
 
-(defun com-hhub-policy-edit-user (&optional (params nil))
+(defun com-hhub-policy-sadmin-create-users (&optional (params nil))
   :documentation "Check whether role of the login user is SUPERADMIN or not" 
   (equal (cdr (assoc "username" params :test 'equal))  "superadmin"))
 

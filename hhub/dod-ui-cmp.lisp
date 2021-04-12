@@ -30,7 +30,7 @@
 		(:div :class "col-xs-2 dropdown" 
 		      (:button :class "btn btn-primary dropdown-toggle" :type "button" :id "dropdownMenu1" :data-toggle "dropdown" :aria-haspopup "true" :aria-expanded "false" (:span :class "glyphicon glyphicon-option-vertical"))
 		      (:ul :class "dropdown-menu" :aria-labelledby "dropdownMenu1"
-			   (:li (:a :href (format nil "/hhub/list-users?tenant-id=~a" row-id) "Manage Users"))
+			   (:li (:a :href (format nil "/hhub/sadmincreateusers?tenant-id=~a" row-id) "Manage Users"))
 			   (if (equal suspended "Y")
 			       (cl-who:htm 
 				(:li (:a :href (format nil "/hhub/restoreaccount?tenant-id=~a" row-id) "Restore Account")))
