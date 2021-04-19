@@ -6,12 +6,14 @@
   (cl-who:with-html-output (*standard-output* nil)
     (:footer
         (:div :class "container"
-            (:div :class "row"
+	      (:div :class "row"
+		    (:hr))
+	      (:div :class "row"
                 (:div :class "col-lg-12"
                     (:ul :class "list-inline"
 			 (:li (:a :href "https://www.highrisehub.com" "Home"))
 			 (:li :class "footer-menu-divider" "&sdot;")
-			 (:li (:a :href "#about" "About"))
+			 (:li (:a :href "aboutuspage" "About"))
 			 (:li :class "footer-menu-divider" "&sdot;")
 			 (:li (:a :href "contactuspage" "Contact Us"))
 			 (:li :class "footer-menu-divider" "&sdot;")
@@ -22,10 +24,14 @@
 			 (:li (:a :href "/privacy.html" "Privacy Policy"))
 			 (:li :class "footer-menu-divider" "&sdot;"))))
 			 ;;(:li (:a :id "hhubcookiepolicylink" :data-toggle "modal" :data-target (format nil "#hhubcookiepolicy-modal")  :href "#"  "Cookie Policy")))))
-	    (:div :class "row"
+	      (:div :class "row"
+		    (:hr))
+	      (:div :class "row"
 		  (:div :class "col-lg-12" 
 			 (:p :class="copyright text-muted small" "Copyright &copy; HighriseHub 2021. All Rights Reserved")))))))
       ;;  (modal-dialog (format nil "hhubcookiepolicy-modal") "Accept Cookies" (modal.hhub-cookie-policy))))
+
+
 
 (defun modal.hhub-cookie-policy ()
   (cl-who:with-html-output (*standard-output* nil)
@@ -42,8 +48,25 @@
 	    (:div :class "form-group"
 		  	      (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Accept and Continue")))))))
 
+
+(defun hhub-controller-aboutus-page ()
+  (with-standard-admin-page "HighriseHub - Contact Us"
+    (:div :class "row"
+	  (:div :class "col-sm-12"
+		(:div :class "col-lg-4" (:h2 "HighriseHub - About Us"))))
+    (:div :class "row"
+	  (:div :class "col-sm-12"
+		(:img :class "profile-img" :src "/img/logo.png" :alt "")))
+    (:div :class "row"
+	    (:div :class "col-sm-12"
+		  (:p "HighriseHub is a platform  where you can create your own E-Commerce Stores, Multi Vendor Digital Marketplaces and Community Stores. From Product Catalogs, Basic Inventory Management, Order and Subscription Management, Digital Payments you can take your business to new heights with support from our enthusiastic team.")
+		  (:p (:strong "Community Edition:") " In this journey, we do not want the Community based stores to feel left behind. If you live in an apartment/community and need a store for buying/selling Products and Services, we provide a platform for you FREE! Not only that, we provide this platform FREE to Indian Farmers Community as well, as we feel Farmers are our \"Annadata\".")
+		  (:p "We are a team of enthusiastic professionals keen to make your Digital Journey smooth and enable you to provide that Customer Delight! HighriseHub is a SAAS application which provides you E-Commerce Services, Web Hosting of your Site, Redirection from Your Site to www.highrisehub.com, where your customers can experience a great online shopping/services.")
+		  (:div  :class "hhub-footer" (hhub-html-page-footer))))))
+  
+
 (defun hhub-controller-contactus-page ()
-  (with-standard-admin-page (:title "HighriseHub - Contact Us")
+  (with-standard-admin-page "HighriseHub - Contact Us"
     (:div :class "row"
 	  (:div :class "col-lg-4" (:h2 "HighriseHub - Contact Us")))
     (:div :class "row"
@@ -76,7 +99,7 @@
 			      (:label "By clicking submit, you consent to allow HighriseHub to store and process the personal information submitted above to provide you the content requested. We will not share your information with other companies."))
 			(:div :class "form-group"
 			      (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
-      (hhub-html-page-footer)))
+      (:div  :class "hhub-footer" (hhub-html-page-footer))))
 
 (defun hhub-controller-contactus-action ()
   (let* ((firstname (hunchentoot:parameter "firstname"))
@@ -114,17 +137,17 @@
 		  
 
 (defun hhub-controller-pricing ()
-  (let ((names (list  "Free - 30 Days" "Basic" "Professional"))
+  (let ((names (list  "Trial" "Basic" "Professional"))
 	(prices (list "00" "499" "999"))
 	(pricing-features 
 	  (list  "No of Vendors" "No of Customers" "Revenue/Month" "Inventory Control" "Product Images & Zoom" "Guest Login/Phone Order" "Products" "Shipping Integration" "Payment Gateway Integration" 
 			 "Domain Registration" "Sub Domains" "Email/SMS (Transactional)" "Browser Notifications"  "Email Support" "Products Bulk Upload (CSV)" "Product Subscriptions" "Wallets"  "COD Orders"
 			  "Customer Loyalty Points" "API Access" "Blocked IPs" "Save Cart" "Customer Groups" "SEO Tools" "Facebook Store"))
-	(features-active (list T T NIL T T T T T T NIL NIL T T T T T T T NIL NIL NIL NIL nil nil nil))
+	(features-active (list T T NIL T NIL T T T T NIL NIL T T T T T T T NIL NIL NIL NIL nil nil nil))
 	(pricing-table
 	  (list	   
 	   (list "1"  "50"   "Upto &#8377; 1 Lac"   "Y" "1"  "Y" "100"  "Y" "Y" "Y" "N" "Y" "Y" "Y" "N" "N" "N" "N" "N")
-	   (list "5"  "500"  "Upto &#8377; 5 Lacs"  "Y" "5"  "Y" "1000" "Y" "Y" "Y" "2" "Y" "Y" "Y" "Y" "Y" "N" "N" "N")
+	   (list "5"  "500"  "Upto &#8377; 5 Lacs"  "Y" "5"  "Y" "1000" "Y" "Y" "Y" "2" "Y" "Y" "Y" "N" "N" "N" "N" "N")
 	   (list "10" "1000" "Upto &#8377; 10 Lacs" "Y" "10" "Y" "3000" "Y" "Y" "Y" "5" "Y" "Y" "Y" "Y" "Y" "Y" "Y" "Y" ))))
     (with-standard-admin-page "HighriseHub Pricing" 
       (:link :href "/css/pricing.css" :rel "stylesheet")
@@ -137,15 +160,14 @@
 				    (:h1 "HighriseHub Pricing")))))
 		  (:div  :class  "container"  
 			 (:div  :class  "row"
-				;; Print Header
-				(format-pricing-features pricing-features features-active )
+				;; Print All the Features on LHS Header
+				;;(format-pricing-features pricing-features features-active )
 				;; Print Data
 				(mapcar  (lambda (name price items)
 					   (cl-who:with-html-output (*standard-output* nil)
-					     (format-pricing-plans name price items features-active))) names prices pricing-table)))))
-		  (:div :class "row"
-			(:div :class "col-lg-12" (:hr)))
-		  (hhub-html-page-footer))))
+					     (format-pricing-plans name price items pricing-features features-active))) names prices pricing-table)))))
+		  
+		  (:div  :class "hhub-footer" (hhub-html-page-footer)))))
 
 (defun format-pricing-features (features features-active)
   (cl-who:with-html-output (*standard-output* nil)
@@ -166,18 +188,15 @@
 		  
 		  (:div  :class  "generic_feature_list"  
 			 (:ul  
-				 (mapcar (lambda (obj active)
-					   (if active (cond
-							((equal obj "Y") (cl-who:htm (:li (:span "&#10003"))))
-							((equal obj "N") (cl-who:htm (:li (:span "&#10005"))))
-							(T (cl-who:htm (:li (:span (cl-who:str obj))))))))  features features-active)))))))
+				 (mapcar (lambda (feature active)
+					   (if active (cl-who:htm (:li (:span (cl-who:str feature))))))  features features-active)))))))
   
 
   
 
-(defun format-pricing-plans (name price plans active-plans)
+(defun format-pricing-plans (name price plans pricing-features features-active)
   (cl-who:with-html-output (*standard-output* nil)
-    (:div  :class  "col-md-3"  
+    (:div  :class  "col-md-4"  
      (:div  :class  "generic_content clearfix"  
        (:div  :class  "generic_head_price clearfix"  
 	(:div  :class  "generic_head_content clearfix"  
@@ -193,13 +212,15 @@
 		      (:span :class  "month"  "/Mon"))))
        (:div  :class  "generic_feature_list"  
 	      (:ul  
-	       (mapcar (lambda (obj active)
-			 (if active (cond
-			   ((equal obj "Y") (cl-who:htm (:li (:span "&#10003"))))
-			   ((equal obj "N") (cl-who:htm (:li (:span "&#10005"))))
-			   (T (cl-who:htm (:li (:span (cl-who:str obj))))))))   plans active-plans)))
+	       (mapcar (lambda (obj feature active)
+			 (cond
+			   ((and active (equal obj "Y")) (cl-who:htm (:li (:span (cl-who:str (format nil "~a  &#10003;" feature))))))
+			   ((and active (equal obj "N")) (cl-who:htm (:li (:span :style "color: lightgray;" (cl-who:str (format nil "~a  &#10005;" feature))))))
+			   (active (cl-who:htm (:li (:span (cl-who:str (format nil "~A - ~A" feature obj))))))))   plans pricing-features features-active)))
        (:div  :class  "generic_price_btn clearfix"  
-	      (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#"  "Sign Up")
-	      (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company)))))))
+	      (if (equal name "Trial") (cl-who:htm (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#"  "Sign Up - 30 Days Free!"))
+		  ;else
+	      (cl-who:htm (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#"  "Sign Up")))
+	      (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company name)))))))
 	
     

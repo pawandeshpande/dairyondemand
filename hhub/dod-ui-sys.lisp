@@ -141,11 +141,12 @@
 
 
 
-(defun com-hhub-transaction-request-new-company ()
+(defun com-hhub-transaction-request-new-company (type)
+  (let ((num (random 100)))
   (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		  (with-html-form "form-addcompany" "hhubnewcompreqemailaction"
+		  (with-html-form (format nil "form-addcompany~d" num) "hhubnewcompreqemailaction"
 		    (:img :class "profile-img" :src "/img/logo.png" :alt "")
 		    (:div :class "form-group"
 			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value "" :required T  :placeholder "Enter Store Name ( max 30 characters) " :type "text" ))
@@ -153,6 +154,8 @@
 			  (:label :for "cmpaddress")
 			  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Address ( max 400 characters) " :required T  :rows "5" :onkeyup "countChar(this, 400)" "" ))
 		    (:div :class "form-group" :id "charcount")
+		    (:div :class "form-group"
+			  (:input :class "form-control" :type "hidden" :value type :name "cmptype" :readonly T))
 		    (:div :class "form-group"
 			  (:input :class "form-control" :type "text" :value "" :placeholder "City"  :required T :name "cmpcity" ))
 		    (:div :class "form-group"
@@ -169,11 +172,11 @@
 		    (:div :class "form-group checkbox" 
 			  (:input :type "checkbox" :name "privacycheck" :value "privacyagreed" :required T  "Agree Privacy Policy.  "))
 		   
-		    (:a  :href "https://www.highrisehub.com/tnc.html"  (:span :class "glyphicon glyphicon-eye-open") " Privacy Policy. ")
+		    (:a  :href "https://www.highrisehub.com/privacy.html"  (:span :class "glyphicon glyphicon-eye-open") " Privacy Policy. ")
 		    (:div :class "form-group"
 			  (:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAV2KEY* ))
 		    (:div :class "form-group"
-			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
+			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
     
     
 (defun dod-controller-company-search-for-sys-action ()
@@ -464,6 +467,7 @@
 
 (defun dod-controller-new-company-request-email ()
   (let*  ((cmpname (hunchentoot:parameter "cmpname"))
+	  (cmptype (hunchentoot:parameter "cmptype"))
 	  (cmpaddress (hunchentoot:parameter "cmpaddress"))
 	  (cmpcity (hunchentoot:parameter "cmpcity"))
 	  (cmpstate (hunchentoot:parameter "cmpstate"))
@@ -487,11 +491,12 @@
 				  :country cmpcountry
 				  :zipcode cmpzipcode
 				  :website cmpwebsite
-				  :cmp-type "TRIAL"
+				  :cmp-type cmptype
 				  :deleted-state "N"
 				  :created-by nil
 				  :updated-by nil)))
-	(unless(and  ( or (null cmpname) (zerop (length cmpname)))
+      (hunchentoot:log-message* :info "Company Type = ~A" cmptype)
+    (unless(and  ( or (null cmpname) (zerop (length cmpname)))
 		     ( or (null cmpaddress) (zerop (length cmpaddress)))
 		     ( or (null cmpzipcode) (zerop (length cmpzipcode))))
 	  (cond 
@@ -583,6 +588,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/refreshiamsettings" 'com-hhub-transaction-refresh-iam-settings)
 	(hunchentoot:create-regex-dispatcher "^/hhub/pricing" 'hhub-controller-pricing)
 	(hunchentoot:create-regex-dispatcher "^/hhub/contactuspage" 'hhub-controller-contactus-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/aboutuspage" 'hhub-controller-aboutus-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/contactusaction" 'hhub-controller-contactus-action)
 	
 	;***************** COMPADMIN/COMPANYHELPDESK/COMPANYOPERATOR  RELATED ********************

@@ -1,16 +1,58 @@
 
 var $busyindicator = document.getElementById('busy-indicator');
-var $error = document.getElementById('hhub-error-alert');
+var $error = document.getElementById('hhub-error');
 var  $formcustsignin = $(".form-custsignin"),  $formvendsignin = $(".form-vendorsignin");
 
 
+function displaybillingaddress (){
+    if( document.getElementById('billsameasshipchecked').checked ){
+	$('#billingaddressrow').hide();
+	clearbilltoaddress();
+    }else
+    {
+	$('#billingaddressrow').show();
+    }
+}
+
+function displaygstdetails () {
+    if( document.getElementById('claimitcchecked').checked ){
+	$('#gstdetailsfororder').show();
+    }else
+    {
+	$('#gstdetailsfororder').hide();
+    }
+
+}
+
+
+function clearbilltoaddress(){
+    var billaddress = document.getElementById("billaddress");
+    var billzipcode = document.getElementById("billzipcode");
+    var billcity = document.getElementById("billcity");
+    var billstate = document.getElementById("billstate");
+    billaddress.value = "";
+    billzipcode.value = "";
+    billcity.value = "";
+    billstate.value = ""; 
+}
 
 
 function copyshiptobillto()
 {
     var shipaddress  = document.getElementById("shipaddress");
     var billaddress = document.getElementById("billaddress");
+    var shipzipcode = document.getElementById("shipzipcode");
+    var billzipcode = document.getElementById("billzipcode");
+    var shipcity = document.getElementById("shipcity");
+    var billcity = document.getElementById("billcity");
+    var shipstate = document.getElementById("shipstate");
+    var billstate = document.getElementById("billstate");
+    
     billaddress.value = shipaddress.value;
+    billzipcode.value = shipzipcode.value;
+    billcity.value = shipcity.value;
+    billstate.value = shipstate.value;
+    
 }
 
 
