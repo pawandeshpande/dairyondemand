@@ -703,7 +703,7 @@
 			    (:hr)
 			    (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-arrow-left"))
 			    (:a :class "btn btn-primary" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#" (:span :class "glyphicon glyphicon-plus") " New Community Store (FREE!)")
-			    (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company))))
+			    (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company "TRIAL"))))
 		(:hr)
 		(hhub-html-page-footer)))
 		      
@@ -1022,16 +1022,19 @@
 				   (:input :class "form-control" :name "reqdate" :id "required-on" :placeholder  (cl-who:str (format nil "~A. Click to change" (get-date-string (clsql::date+ (clsql::get-date) (clsql::make-duration :day 1))))) :type "text" :value (get-date-string (clsql-sys:date+ (clsql-sys:get-date) (clsql-sys:make-duration :day 1)))))))
 	   (:div :class "row" 
 		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
-		       (:div :class "form-group" (:label :for "shipfirstname" "Firstname" )
-			     (:input :class "form-control" :type "text" :class "form-control" :name "shipfirstname" :placeholder "Firstname" :tabindex "1" :required T))
-		       (:div :class "form-group" (:label :for "phone" "Phone" )
-			     (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Phone" :tabindex "3"  :required T )))
-		 
+		       (:div :class "form-group" (:label :for "custname" "Name" )
+			     (:input :class "form-control" :type "text" :class "form-control" :name "custname" :placeholder "Name" :tabindex "1" :required T))))
+		      ;; (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+			;;     (:div :class "form-group" (:label :for "lastname" "Lastname" )
+			;;	   (:input :class "form-control" :type "text" :class "form-control" :name "shiplastname" :placeholder "Lastname" :tabindex "2" :required T))))
+		  
+	   (:div :class "row"
 		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
-		       (:div :class "form-group" (:label :for "lastname" "Lastname" )
-			     (:input :class "form-control" :type "text" :class "form-control" :name "shiplastname" :placeholder "Lastname" :tabindex "2" :required T))
+		       (:div :class "form-group" (:label :for "phone" "Phone" )
+			     (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "+91" :tabindex "3"  :required T ))) 
+		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 		       (:div :class "form-group" (:label :for "email" "Email" )
-			     (:input :class "form-control" :type "email" :class "form-control" :name "email" :placeholder "Email" :data-error "That email address is invalid" :tabindex "4"  :required T ))))
+			     (:input :class "form-control" :type "email" :class "form-control" :name "email" :placeholder "Email" :data-error "That email address is invalid" :tabindex "4" ))))
 	   (:div :class "row"
 		 (:hr))
 	   ;; Row for Shipping and Billing Address. 
@@ -1045,14 +1048,14 @@
 		       (:div :class "row"
 			     (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 				   (:div :class "form-group" (:label :for "shipaddress" "Shipping Address" )
-					 (:textarea :class "form-control" :name "shipaddress" :rows "4" :required "true" :tabindex "5" ))
+					 (:textarea :class "form-control" :id "shipaddress" :name "shipaddress" :rows "4" :tabindex "5" ))
 				   
 				   (:div :class "form-group" (:label :for "zipcode" "Pincode" )
-					 (:input :class "form-control" :type "text" :class "form-control" :inputmode "numeric" :maxlength "6" :name "shipzipcode" :placeholder "Pincode" :tabindex "8" ))
+					 (:input :class "form-control" :type "text" :class "form-control" :inputmode "numeric" :maxlength "6" :id "shipzipcode" :name "shipzipcode" :placeholder "Pincode" :tabindex "8" ))
 				   (:div :class "form-group" (:label :for "city" "City" )
-					 (:input :class "form-control" :type "text" :class "form-control" :name "shipcity" :placeholder "City" :readonly T))
+					 (:input :class "form-control" :type "text" :class "form-control" :name "shipcity" :id "shipcity" :placeholder "City" ))
 				   (:div :class "form-group" (:label :for "state" "State" )
-					 (:input :class "form-control" :type "text" :class "form-control" :name "shipstate" :placeholder "State"  :readonly T )))))
+					 (:input :class "form-control" :type "text" :class "form-control" :name "shipstate" :id "shipstate"  :placeholder "State"  )))))
 		 
 	   (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6" 
 		 (:div :class "row"
@@ -1065,13 +1068,13 @@
 		 (:div :class "row"  :id "billingaddressrow" :style "display: none;"
 		       	     (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 				   (:div :class "form-group" (:label :for "shipaddress" "Billing Address" )
-					 (:textarea :class "form-control" :name "billaddress" :rows "4"  :tabindex "7"))
+					 (:textarea :class "form-control" :name "billaddress" :id "billaddress" :rows "4"  :tabindex "7"))
 				   (:div :class "form-group" (:label :for "zipcode" "Pincode" )
-					 (:input :class "form-control" :type "text" :class "form-control" :inputmode "numeric" :maxlength "6" :name "billzipcode" :tabindex "8" :placeholder "Pincode" ))
+					 (:input :class "form-control" :type "text" :class "form-control" :inputmode "numeric" :maxlength "6" :id "billzipcode" :name "billzipcode" :tabindex "8" :placeholder "Pincode" ))
 				   (:div :class "form-group" (:label :for "city" "City" )
-					 (:input :class "form-control" :type "text" :class "form-control" :name "billcity" :placeholder "City" :readonly T  ))
+					 (:input :class "form-control" :type "text" :class "form-control" :name "billcity" :id "billcity"  :placeholder "City"  ))
 				   (:div :class "form-group" (:label :for "state" "State" )
-					 (:input :class "form-control" :type "text" :class "form-control" :name "billstate" :placeholder "State" :readonly T ))))))
+					 (:input :class "form-control" :type "text" :class "form-control" :name "billstate" :id "billstate" :placeholder "State"  ))))))
 	
 	   
 	   (:div :class "row"
@@ -1083,7 +1086,7 @@
 		  (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 			(:div :class "form-check"
 		       (:input :type "checkbox" :id "claimitcchecked" :name "claimitcchecked" :value  "claimitcchecked" :onclick "displaygstdetails();")
-				   (:label :class= "form-check-label" :for "claimitcchecked" "&nbsp;&nbsp;GST Invoice"))))
+				   (:label :class "form-check-label" :for "claimitcchecked" "&nbsp;&nbsp;GST Invoice"))))
 		 
 	   (:div :class "row" :id "gstdetailsfororder" :style "display:none;"
 		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
@@ -1103,12 +1106,12 @@
 		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 		       (:div :class "form-check"
 			     (:input :type "checkbox" :name "tnccheck" :value  "tncagreed" :tabindex "11" :required T)
-			     (:label :class= "form-check-label" :for "tnccheck" "&nbsp;&nbsp;Agree Terms and Conditions")
+			     (:label :class= "form-check-label" :for "tnccheck" "&nbsp;&nbsp;Agree Terms and Conditions&nbsp;&nbsp;")
 			     (:a  :href "https://www.highrisehub.com/tnc.html"  (:i :class "fa fa-eye" :aria-hidden "true") "&nbsp;&nbsp;Terms"))
-		       (:div :class "form-check" 
-			     (:input :type "checkbox" :name "privacycheck" :value "privacyagreed" :tabindex "12" :required T)
-			     (:label :class= "form-check-label" :for "tnccheck" "&nbsp;&nbsp;Agree Privacy Policy")
-			     (:a  :href "https://www.highrisehub.com/tnc.html"  (:i :class "fa fa-eye" :aria-hidden "true") "&nbsp;&nbsp;Privacy"))
+		       ;;(:div :class "form-check" 
+			 ;;    (:input :type "checkbox" :name "privacycheck" :value "privacyagreed" :tabindex "12" :required T)
+			 ;;    (:label :class= "form-check-label" :for "tnccheck" "&nbsp;&nbsp;Agree Privacy Policy&nbsp;&nbsp;")
+			 ;;    (:a  :href "https://www.highrisehub.com/tnc.html"  (:i :class "fa fa-eye" :aria-hidden "true") "&nbsp;&nbsp;Privacy"))
 		       (:div :class "form-group"
 			     (:div :class "g-recaptcha" :required T  :data-sitekey *HHUBRECAPTCHAV2KEY* ))
 		       (:input :type "submit"  :class "btn btn-primary" :tabindex "13" :value (if (equal paymentmode "OPY") "Proceed for Online Payment" "Confirm Cash On Delivery Order"))))
@@ -1123,7 +1126,7 @@
   (let ((cust-type (get-login-customer-type))
 	(paymentmode (hunchentoot:parameter "paymentmode")))
     (with-cust-session-check
-      (with-standard-customer-page (:title "Add Customer Order")
+      (with-standard-customer-page  "Add Customer Order"
 	(cl-who:str (cust-add-order-page cust-type paymentmode))))))
 
 ;;; This function has been separated from the controller function because it is independently testable.
@@ -1139,7 +1142,7 @@
 
 (defun dod-controller-cust-add-order-detail-page ()
     (with-cust-session-check
-	(with-standard-customer-page (:title "Welcome to HighriseHub- Add Customer Order")
+	(with-standard-customer-page  "Welcome to HighriseHub- Add Customer Order"
 	    (:div :class "row background-image: url(resources/login-background.png);background-color:lightblue;" 
 		(:div :class "col-sm-6 col-md-4 col-md-offset-4"
 		    (:div :class "orderpref"
@@ -1220,7 +1223,7 @@
   (cl-who:with-html-output (*standard-output* nil)
     (cl-who:htm (:select :class "form-control" :placeholder "Group/Apartment"  :name name 
 	(loop for company in list 
-	     do ( htm (:option :value (slot-value company 'row-id) (cl-who:str (slot-value company 'name)))))))))
+	     do ( cl-who:htm (:option :value (slot-value company 'row-id) (cl-who:str (slot-value company 'name)))))))))
 
 (defun dod-controller-low-wallet-balance-for-shopcart ()
   (with-cust-session-check
@@ -1278,7 +1281,7 @@
   (with-cust-session-check 
     (let ((cust-type  (slot-value (get-login-customer) 'cust-type)))
       (with-standard-customer-page
-	(:title "Welcome to HighriseHub- Add Customer Order")
+	 "Welcome to HighriseHub- Add Customer Order"
 	(:div :class "row"
 	      (:div :class "col-sm-12" 
 		    (:h1 "Your order has been successfully placed")))
@@ -1294,15 +1297,30 @@
 		       (:a :class "btn btn-primary" :role "button" :href (format nil "dodmyorders") " My Orders Page")))))))))
   
   
-(defun send-order-email-guest-customer(order-id email products shopcart) 
+(defun send-order-email-guest-customer(order-id email temp-customer products shopcart) 
   (let* ((shopcart-total (get-shop-cart-total shopcart))
 	(order-disp-str
 	 (cl-who:with-html-output-to-string (*standard-output* nil)
+	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Customer name - ~A" (slot-value temp-customer 'name))))))
+	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Address - ~A" (slot-value temp-customer 'address))))))
+	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Phone - ~A" (slot-value temp-customer 'phone))))))
+	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Email - ~A" (slot-value temp-customer 'email))))))
 	   (cl-who:str (ui-list-shopcart-for-email products shopcart))
 	   (:hr)
 	   (:tr (:td
 		 (:h2 (:span :class "label label-default" (cl-who:str (format nil "Total = Rs ~$" shopcart-total)))))))))
+    (hunchentoot:log-message* :info (format nil "Sending email for order no - ~A. To ~A" order-id email))
     (send-order-mail email (format nil "HighriseHub order ~A" order-id) order-disp-str)))
+
+(defun send-order-sms-guest-customer (order-id phone)
+  :documentation "Send an SMS to Guest customer when order is placed."
+  (send-sms-notification phone "HHUB" (format nil "[HIGHRISEHUB] Thank You for placing the order. Your order number is ~A and will be processed soon" order-id)))
+
+
+(defun send-order-sms-standard-customer(order-id phone)
+  :documentation "Send an SMS to Guest customer when order is placed."
+  (send-sms-notification phone "HHUB" (format nil "[HIGHRISEHUB] Thank You for placing the order. Your order number is ~A and will be processed soon" order-id)))
+
 
 (defun send-order-email-standard-customer(order-id email products shopcart)
   :Documentation "We are not sending any email to standard customer Today. We will check his settings and then decide whether to send email or not. Future")
@@ -1322,25 +1340,46 @@
       (setf params (acons "company" (get-login-customer-company)  params))
       
       (with-hhub-transaction "com-hhub-transaction-create-order" params
-       (multiple-value-bind (odts products odate reqdate ship-date shipaddress shopcart-total payment-mode comments cust custcomp order-cxt phone email )
-		  (values-list (get-cust-order-params))
+	(multiple-value-bind (odts products odate reqdate ship-date shipaddress shipzipcode shipcity shipstate billaddress billzipcode billcity billstate billsameasshipchecked claimitcchecked gstnumber gstorgname shopcart-total payment-mode comments cust custcomp order-cxt phone email custname)
+	    (values-list (get-cust-order-params)) 
 	 (let* ((temp-ht (make-hash-table :test 'equal))
 		(vendor-list (get-shopcart-vendorlist odts))
 		(wallet-list (mapcar (lambda (vendor) (get-cust-wallet-by-vendor cust vendor custcomp)) vendor-list))
 		(cust-type (slot-value cust 'cust-type))
-		; This function call is not pure. Try to make it pure. 
-		(guest-email (hunchentoot:session-value :guest-email-address)))
+		(temp-customer (make-instance 'DOD-CUST-PROFILE)))
+
+	   (setf (slot-value temp-customer 'name) custname)
+	   (setf (slot-value temp-customer 'address) shipaddress)
+	   (setf (slot-value temp-customer 'phone) phone)
+	   (setf (slot-value temp-customer 'email) email)
+	   	   
+		;; This function call is not pure. Try to make it pure. 
+		;; (guest-email (hunchentoot:session-value :guest-email-address)))
 
 	   ;; If the payment mode is PREPAID, then check whether we have enough balance first. If not, then redirect to the low wallet balance. 
 	   ;; Redirecting to some other place is not a pure function behavior. Is there a better way to handle this? 
 	   (setf (gethash "PRE" temp-ht) (symbol-function 'check-all-vendors-wallet-balance))
 	   (let ((func (gethash payment-mode temp-ht)))
 	     (if func (if (funcall (gethash payment-mode temp-ht) vendor-list wallet-list odts)	 (hunchentoot:redirect "/hhub/dodcustlowbalanceshopcarts"))))
+	   ;; If everything gets through, create order. 
 	   (let ((order-id (create-order-from-shopcart  odts products odate reqdate ship-date  shipaddress shopcart-total payment-mode comments cust custcomp)))
-	     (setf (gethash "GUEST" temp-ht) (symbol-function 'send-order-email-guest-customer))
-	     (setf (gethash "STANDARD" temp-ht) (symbol-function 'send-order-email-standard-customer))
-	     ;Send order email to the customer. 
-	     (funcall (gethash cust-type temp-ht) order-id guest-email products odts)
+	     (setf (gethash "GUEST-EMAIL" temp-ht) (symbol-function 'send-order-email-guest-customer))
+	     (setf (gethash "GUEST-SMS" temp-ht) (symbol-function 'send-order-sms-guest-customer))
+	     (setf (gethash "STANDARD-EMAIL" temp-ht) (symbol-function 'send-order-email-standard-customer))
+	     (setf (gethash "STANDARD-SMS" temp-ht) (symbol-function 'send-order-sms-standard-customer))
+
+	     (hunchentoot:log-message* :info (format nil "Email - ~A" email))
+
+	     
+	       ;; Send order SMS to guest customer if phone is provided. (Phone is required field for Guest customer, hence SMS will always be sent)
+	       (when (and (equal cust-type "GUEST") phone) (funcall (gethash (format nil "~A-SMS" cust-type) temp-ht) order-id phone))
+	       ;; Send order email to guest customer if email is provided. 
+	       (when (and (equal cust-type "GUEST") email)  (funcall (gethash (format nil "~A-EMAIL" cust-type) temp-ht) order-id email temp-customer  products odts))
+	       ;; If STANDARD customer has email, then send order email 
+	       (when (and (equal cust-type "STANDARD") email) (funcall (gethash (format nil "~A-EMAIL" cust-type) temp-ht) order-id email products odts))
+	       ;; If standard customer has phone, then send SMS 
+	       (when (and (equal cust-type "STANDARD") phone) (funcall (gethash (format nil "~A-SMS" cust-type) temp-ht) order-id phone))
+	     
 	     (reset-cust-order-params)
 	     (setf (hunchentoot:session-value :login-cusord-cache) (get-orders-for-customer cust))
 	     (setf (hunchentoot:session-value :login-shopping-cart ) nil)
@@ -1362,8 +1401,19 @@
 	   (products (hunchentoot:session-value :login-prd-cache))
 	   (payment-mode (hunchentoot:parameter "payment-mode"))
 	   (odate  (hunchentoot:parameter "orddate"))
-
+	   (custname (hunchentoot:parameter "custname"))
 	   (shipaddress (hunchentoot:parameter "shipaddress"))
+	   (shipzipcode (hunchentoot:parameter "shipzipcode"))
+	   (shipcity (hunchentoot:parameter "shipcity"))
+	   (shipstate (hunchentoot:parameter "shipstate"))
+	   (billaddress (hunchentoot:parameter "billaddress"))
+	   (billzipcode (hunchentoot:parameter "billzipcode"))
+	   (billcity (hunchentoot:parameter "billcity"))
+	   (billstate (hunchentoot:parameter "billstate"))
+	   (billsameasshipchecked (hunchentoot:parameter "billsameasshipchecked"))
+	   (claimitcchecked (hunchentoot:parameter "claimitcchecked"))
+	   (gstnumber (hunchentoot:parameter "gstnumber"))
+	   (gstorgname (hunchentoot:parameter "gstorgname"))
 	   (reqdate (hunchentoot:parameter "reqdate"))
 	   (phone (hunchentoot:parameter "phone"))
 	   (email (hunchentoot:parameter "email"))
@@ -1381,9 +1431,8 @@
 					; Save the email address to send a mail in future if this is a guest customer.
       (setf (hunchentoot:session-value :guest-email-address) email)
       					; Save the customer order parameters. 
-      (save-cust-order-params (list odts shopcart-products (get-date-from-string odate) (get-date-from-string reqdate) nil  shipaddress shopcart-total payment-mode comments customer custcomp order-cxt phone email))
-      (with-standard-customer-page
-	(:title "Shopping cart finalize")
+      (save-cust-order-params (list odts shopcart-products (get-date-from-string odate) (get-date-from-string reqdate) nil  shipaddress shipzipcode shipcity shipstate billaddress billzipcode billcity billstate billsameasshipchecked claimitcchecked gstnumber gstorgname shopcart-total payment-mode comments customer custcomp order-cxt phone email custname))
+      (with-standard-customer-page "Shopping cart finalize"
 	(:div :class "row"
 	      (:div :class "col-xs-12"
 	      (:h4 (cl-who:str (format nil "Order Date: ~A" odate)))))
@@ -1423,7 +1472,19 @@
 	  (products (hunchentoot:session-value :login-prd-cache))
 	  (payment-mode (hunchentoot:parameter "payment-mode"))
 	  (odate (get-date-from-string  (hunchentoot:parameter "orddate")))
+	  (custname (hunchentoot:parameter "custname"))
 	  (shipaddress (hunchentoot:parameter "shipaddress"))
+	  (shipzipcode (hunchentoot:parameter "shipzipcode"))
+	  (shipcity (hunchentoot:parameter "shipcity"))
+	  (shipstate (hunchentoot:parameter "shipstate"))
+	  (billaddress (hunchentoot:parameter "billaddress"))
+	  (billzipcode (hunchentoot:parameter "billzipcode"))
+	  (billcity (hunchentoot:parameter "billcity"))
+	  (billstate (hunchentoot:parameter "billstate"))
+	  (billsameasshipchecked (hunchentoot:parameter "billsameasshipchecked"))
+	  (claimitcchecked (hunchentoot:parameter "claimitcchecked"))
+	  (gstnumber (hunchentoot:parameter "gstnumber"))
+	  (gstorgname (hunchentoot:parameter "gstorgname"))
 	  (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
 	  (phone (hunchentoot:parameter "phone"))
 	  (email (hunchentoot:parameter "email"))
@@ -1438,7 +1499,7 @@
 					(let ((prd-id (slot-value odt 'prd-id)))
 					  (search-prd-in-list prd-id products ))) odts)))
      (setf (hunchentoot:session-value :guest-email-address) email)
-     (save-cust-order-params (list odts shopcart-products odate reqdate nil  shipaddress shopcart-total payment-mode comments customer custcomp order-cxt phone email))
+     (save-cust-order-params (list odts shopcart-products odate reqdate nil  shipaddress shipzipcode shipcity shipstate billaddress billzipcode billcity billstate billsameasshipchecked claimitcchecked gstnumber gstorgname shopcart-total payment-mode comments customer custcomp order-cxt phone email custname))
      (if (equal payment-mode "OPY") 
 	 (online-payment shopcart-total wallet-id custcomp order-cxt)))))
 
