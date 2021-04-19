@@ -30,9 +30,58 @@
 
  (ship-address
     :ACCESSOR get-ship-address 
-    :type (string 100)
+    :type (string 200)
     :initarg :ship-address)
 
+   (shipzipcode
+    :accessor get-shipzipcode
+    :type (string 10)
+    :initarg :shipzipcode)
+
+   (shipcity
+    :accessor get-shipcity
+    :type (string 50)
+    :initarg :shipcity)
+   (shipstate
+    :accessor get-shipstate
+    :type (string 50)
+    :initarg :shipstate)
+   (billaddress
+    :accessor get-billaddress
+    :type (string 200)
+    :initarg :billaddress)
+   (billzipcode
+    :accessor get-billzipcode
+    :type (string 10)
+    :initarg :billzipcode)
+   (billcity
+    :accessor get-billcity
+    :type (string 50)
+    :initarg :billcity)
+   (billstate
+    :accessor get-billstate
+    :type (string 50)
+    :initarg :billstate)
+   
+   (country
+    :accessor get-country
+    :type (string 50)
+    :initarg :country)
+   
+   (billsameasship
+    :accessor get-billsameasship
+    :type (string 1)
+    :initarg :billsameasship)
+
+   (gstnumber
+    :accessor get-gstnumber
+    :type (string 20)
+    :initarg :gstnumber)
+   (gstorgname
+    :accessor get-gstorgname
+    :type (string 50)
+    :initarg :gstorgname)
+   
    (order-fulfilled
     :type (string 1)
     :void-value "N"
@@ -164,8 +213,50 @@
    
    (ship-address
     :ACCESSOR get-ship-address 
-    :type (string 100)
+    :type (string 200)
     :initarg :ship-address)
+
+   (shipzipcode
+    :accessor get-shipzipcode
+    :type (string 10)
+    :initarg :shipzipcode)
+
+   (shipcity
+    :accessor get-shipcity
+    :type (string 50)
+    :initarg :shipcity)
+   (shipstate
+    :accessor get-shipstate
+    :type (string 50)
+    :initarg :shipstate)
+   (billaddress
+    :accessor get-billaddress
+    :type (string 200)
+    :initarg :billaddress)
+   (billzipcode
+    :accessor get-billzipcode
+    :type (string 10)
+    :initarg :billzipcode)
+   (billcity
+    :accessor get-billcity
+    :type (string 50)
+    :initarg :billcity)
+   (billstate
+    :accessor get-billstate
+    :type (string 50)
+    :initarg :billstate)
+   
+   (country
+    :accessor get-country
+    :type (string 50)
+    :initarg :country)
+   
+   (billsameasship
+    :accessor get-billsameasship
+    :type (string 1)
+    :initarg :billsameasship)
+
+
    
    (order-amt
     :type float
