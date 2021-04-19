@@ -119,7 +119,7 @@
 	 (calculated-hash (hashcalculate   params-alist  payment-api-salt  :sha512))
 					; create the pending order if the order_id matches with what we saved in the order params cache.
 	 (order-params (funcall 'get-cust-order-params))
-	 (order-cxt (nth 11 order-params)))
+	 (order-cxt (nth 22 order-params)))
 	 
 	
    ;;;;;;;;;;;;;;;;;;;;;;;;;;DEBUGGING PURPOSES ;;;;;;;;;;;;;;;;;;;;;;;;;;;
