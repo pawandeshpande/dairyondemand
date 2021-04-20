@@ -39,7 +39,7 @@
 	 
     (setf (hunchentoot:session-value :payment-hash ) hash)
     					;do something
-    (with-standard-customer-page (:title "Payment Request")
+    (with-standard-customer-page  "Payment Request"
       (:form :class "form-makepaymentrequest" :role "form" :method "POST" :action "https://biz.traknpay.in/v2/paymentrequest"
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
@@ -75,6 +75,75 @@
 			(:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Confirm"))))))))
 	
 
+(defun make-payment-request-html (amount wallet-id mode order-id)
+  (let* ((customer (get-login-customer))
+	 (company (get-login-customer-company))
+	 (wallet (if wallet-id (get-cust-wallet-by-id wallet-id company)))
+	 (vendor (if wallet (get-vendor wallet)))
+	 (description  "This is test description")
+	 (currency "INR")
+	 (customer-type (slot-value customer 'cust-type))
+	 (customer-name (slot-value customer 'name))
+	 (customer-email (slot-value customer 'email))
+	 (customer-phone (slot-value customer 'phone))
+	 (customer-city (slot-value customer 'city))
+	 (payment-api-key (slot-value vendor 'payment-api-key))
+	 (payment-api-salt (slot-value vendor 'payment-api-salt))
+	 (customer-country "India")
+	 (customer-zipcode (slot-value customer 'zipcode))
+	 (udf1 wallet-id)
+	 (udf2 customer-type)
+	 (udf3 "not used" )
+	 (udf4 "not used")
+	 (udf5 "not used")
+	 (show-convenience-fee "Y")
+	 (return-url (format nil "~A?~A" *PAYGATEWAYRETURNURL* (format nil "~A=~A" (hunchentoot:session-cookie-name *current-customer-session*) (hunchentoot:url-encode (hunchentoot:session-cookie-value hunchentoot:*session*))))) 
+	 (return-url-cancel (format nil "~A?~A" *PAYGATEWAYCANCELURL* (format nil "~A=~A" (hunchentoot:session-cookie-name *current-customer-session*) (hunchentoot:url-encode (hunchentoot:session-cookie-value hunchentoot:*session*)))))  
+	 (return-url-failure (format nil "~A?~A" *PAYGATEWAYFAILUREURL*  (format nil "~A=~A" (hunchentoot:session-cookie-name *current-customer-session*) (hunchentoot:url-encode (hunchentoot:session-cookie-value hunchentoot:*session*)))))
+	 (param-names (list "amount" "api_key" "city" "country" "currency" "description" "email" "mode"  "name" "order_id" "phone" "return_url" "show_convenience_fee" "return_url_cancel" "return_url_failure" "udf1" "udf2" "udf3" "udf4" "udf5"  "zip_code"))
+	 (param-values (list amount payment-api-key customer-city customer-country currency description customer-email mode  customer-name order-id  customer-phone return-url show-convenience-fee return-url-cancel return-url-failure udf1 udf2 udf3 udf4 udf5  customer-zipcode))
+	 (params-alist (pairlis param-names param-values))
+	 (hash (generatehashkey  params-alist  payment-api-salt  :sha512)))
+	 
+	 
+    (setf (hunchentoot:session-value :payment-hash ) hash)
+    					;do something
+    (cl-who:with-html-output-to-string (*standard-output* nil)
+      (:form :class "form-makepaymentrequest" :role "form" :method "POST" :action "https://biz.traknpay.in/v2/paymentrequest"
+      (:div :class "row" 
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (:h5 (cl-who:str (format nil "For Vendor: ~A" (slot-value vendor 'name))))
+		  (:h5 (cl-who:str (format nil "Amount  ~A. ~A" currency amount))))
+	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+		  (:div :class "form-group" 
+			  (:input :class "form-control" :type "hidden" :value amount :name "amount") 
+			  (:input :class "form-control" :type "hidden" :value payment-api-key  :name "api_key") 
+			  (:input :class "form-control" :type "hidden" :value order-id :name "order_id") 
+			  (:input :class "form-control" :type "hidden" :value mode :name "mode") ; Change this to LIVE for real payment request. 
+			  (:input :class "form-control" :type "hidden" :value currency :name "currency")
+			  (:input :class "form-control" :type "hidden" :value description :name "description")
+			  (:input :class "form-control" :type "hidden" :value customer-name :name "name")
+			  (:input :class "form-control" :type "hidden" :value customer-email :name "email")
+			  (:input :class "form-control" :type "hidden" :value customer-phone :name "phone")
+			  (:input :class "form-control" :type "hidden" :value customer-city :name "city")
+			  (:input :class "form-control" :type "hidden" :value customer-country :name "country")
+			  (:input :class "form-control" :type "hidden" :value hash :name "hash") 
+			  (:input :class "form-control" :type "hidden" :value customer-zipcode :name "zip_code")
+			  (:input :class "form-control" :type "hidden" :value udf1 :name "udf1")
+			  (:input :class "form-control" :type "hidden" :value udf2 :name "udf2")
+			  (:input :class "form-control" :type "hidden" :value udf3 :name "udf3")
+			  (:input :class "form-control" :type "hidden" :value udf4 :name "udf4")
+			  (:input :class "form-control" :type "hidden" :value udf5 :name "udf5")
+			  (:input :class "form-control" :type "hidden" :value show-convenience-fee :name "show_convinience_fee")
+			  (:input :class "form-control" :type "hidden" :value return-url-failure :name "return_url_failure")
+			  (:input :class "form-control" :type "hidden" :value return-url-cancel :name "return_url_cancel")
+			  (:input :class "form-control" :type "hidden" :value return-url :name "return_url")))) 
+      (:div :class "row"
+	    (:div :class "col-xs-6 col-sm-6 col-md-6 col-lg-6"
+		  (:div :class "form-group"
+			(:span :class "input-group-btn" (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Place Order" )))))))))
+		
+	
 
 
 
