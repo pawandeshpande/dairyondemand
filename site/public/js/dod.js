@@ -10,6 +10,7 @@ function displaybillingaddress (){
 	clearbilltoaddress();
     }else
     {
+	copyshiptobillto();
 	$('#billingaddressrow').show();
     }
 }
