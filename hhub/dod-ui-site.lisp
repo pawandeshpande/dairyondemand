@@ -19,10 +19,10 @@
 			 (:li :class "footer-menu-divider" "&sdot;")
 			 (:li (:a :href "pricing" "Pricing"))
 			 (:li :class "footer-menu-divider" "&sdot;")
-			 (:li (:a :href "/tnc.html" "Terms and Conditions"))
+			 (:li (:a :href "tnc" "Terms and Conditions"))
 			 (:li :class "footer-menu-divider" "&sdot;")
-			 (:li (:a :href "/privacy.html" "Privacy Policy"))
-			 (:li :class "footer-menu-divider" "&sdot;"))))
+			 (:li (:a :href "privacy" "Privacy Policy")))))
+			 ;;(:li :class "footer-menu-divider" "&sdot;"))))
 			 ;;(:li (:a :id "hhubcookiepolicylink" :data-toggle "modal" :data-target (format nil "#hhubcookiepolicy-modal")  :href "#"  "Cookie Policy")))))
 	      (:div :class "row"
 		    (:hr))
@@ -47,6 +47,28 @@
 	  (with-html-form "hhubcookiesacceptform" "hhubcookiesacceptaction"
 	    (:div :class "form-group"
 		  	      (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Accept and Continue")))))))
+
+(defun hhub-controller-tnc-page ()
+  :documentation "Terms and Conditions Page"
+  (let* ((tncstr (hhub-read-file (format nil "~A/~A" *HHUB-STATIC-FILES* *HHUB-TERMSANDCONDITIONS-FILE*))))
+    (with-standard-admin-page "HighriseHub - Terms"
+      (:div :class "row"
+	    (:div :class "col-sm-12"
+		  (cl-who:str tncstr)))
+      (hhub-html-page-footer))))
+
+  
+
+(defun hhub-controller-privacy-page ()
+  :documentation "Privacy Page"
+ (let* ((privacystr (hhub-read-file (format nil "~A/~A" *HHUB-STATIC-FILES* *HHUB-PRIVACY-FILE*))))
+    (with-standard-admin-page "HighriseHub - Privacy"
+      (:div :class "row"
+	    (:div :class "col-sm-12"
+		  (cl-who:str privacystr)))
+      (hhub-html-page-footer))))
+
+
 
 
 (defun hhub-controller-aboutus-page ()
@@ -220,7 +242,7 @@
        (:div  :class  "generic_price_btn clearfix"  
 	      (if (equal name "Trial") (cl-who:htm (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#"  "Sign Up - 30 Days Free!"))
 		  ;else
-	      (cl-who:htm (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#"  "Sign Up")))
-	      (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company name)))))))
+	      (cl-who:htm (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal~A" name )  :href "#"  "Sign Up")))
+	      (modal-dialog (format nil "requestcompany-modal~A" name) "Add/Edit Group" (com-hhub-transaction-request-new-company name)))))))
 	
     
