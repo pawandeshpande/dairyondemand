@@ -49,17 +49,17 @@ body{background-color:#eee;}
 }
 #hhub_pt .generic_content .generic_feature_list ul li:hover{
   background-color: #E4E4E4;
-  border-left: 5px solid #2ECC71;
+  border-left: 5px solid #40A9E8;
 }
 
 #hhub_pt .generic_content .generic_price_btn a{
-  border: 1px solid #2ECC71; 
-    color: #2ECC71;
+  border: 1px solid #40A9E8; 
+    color: #40A9E8;
 } 
 
 #hhub_pt .generic_content.active .generic_head_price .generic_head_content .head_bg,
 #hhub_pt .generic_content:hover .generic_head_price .generic_head_content .head_bg{
-  border-color: #2ECC71 rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) #2ECC71;
+  border-color: #40A9E8 rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) #40A9E8;
   color: #fff;
 }
 
@@ -70,7 +70,7 @@ body{background-color:#eee;}
 
 #hhub_pt .generic_content:hover .generic_price_btn a,
 #hhub_pt .generic_content.active .generic_price_btn a{
-  background-color: #2ECC75;
+  background-color: #40A9E8;
   color: #fff;
 } 
 #hhub_pt{
@@ -292,7 +292,7 @@ body{background-color:#eee;}
   transition: all 0.3s ease-in-out 0s;
 }
 #hhub_pt_home .emerald{
-  background: #2ECC71;
+  background: #40A9E8;
   transition: all 0.3s ease-in-out 0s;
 }
 #hhub_pt_home .grey{
