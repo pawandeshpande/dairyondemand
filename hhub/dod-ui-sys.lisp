@@ -142,11 +142,10 @@
 
 
 (defun com-hhub-transaction-request-new-company (type)
-  (let ((num (random 100)))
   (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		  (with-html-form (format nil "form-addcompany~d" num) "hhubnewcompreqemailaction"
+		  (with-html-form  "form-hhubnewcompanyemail" "hhubnewcompreqemailaction"
 		    (:img :class "profile-img" :src "/img/logo.png" :alt "")
 		    (:div :class "form-group"
 			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value "" :required T  :placeholder "Enter Store Name ( max 30 characters) " :type "text" ))
@@ -176,7 +175,7 @@
 		    (:div :class "form-group"
 			  (:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAV2KEY* ))
 		    (:div :class "form-group"
-			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
     
     
 (defun dod-controller-company-search-for-sys-action ()
@@ -590,6 +589,8 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/contactuspage" 'hhub-controller-contactus-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/aboutuspage" 'hhub-controller-aboutus-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/contactusaction" 'hhub-controller-contactus-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/tnc" 'hhub-controller-tnc-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/privacy" 'hhub-controller-privacy-page)
 	
 	;***************** COMPADMIN/COMPANYHELPDESK/COMPANYOPERATOR  RELATED ********************
      
