@@ -70,6 +70,19 @@
     :void-value "N"
     :initarg :suspend-flag)
    
+   (tshirt-size
+    :type (string 2)
+    :void-value "SM"
+    :initarg :tshirt-size)
+
+   (revenue
+    :type integer
+    :initarg :revenue)
+
+   (subscription-plan
+    :type (string 50)
+    :initarg :subscription-plan)
+   
    (employees
     :reader company-employees
     :db-kind :join
