@@ -19,16 +19,16 @@
 			 (:li :class "footer-menu-divider" "&sdot;")
 			 (:li (:a :href "pricing" "Pricing"))
 			 (:li :class "footer-menu-divider" "&sdot;")
-			 (:li (:a :href "/tnc.html" "Terms and Conditions"))
+			 (:li (:a :href "tnc" "Terms and Conditions"))
 			 (:li :class "footer-menu-divider" "&sdot;")
-			 (:li (:a :href "/privacy.html" "Privacy Policy"))
-			 (:li :class "footer-menu-divider" "&sdot;"))))
+			 (:li (:a :href "privacy" "Privacy Policy")))))
+			 ;;(:li :class "footer-menu-divider" "&sdot;"))))
 			 ;;(:li (:a :id "hhubcookiepolicylink" :data-toggle "modal" :data-target (format nil "#hhubcookiepolicy-modal")  :href "#"  "Cookie Policy")))))
 	      (:div :class "row"
 		    (:hr))
 	      (:div :class "row"
 		  (:div :class "col-lg-12" 
-			 (:p :class="copyright text-muted small" "Copyright &copy; HighriseHub 2021. All Rights Reserved")))))))
+			 (:p :class "copyright text-muted small" "Copyright &copy; HighriseHub 2021. All Rights Reserved")))))))
       ;;  (modal-dialog (format nil "hhubcookiepolicy-modal") "Accept Cookies" (modal.hhub-cookie-policy))))
 
 
@@ -47,6 +47,28 @@
 	  (with-html-form "hhubcookiesacceptform" "hhubcookiesacceptaction"
 	    (:div :class "form-group"
 		  	      (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Accept and Continue")))))))
+
+(defun hhub-controller-tnc-page ()
+  :documentation "Terms and Conditions Page"
+  (let* ((tncstr (hhub-read-file (format nil "~A/~A" *HHUB-STATIC-FILES* *HHUB-TERMSANDCONDITIONS-FILE*))))
+    (with-standard-admin-page "HighriseHub - Terms"
+      (:div :class "row"
+	    (:div :class "col-sm-12"
+		  (cl-who:str tncstr)))
+      (hhub-html-page-footer))))
+
+  
+
+(defun hhub-controller-privacy-page ()
+  :documentation "Privacy Page"
+ (let* ((privacystr (hhub-read-file (format nil "~A/~A" *HHUB-STATIC-FILES* *HHUB-PRIVACY-FILE*))))
+    (with-standard-admin-page "HighriseHub - Privacy"
+      (:div :class "row"
+	    (:div :class "col-sm-12"
+		  (cl-who:str privacystr)))
+      (hhub-html-page-footer))))
+
+
 
 
 (defun hhub-controller-aboutus-page ()
@@ -218,9 +240,9 @@
 			   ((and active (equal obj "N")) (cl-who:htm (:li (:span :style "color: lightgray;" (cl-who:str (format nil "~a  &#10005;" feature))))))
 			   (active (cl-who:htm (:li (:span (cl-who:str (format nil "~A - ~A" feature obj))))))))   plans pricing-features features-active)))
        (:div  :class  "generic_price_btn clearfix"  
-	      (if (equal name "Trial") (cl-who:htm (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#"  "Sign Up - 30 Days Free!"))
+	      (if (equal name "Trial") (cl-who:htm (:a :class ""  :href (format nil "hhubnewcompanyreqpage?cmp-type=~A" name)  "Sign Up - 30 Days Free!"))
 		  ;else
-	      (cl-who:htm (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#"  "Sign Up")))
-	      (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company name)))))))
+		  (cl-who:htm (:a :class "" :href (format nil "hhubnewcompanyreqpage?cmp-type=~A" name) "Sign Up"))))))))
+
 	
-    
+   

@@ -224,7 +224,7 @@ body {
 
 .hhub-error-alert
 {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 200;
     position: fixed;
     color: grey;
@@ -235,6 +235,23 @@ body {
     z-index: 9999;
     display: none;
 }
+
+
+.hhub-success-alert
+{
+    font-size: 12px;
+    font-weight: 200;
+    position: fixed;
+    color: grey;
+    left: 30%;
+    top: 30%;
+    width: 50%;
+    height: 30% ;
+    z-index: 9999;
+    display: none;
+}
+
+
 
 .hhub-footer {
   position: relative;
@@ -251,13 +268,13 @@ body {
 position: relative;
 display: inline-block;
 border-radius: 5px;
-padding: 20px;
+padding: 5px;
 background-color: #ffffff;
-border: 1px solid;
+border: 0.1rem solid rgba(0, 0, 0, 0.1);
 border-color: #0080fd;
 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-width: 330px; 
-height:270px;
+width: 200px; 
+height: 330px;
  transition: all 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 }; 
 
@@ -514,4 +531,9 @@ input:checked + .slider:before {
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+
+.has-error input[type="text"], .has-error input[type="email"], .has-error select {
+    border: 1px solid #a94442;
 }

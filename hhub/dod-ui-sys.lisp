@@ -1,4 +1,4 @@
-;; -*- mode: common%-lisp; coding: utf-8 -*-
+;; -*- mode: common-lisp; coding: utf-8 -*-
 (in-package :hhub)
 (clsql:file-enable-sql-reader-syntax)
 
@@ -113,7 +113,10 @@
 	 (cmpcity (if company (slot-value company 'city)))
 	 (cmpstate (if company (slot-value company 'state)))
 	 (cmpwebsite (if company (slot-value company 'website)))
-	 (cmpzipcode (if company (slot-value company 'zipcode))))
+	 (cmpzipcode (if company (slot-value company 'zipcode)))
+	 (cmp-type (if company (slot-value company 'cmp-type)))
+	 (subscription-plan (if company (slot-value company 'subscription-plan))))
+    
     (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
@@ -136,17 +139,133 @@
 			  (:input :class "form-control" :type "text" :maxlength "6" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
 		    (:div :class "form-group"
 			  (:input :class "form-control" :type "text" :maxlength "256" :value cmpwebsite :placeholder "Website" :name "cmpwebsite" ))
+		    (with-html-div-row
+		      (with-html-div-col
+			(company-type-dropdown "cmp-type" cmp-type)))
+		    
+		    (with-html-div-row
+		      (with-html-div-col
+			(company-subscription-plan-dropdown "subscription-plan" subscription-plan )))
 		    (:div :class "form-group"
 			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+
+(defun company-subscription-plan-dropdown (name selectedkey)
+  (let ((subsplan-ht (make-hash-table)))
+    (setf (gethash "TRIAL" subsplan-ht) "TRIAL")
+    (setf (gethash "BASIC" subsplan-ht) "BASIC")
+    (setf (gethash "PROFESSIONAL" subsplan-ht)  "PROFESSIONAL")
+    (with-html-dropdown name subsplan-ht selectedkey)))
+    
+    
+
+(defun company-type-dropdown (name selectedkey) 
+  (let ((cmptype-ht (make-hash-table)))
+    (setf (gethash "DEFAULT" cmptype-ht) "DEFAULT")
+    (setf (gethash "GROCERY" cmptype-ht) "GROCERY") 
+    (setf (gethash "APPAREL" cmptype-ht) "APPAREL")
+    (setf (gethash "MOBILE" cmptype-ht) "MOBILE")
+    (setf (gethash "FASHION JEWELLERY" cmptype-ht) "FASHION JEWELLERY")
+    (setf (gethash "HYPERMARKET" cmptype-ht) "HYPERMARKET")
+    (setf (gethash "COMPUTER HARDWARE" cmptype-ht) "COMPUTER HARDWARE")
+    (setf (gethash "SPORTS" cmptype-ht) "SPORTS")
+    (setf (gethash "FURNITURE" cmptype-ht) "FURNITURE")
+    (setf (gethash "COMMUNITY" cmptype-ht) "APARTMENT/COMMUNITY")
+    (setf (gethash "STATIONARY" cmptype-ht) "STATIONARY")
+    (setf (gethash "PHOTO SHOP" cmptype-ht) "PHOTO SHOP")
+    (setf (gethash "FARMERS MARKET" cmptype-ht) "FARMERS MARKET")
+    (with-html-dropdown name cmptype-ht selectedkey)))
+
+
+
+
+(defun dod-controller-new-company-request-page ()
+  (let ((cmp-type (hunchentoot:parameter "cmp-type"))) 
+    (with-standard-admin-page "New Store Request"  
+      (with-html-form  "form-hhubnewcompanyemail" "hhubnewcompreqemailaction"
+	(:img :class "profile-img" :src "/img/logo.png" :alt "")
+	
+	(with-html-div-row
+	  (with-html-div-col 
+	    (:h4 (:span :class "label label-primary" "Store Owner Details"))))
+	
+	(with-html-div-row
+	  (with-html-div-col
+	    (with-html-input-text "custname" "Name" "Full Name" nil T "Please fill your full name" "1")))
+	    	
+	(with-html-div-row
+	  (with-html-div-col
+	    (with-html-input-text "phone" "Mobile Phone" "Mobile Phone (+919999999999)" nil T "Please enter phone number" 2))	
+	  (with-html-div-col
+	    (with-html-input-text "email" "Email" "Email" nil T "Please enter email" 3)))
+	
+	(with-html-div-row (:hr))
+	
+	(with-html-div-row
+	  (with-html-div-col
+	    (:h4 (:span :class "label label-primary" "Store Details"))))
+	
+	(with-html-div-row
+	  (with-html-div-col
+	    (with-html-input-text "cmpname" "Store Name" "Store Name" nil T "Please enter company name" 4 :maxlength "40")))
+	
+	
+	(with-html-div-row
+	  (with-html-div-col
+	    (with-html-input-textarea "cmpaddress" "Address" "Enter Address" T "Enter Address" 5 3))
+	  (:div :class "form-group" :id "charcount"))
+	
+	(:input  :type "hidden" :value cmp-type :name "cmptype")
+	
+	(with-html-div-row
+	  (with-html-div-col
+	    (with-html-input-text "cmpzipcode" nil "Pincode" nil T "Enter Pincode" 6 :inputmode "numeric" :oninput "this.value = this.value.replace(/[^0-9]/g,'');")
+	    (:span :id "areaname" :class "label label-info")))
+	
+	(with-html-div-row
+	  (with-html-div-col
+	    (with-html-input-text "cmpcity" "City" "City" nil T "Enter City" nil :readonly T )))
+	
+	
+	(with-html-div-row
+	  (with-html-div-col
+	        (with-html-input-text "cmpstate" "State" "State" nil T "Enter State" nil :readonly T )))
+
+	(with-html-div-row
+	  (with-html-div-col
+	    (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" )))
+	(with-html-div-row
+	  (with-html-div-col
+	    (with-html-input-text "website" nil "Website" nil nil nil nil :maxlength "250")))
+	
+
+	(with-html-div-row
+	  (with-html-div-col
+	    (with-html-checkbox "tnccheck" "tncagreed" T  T
+	      (:label :class "form-check-label" :for "tnccheck" "&nbsp;&nbsp;Agree Terms and Conditions&nbsp;&nbsp;")
+	      (:a  :href "https://www.highrisehub.com/tnc.html"  (:span :class "glyphicon glyphicon-eye-open") " Terms and Conditions.  "))))
+
+	
+	(with-html-div-row
+	  (with-html-div-col
+	    (:div :class "form-group"
+		  (:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAV2KEY* ))))
+	
+	(with-html-div-row
+	  (with-html-div-col
+	    (:div :class "form-group"
+		  (:button :class "submit center-block btn btn-primary btn-block" :type "submit" "Send Request"))))
+
+	(hhub-html-page-footer)))))
+
+
 
 
 
 (defun com-hhub-transaction-request-new-company (type)
-  (let ((num (random 100)))
   (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row" 
 	    (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-		  (with-html-form (format nil "form-addcompany~d" num) "hhubnewcompreqemailaction"
+		  (with-html-form  "form-hhubnewcompanyemail" "hhubnewcompreqemailaction"
 		    (:img :class "profile-img" :src "/img/logo.png" :alt "")
 		    (:div :class "form-group"
 			  (:input :class "form-control" :name "cmpname" :maxlength "30"  :value "" :required T  :placeholder "Enter Store Name ( max 30 characters) " :type "text" ))
@@ -176,7 +295,7 @@
 		    (:div :class "form-group"
 			  (:div :class "g-recaptcha" :data-sitekey *HHUBRECAPTCHAV2KEY* ))
 		    (:div :class "form-group"
-			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
+			  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit")))))))
     
     
 (defun dod-controller-company-search-for-sys-action ()
@@ -213,21 +332,22 @@
       (setf params (acons "uri" (hunchentoot:request-uri*)  params))
       (with-hhub-transaction "com-hhub-transaction-sadmin-home" params 
       (let (( companies (hhub-get-cached-companies)))
-	(with-standard-admin-page "Welcome to Highrisehub."
-				  (:div :class "container"
-					(:div :id "row"
-					      (:div :id "col-xs-6" 
-						    (:h3 "Welcome " (cl-who:str (format nil "~A" (get-login-user-name))))))
-					(company-search-html)
-					(:div :id "row"
-					      (:div :id "col-xs-6"
+	(with-standard-admin-page
+	    "Welcome to Highrisehub."
+	  (:div :class "container"
+		(:div :id "row"
+		      (:div :id "col-xs-6" 
+			    (:h3 "Welcome " (cl-who:str (format nil "~A" (get-login-user-name))))))
+		(company-search-html)
+		(:div :id "row"
+		      (:div :id "col-xs-6"
 					;  (:a :class "btn btn-primary" :role "button" :href "new-company" :data-toggle "modal" :data-target "#editcompany-modal" (:span :class "glyphicon glyphicon-shopping-plus") " Add New Group  ")
-						    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group"))
-					      (:div :id "col-xs-6" :align "right" 
-						    (:span :class "badge" (cl-who:str (format nil "~A" (length companies))))))
-					(:hr)
-					(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company-dialog))
-					(cl-who:str (display-as-tiles companies 'company-card)))))))))
+			    (:button :type "button" :class "btn btn-primary" :data-toggle "modal" :data-target "#editcompany-modal" "Add New Group"))
+		      (:div :id "col-xs-6" :align "right" 
+			    (:span :class "badge" (cl-who:str (format nil "~A" (length companies))))))
+		(:hr)
+		(modal-dialog "editcompany-modal" "Add/Edit Group" (com-hhub-transaction-create-company-dialog))
+		(cl-who:str (display-as-tiles companies 'company-card)))))))))
 
 
 
@@ -419,54 +539,12 @@
   (remhash username *logged-in-users*))
 
 
-(defun dod-controller-new-company () 
-  (if (is-dod-session-valid?)
-      (let* ((id (hunchentoot:parameter "id"))
-	    (company (if id (select-company-by-id id)))
-	    (cmpname (if company (slot-value company 'name)))
-	     (cmpaddress (if company(slot-value company 'address)))
-	     (cmpcity (if company (slot-value company 'city)))
-	     (cmpstate (if company (slot-value company 'state))) 
-	     (cmpwebsite (if company (slot-value company 'website))) 
-	     (cmpzipcode (if company (slot-value company 'zipcode))))
-
-    (with-standard-admin-page (:title "Welcome to DAS Platform- Your Demand And Supply destination.")
-      (:div :class "row" 
-	 (:div :class "col-sm-6 col-md-4 col-md-offset-4"
-	       (:form :class "form-addcompany" :role "form" :method "POST" :action "hhubnewcompanyreq" 
-		      (if company 
-			  (cl-who:htm (:input :class "form-control" :type "hidden" :value id :name "id")))
-			  
-			  
-		      (:div :class "account-wall"
-			    (:img :class "profile-img" :src "resources/demand&supply.png" :alt "")
-			    (:h1 :class "text-center login-title"  "Add/Edit Group")
-			    (:div :class "form-group"
-				  (:input :class "form-control" :name "cmpname" :value cmpname :placeholder "Enter Group/Apartment Name ( max 30 characters) " :type "text" ))
-			    (:div :class "form-group"
-				  (:label :for "cmpaddress")
-				  (:textarea :class "form-control" :name "cmpaddress"  :placeholder "Enter Group/Apartment Address ( max 400 characters) "  :rows "5" :onkeyup "countChar(this, 400)" (cl-who:str cmpaddress) ))
-			    (:div :class "form-group" :id "charcount")
-			    (:div :class "form-group"
-				   (:input :class "form-control" :type "text":value cmpcity :placeholder "City"  :name "cmpcity" ))
-			    (:div :class "form-group"
-				   (:input :class "form-control" :type "text" :value cmpstate :placeholder "State"  :name "cmpstate" ))
-			    (:div :class "form-group"
-				   (:input :class "form-control" :type "text" :value "INDIA" :readonly "true"  :name "cmpcountry" ))
-			    (:div :class "form-group"
-				  (:input :class "form-control" :type "text" :value cmpzipcode :placeholder "Pincode" :name "cmpzipcode" ))
-			    
-			    (:div :class "form-group"
-				  (:input :class "form-control" :type "text" :value cmpwebsite :placeholder "Pincode" :name "cmpwebsite" ))
-			    
-			    (:div :class "form-group"
-				  (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Submit"))))))))
-      (hunchentoot:redirect "/hhub/opr-login.html")))					    
-
-
 
 (defun dod-controller-new-company-request-email ()
-  (let*  ((cmpname (hunchentoot:parameter "cmpname"))
+  (let*  ((custname (hunchentoot:parameter "custname"))
+	  (email (hunchentoot:parameter "email"))
+	  (phone (hunchentoot:parameter "phone"))
+	  (cmpname (hunchentoot:parameter "cmpname"))
 	  (cmptype (hunchentoot:parameter "cmptype"))
 	  (cmpaddress (hunchentoot:parameter "cmpaddress"))
 	  (cmpcity (hunchentoot:parameter "cmpcity"))
@@ -474,7 +552,6 @@
 	  (cmpcountry (hunchentoot:parameter "cmpcountry"))
 	  (cmpzipcode (hunchentoot:parameter "cmpzipcode"))
 	  (tnccheck (hunchentoot:parameter "tnccheck"))
-	  (privacycheck (hunchentoot:parameter "privacycheck"))
 	  (captcha-resp (hunchentoot:parameter "g-recaptcha-response"))
 	  (paramname (list "secret" "response" ) ) 
 	  (paramvalue (list *HHUBRECAPTCHAV2SECRET*  captcha-resp))
@@ -495,7 +572,6 @@
 				  :deleted-state "N"
 				  :created-by nil
 				  :updated-by nil)))
-      (hunchentoot:log-message* :info "Company Type = ~A" cmptype)
     (unless(and  ( or (null cmpname) (zerop (length cmpname)))
 		     ( or (null cmpaddress) (zerop (length cmpaddress)))
 		     ( or (null cmpzipcode) (zerop (length cmpzipcode))))
@@ -503,9 +579,8 @@
 	   
 	    ((null (cdr (car json-response))) (dod-response-captcha-error))
 	    ((and company
-		  (equal tnccheck "tncagreed")
-		  (equal privacycheck "privacyagreed")) (send-new-company-registration-email company))))
-	(hunchentoot:redirect "/hhub/hhubnewcompreqemailsent")))
+		  (equal tnccheck "tncagreed")) (send-new-company-registration-email company custname phone email))))
+	"New Company Request email has been sent"))
 	    
 	  
 
@@ -524,6 +599,8 @@
 	      (cmpcountry (hunchentoot:parameter "cmpcountry"))
 	      (cmpzipcode (hunchentoot:parameter "cmpzipcode"))
 	      (cmpwebsite (hunchentoot:parameter "cmpwebsite"))
+	      (cmp-type (hunchentoot:parameter "cmp-type"))
+	      (subscription-plan (hunchentoot:parameter "subscription-plan"))
 	      (loginuser (get-login-userid)))
 
 	(unless(and  ( or (null cmpname) (zerop (length cmpname)))
@@ -536,10 +613,15 @@
 		     (setf (slot-value company 'state) cmpstate)
 		     (setf (slot-value company 'zipcode) cmpzipcode)
 		     (setf (slot-value company 'website) cmpwebsite)
+		     (setf (slot-value company 'cmp-type) cmp-type)
+		     (setf (slot-value company 'subscription-plan) subscription-plan)
 		     (update-company company))
 					;else
-	      (new-dod-company cmpname cmpaddress cmpcity cmpstate cmpcountry cmpzipcode cmpwebsite loginuser loginuser)))
-	(hunchentoot:redirect  "/hhub/sadminhome"))))))
+	      (progn
+		(new-dod-company cmpname cmpaddress cmpcity cmpstate cmpcountry cmpzipcode cmpwebsite cmp-type subscription-plan loginuser loginuser))))
+		;; once a new company is created, create the Company Administrator
+		;; Once a new company is created, we will create a default Vendor with the same name, phone number as the company admin)))
+	      (hunchentoot:redirect  "/hhub/sadminhome"))))))
 
 
 
@@ -549,7 +631,7 @@
      
 	(hunchentoot:create-regex-dispatcher "^/hhub/sadminhome" 'com-hhub-transaction-sadmin-home)
 	(hunchentoot:create-regex-dispatcher "^/hhub/dasabacsecurity" 'dod-controller-abac-security)
-	(hunchentoot:create-regex-dispatcher "^/hhub/hhubnewcompanyreq" 'dod-controller-new-company-request)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubnewcompanyreqpage" 'dod-controller-new-company-request-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubnewcompreqemailaction" 'dod-controller-new-company-request-email)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubnewcompreqemailsent" 'dod-controller-new-company-registration-email-sent) 
 	(hunchentoot:create-regex-dispatcher "^/hhub/createcompanyaction" 'com-hhub-transaction-create-company)
@@ -590,6 +672,8 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/contactuspage" 'hhub-controller-contactus-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/aboutuspage" 'hhub-controller-aboutus-page)
 	(hunchentoot:create-regex-dispatcher "^/hhub/contactusaction" 'hhub-controller-contactus-action)
+	(hunchentoot:create-regex-dispatcher "^/hhub/tnc" 'hhub-controller-tnc-page)
+	(hunchentoot:create-regex-dispatcher "^/hhub/privacy" 'hhub-controller-privacy-page)
 	
 	;***************** COMPADMIN/COMPANYHELPDESK/COMPANYOPERATOR  RELATED ********************
      
@@ -665,6 +749,7 @@
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustsavepushsubscription"   'hhub-save-customer-push-subscription)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustremovepushsubscription"   'hhub-remove-vendor-push-subscription)
 	(hunchentoot:create-regex-dispatcher "^/hhub/hhubcustonlinepayment"   'hhub-cust-online-payment)
+	(hunchentoot:create-regex-dispatcher "^/hhub/hhubpincodecheck"   'hhub-controller-pincode-check)
 	
 	
 

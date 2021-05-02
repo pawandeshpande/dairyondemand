@@ -1,7 +1,119 @@
-
 var $busyindicator = document.getElementById('busy-indicator');
 var $error = document.getElementById('hhub-error');
+var $success = document.getElementById('hhub-success');
 var  $formcustsignin = $(".form-custsignin"),  $formvendsignin = $(".form-vendorsignin");
+var $pricingform = $(".form-hhubnewcompanyemail");
+
+// Create a generic JQuery AJAX function
+
+var ajaxCallParams = {};
+var ajaxDataParams = {}; 
+
+// General function for all ajax calls
+function ajaxCall(callParams, dataParams, callback) {   
+    $.ajax({
+        type: callParams.Type,
+        url: callParams.Url,
+        quietMillis: 100,
+        dataType: callParams.DataType,
+        data: dataParams,
+        cache: true,
+        success:function (response) {
+            callback(response);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            if (jqXHR.status > 400){
+		displayError("#hhub-error", jqXHR.responseText);
+		console.log("HTTP Error Code" + jqXHR.status);
+		console.log("Error Status: "+ textStatus);
+		console.log("Error Thrown: "+ errorThrown);
+	    }}
+    });
+}
+
+
+$(document).ready(function () {
+    $.ajaxSetup({
+    	beforeSend: function(){
+    	    $busyindicator.appendChild(spinner.el);
+	},
+	complete: function(){
+   	    $busyindicator.removeChild(spinner.el);
+	}
+    });
+});
+
+
+function pincodecheck (pincodefield, cityfield, statefield, areafield){
+     var city = cityfield;
+    var pincode = pincodefield.val();
+    var state = statefield;
+    var localarea = areafield;
+    
+    if (pincode.length  == 6){
+	ajaxCallParams.Type = "GET"; 
+	ajaxCallParams.Url = "/hhub/hhubpincodecheck";
+	ajaxCallParams.DataType = "JSON"; // Return data type e-g Html, Json etc
+	
+	// Set Data parameters
+	ajaxDataParams.pincode = pincode; 
+        
+	// Passing call and data parameters to general Ajax function
+	ajaxCall(ajaxCallParams, ajaxDataParams, function (retdata) {
+	   
+	    if(retdata['success'] != 0){
+		console.log(retdata);
+		var data = retdata['result'];
+		city.val(data[0].city);
+		state.val(data[0].state);
+		localarea.text(data[0].area);
+	    }
+	    else
+	    {
+		city.val("");
+		state.val("");
+		localarea.text("");
+	    }
+		
+	});
+    }
+
+}
+
+$(document).ready(function() {
+    $('#shipzipcode').keyup(function(){
+        pincodecheck($('#shipzipcode'),$('#shipcity'), $('#shipstate'), $('#areaname'));
+    });
+});
+
+
+$(document).ready(function() {
+    $('#cmpzipcode').keyup(function(){
+        pincodecheck($('#cmpzipcode'), $('#cmpcity'), $('#cmpstate'), $('#areaname'));
+    });
+});
+
+
+
+$pricingform.submit(function(e){
+    var theForm = $(this);
+    $(theForm).find("button[type='submit']").hide();
+    ajaxCallParams.Type = "POST"; // POST type function 
+    ajaxCallParams.Url = $(theForm).attr("action"); // Pass Complete end point Url e-g Payment Controller, Create Action
+    ajaxCallParams.DataType = "HTML"; // Return data type e-g Html, Json etc
+    
+    // Set Data parameters
+    ajaxDataParams = $(theForm).serialize();
+    
+    // Passing call and data parameters to general Ajax function
+    ajaxCall(ajaxCallParams, ajaxDataParams, function (result) {
+	window.location.replace("/hhub/hhubnewcompreqemailsent");
+	displaySuccess("#hhub-success",result);
+    });
+    e.preventDefault();
+});
+
+
 
 
 function displaybillingaddress (){
@@ -10,7 +122,7 @@ function displaybillingaddress (){
 	clearbilltoaddress();
     }else
     {
-	copyshiptobillto();
+	//copyshiptobillto();
 	$('#billingaddressrow').show();
     }
 }
@@ -128,20 +240,6 @@ $(document).ready (function(){
 });
 
 
-$(document).ready(function () {
-    $.ajaxSetup({
-    	beforeSend: function(){
-           // $('<div class=loadingDiv>loading...</div>').prependTo(document.body);
-	    $busyindicator.appendChild(spinner.el);
-
-	},
-	complete: function(){
-   	    $busyindicator.removeChild(spinner.el);
-	}
-    });
-});
-
-
 
 
 
@@ -207,7 +305,7 @@ $formvendsignin.submit ( function() {
 })
 
 function displayError(elem, message, timeout) {
-    $(elem).show().html('<div class="alert alert-danger alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span aria-hidden="true">&times;</span></button><strong class="text-primary">Warning!&nbsp;&nbsp;</strong><span class="text-primary">'+message+'</span></div>');
+     $(elem).show().html('<div class="alert alert-danger alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span aria-hidden="true">&times;</span></button><strong class="text-primary">Warning!&nbsp;&nbsp;</strong><span class="text-primary">'+message+'</span></div>');
     if (timeout || timeout === 0) {
     setTimeout(function() { 
       $(elem).alert('close');
@@ -215,6 +313,14 @@ function displayError(elem, message, timeout) {
   }
 };
 
+function displaySuccess(elem, message, timeout) {
+    $(elem).show().html('<div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"><span aria-hidden="true">&times;</span></button><strong class="text-primary">Success!&nbsp;&nbsp;</strong><span class="text-primary">'+message+'</span></div>');
+    if (timeout || timeout === 0) {
+    setTimeout(function() { 
+      $(elem).alert('close');
+    }, timeout);    
+  }
+};
 
 
 $(".form-vendordercomplete").on('submit', function (e) {
@@ -321,46 +427,19 @@ $(document).ready(function(){
 
 
 $(document).ready (function(){
-var btn = $('#scrollup');
-
-$(window).scroll(function() {
-  if ($(window).scrollTop() > 300) {
-    btn.addClass('show');
-  } else {
-    btn.removeClass('show');
-  }
-});
-
-btn.on('click', function(e) {
-  e.preventDefault();
-  $('html, body').animate({scrollTop:0}, '300');
-});
-
-
-
+    var btn = $('#scrollup');
+    
+    $(window).scroll(function() {
+	if ($(window).scrollTop() > 300) {
+	    btn.addClass('show');
+	} else {
+	    btn.removeClass('show');
+	}
+    });
+    
+    btn.on('click', function(e) {
+	e.preventDefault();
+	$('html, body').animate({scrollTop:0}, '300');
+    });
 }); 
 
-
-/*
-function showResult(str) {
-  if (str.length==0) { 
-    document.getElementById("livesearch").innerHTML="";
-    document.getElementById("livesearch").style.border="0px";
-    return;
-  }
-  if (window.XMLHttpRequest) {
-    // code for IE7+, Firefox, Chrome, Opera, Safari
-    xmlhttp=new XMLHttpRequest();
-  } else {  // code for IE6, IE5
-    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-  }
-  xmlhttp.onreadystatechange=function() {
-    if (this.readyState==4 && this.status==200) {
-      document.getElementById("livesearch").innerHTML=this.responseText;
-      document.getElementById("livesearch").style.border="1px solid #A5ACB2";
-    }
-  }
-  xmlhttp.open("GET","livesearchaction.php?q="+str,true);
-  xmlhttp.send();
-}
-*/

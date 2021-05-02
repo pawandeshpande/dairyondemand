@@ -385,7 +385,8 @@
 	(if (member day lst) t nil)))
 
 
-(defun create-order-from-shopcart (order-items products  order-date request-date ship-date ship-address order-amt payment-mode  comments customer-instance company-instance)
+
+(defun create-order-from-shopcart (order-items products  order-date request-date ship-date ship-address order-amt payment-mode  comments customer-instance company-instance guest-customer)
   (let ((uuid (uuid:make-v1-uuid )))
     ;Create an order in the database. 
     (create-order order-date customer-instance request-date ship-date ship-address (print-object uuid nil) order-amt payment-mode comments  company-instance)
@@ -414,15 +415,28 @@
 					  (search-prd-in-list prd-id products ))) vitems))
 		       (total (get-order-items-total-for-vendor vendor vitems))
 		       (vendor-email (slot-value vendor 'email))
+		       (g-pincode (if guest-customer (slot-value guest-customer 'zipcode)))
+		       (g-address (if guest-customer (slot-value guest-customer 'address)))
+		       (g-phone (if guest-customer (slot-value guest-customer 'phone)))
+		       (g-email (if guest-customer (slot-value guest-customer 'email)))
+		       (g-city (if guest-customer (slot-value guest-customer 'city)))
+		       (g-state (if guest-customer (slot-value guest-customer 'state)))
+		       (g-name (if guest-customer (slot-value guest-customer 'name)))
 		       (order-disp-str (cl-who:with-html-output-to-string (*standard-output* nil)
-					 (cl-who:str (ui-list-shopcart-for-email products vitems))
-					 (:hr)
-					 (:tr (:td
-					       (:h2 (:span :class "label label-default" (cl-who:str (format nil "Total = Rs ~$" total)))))))))
-		   
+					  (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Customer name - ~A" g-name)))))
+					  (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Address - ~A, ~A, ~A, ~A" g-address g-city g-pincode g-state)))))
+					  (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Phone - ~A" g-phone)))))
+					  (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Email - ~A" g-email)))))
+					  
+					  (cl-who:str (ui-list-shopcart-for-email products vitems))
+					  (:hr)
+					  (:tr (:td
+						(:h2 (:span :class "label label-default" (cl-who:str (format nil "Total = Rs ~$" total)))))))))
+		  
 			    
 			    (persist-vendor-orders (slot-value order 'row-id) cust-id (slot-value vendor 'row-id) tenant-id order-date request-date ship-date ship-address payment-mode total )
 					;Send a mail to the vendor
+			    
 			    (if vendor-email (send-order-mail vendor-email (format nil "You have received new order ~A" order-id)  order-disp-str))
 					; Send a push notification on the vendor's browser
 			    (send-webpush-message vendor (format nil "You have received a new order ~A" order-id))))  vendors)

@@ -30,7 +30,9 @@
 (defvar *HHUB-NEW-COMPANY-REQUEST* "newcompanyrequest.html")
 (defvar *HHUB-CONTACTUS-EMAIL-TEMPLATE* "contactustemplate.html")
 (defvar *HHUB-GUEST-CUST-ORDER-TEMPLATE-FILE* "guestcustorder.html")
-
+(defvar *HHUB-TERMSANDCONDITIONS-FILE* "tnc.html")
+(defvar *HHUB-PRIVACY-FILE* "privacy.html")
+(defvar *HHUB-STATIC-FILES* "dairyondemand/site/public")
 
 (defvar *dod-db-instance*)
 (defvar *sitepass* (encrypt "P@ssword1" "highrisehub.com"))

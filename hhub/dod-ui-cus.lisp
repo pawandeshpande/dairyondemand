@@ -3,6 +3,43 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
+(defun getpincodedetails (pincode)
+  (let* ((templist '())
+	 (appendlist '())
+	 (mylist '())
+	 (param-name (list "api-key" "format" "offset" "limit" "filters[pincode]"))
+	 (param-values (list *HHUBAPI.GOV.IN.KEY*  "json" "0" "1" (format nil "~A" pincode)))
+	 (param-alist (pairlis param-name param-values ))
+	 (json-response (json:decode-json-from-string  (map 'string 'code-char (drakma:http-request *HHUBGETPINCODEURLEXTERNAL*
+												    :method :GET
+												    :parameters param-alist  ))))
+	 (area (cdr (assoc :OFFICENAME (nth 1 (nth 25 json-response)) :test 'equal)))
+	 (city (cdr (assoc :DISTRICT (nth 1 (nth 25 json-response)) :test 'equal)))
+	 (state (cdr (assoc :STATENAME (nth 1 (nth 25 json-response)) :test 'equal))))
+    ;; Send the Area, City and State values back.
+    (if (and 
+	     (not (null area))
+	     (not (null city))
+	     (not (null state)))
+      (progn
+	(setf templist (acons "area" (format nil "~A" area) templist))
+	(setf templist (acons "city" (format nil "~A" city) templist))
+	(setf templist (acons "state" (format nil "~A" state) templist))
+	(setf appendlist (append appendlist (list templist)))
+	(setf mylist (acons "result" appendlist mylist))
+	(setf mylist (acons "success" 1 mylist))
+	(json:encode-json-to-string mylist))
+					;else 
+      (progn
+	(setf mylist (acons "success" 0 mylist))
+	(json:encode-json-to-string mylist)))))
+
+
+(defun hhub-controller-pincode-check ()
+  (let ((pincode (hunchentoot:parameter "pincode")))
+    (getpincodedetails pincode)))
+
+
 
 (defun modal.customer-update-details (customer)
   (let* ((name (name customer))
@@ -697,13 +734,16 @@
 		(:div :class "row"
 		      (:h2 "Search Your Store.")
 		      (:div :id "custom-search-input"
-			    (:div :class "input-group col-md-12"
+			    (:div :class "input-group col-xs-12 col-sm-12 col-md-12 col-lg-12"
 				  (with-html-search-form "companysearchaction" "Name Starts With...")
-				  (:div :id "searchresult"))
-			    (:hr)
-			    (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-arrow-left"))
-			    (:a :class "btn btn-primary" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#" (:span :class "glyphicon glyphicon-plus") " New Community Store (FREE!)")
-			    (modal-dialog (format nil "requestcompany-modal") "Add/Edit Group" (com-hhub-transaction-request-new-company "TRIAL"))))
+				  (:div :id "searchresult"))))
+		(:hr)
+		(:div :class "row"
+		      (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+			    (:a :class "order-box"  :href "hhubnewcompanyreqpage?cmp-type=COMMUNITY"  "New Community Store - FREE!"))
+		      (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+			    (:a :class "order-box"  :href "pricing"  "Grocery, Mobile, Fashion Jewellery, Apparel Stores")))
+		
 		(:hr)
 		(hhub-html-page-footer)))
 		      
@@ -1011,7 +1051,7 @@
 
 (defun guest-cust-add-order-page (&optional paymentmode)
   (cl-who:with-html-output-to-string (*standard-output* nil)
-    (:form :class "form-order" :role "form" :id "hhubordcustdetails"  :method "POST" :action "dodcustshopcartro" :data-toggle "validator"
+    (:form :class "form-guestcustorder" :role "form" :id "hhubordcustdetails"  :method "POST" :action "dodcustshopcartro" :data-toggle "validator"
 	   (:div :class "row" 
 		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 		      (:h1 :class "text-center login-title"  "Customer - Add order ")
@@ -1031,7 +1071,8 @@
 	   (:div :class "row"
 		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 		       (:div :class "form-group" (:label :for "phone" "Phone" )
-			     (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "+91" :tabindex "3"  :required T ))) 
+			     (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Mobile Phone (+919999999999) " :tabindex "3" :maxlength "13"  :required T )))
+			      
 		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 		       (:div :class "form-group" (:label :for "email" "Email" )
 			     (:input :class "form-control" :type "email" :class "form-control" :name "email" :placeholder "Email" :data-error "That email address is invalid" :tabindex "4" ))))
@@ -1050,12 +1091,14 @@
 				   (:div :class "form-group" (:label :for "shipaddress" "Shipping Address" )
 					 (:textarea :class "form-control" :id "shipaddress" :name "shipaddress" :rows "4" :tabindex "5" ))
 				   
-				   (:div :class "form-group" (:label :for "zipcode" "Pincode" )
-					 (:input :class "form-control" :type "text" :class "form-control" :inputmode "numeric" :maxlength "6" :id "shipzipcode" :name "shipzipcode" :placeholder "Pincode" :tabindex "8" ))
+				   (:div :class "form-group" (:label :for "shipzipcode" "Pincode" )
+					 (:input :class "form-control" :type "text" :class "form-control" :inputmode "numeric" :maxlength "6" :id "shipzipcode" :name "shipzipcode" :placeholder "Pincode" :tabindex "8"  :oninput "this.value=this.value.replace(/[^0-9]/g,'');"  ))
+				   (:div :class "form-group"
+					 (:span :id "areaname" :class "label label-info" ""))
 				   (:div :class "form-group" (:label :for "city" "City" )
-					 (:input :class "form-control" :type "text" :class "form-control" :name "shipcity" :id "shipcity" :placeholder "City" ))
+					 (:input :class "form-control" :type "text" :class "form-control" :name "shipcity" :id "shipcity" :placeholder "City" :readonly T :required T))
 				   (:div :class "form-group" (:label :for "state" "State" )
-					 (:input :class "form-control" :type "text" :class "form-control" :name "shipstate" :id "shipstate"  :placeholder "State"  )))))
+					 (:input :class "form-control" :type "text" :class "form-control" :name "shipstate" :id "shipstate"  :placeholder "State"  :readonly T :required T )))))
 		 
 	   (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6" 
 		 (:div :class "row"
@@ -1072,9 +1115,9 @@
 				   (:div :class "form-group" (:label :for "zipcode" "Pincode" )
 					 (:input :class "form-control" :type "text" :class "form-control" :inputmode "numeric" :maxlength "6" :id "billzipcode" :name "billzipcode" :tabindex "8" :placeholder "Pincode" ))
 				   (:div :class "form-group" (:label :for "city" "City" )
-					 (:input :class "form-control" :type "text" :class "form-control" :name "billcity" :id "billcity"  :placeholder "City"  ))
+					 (:input :class "form-control" :type "text" :class "form-control" :name "billcity" :id "billcity"  :placeholder "City" ))
 				   (:div :class "form-group" (:label :for "state" "State" )
-					 (:input :class "form-control" :type "text" :class "form-control" :name "billstate" :id "billstate" :placeholder "State"  ))))))
+					 (:input :class "form-control" :type "text" :class "form-control" :name "billstate" :id "billstate" :placeholder "State" ))))))
 	
 	   
 	   (:div :class "row"
@@ -1299,12 +1342,18 @@
   
 (defun send-order-email-guest-customer(order-id email temp-customer products shopcart) 
   (let* ((shopcart-total (get-shop-cart-total shopcart))
+	 (name (slot-value temp-customer 'name))
+	 (address (slot-value temp-customer 'address))
+	 (phone (slot-value temp-customer 'phone))
+	 (city (slot-value temp-customer 'city))
+	 (state (slot-value temp-customer 'state))
+	 (pincode (slot-value temp-customer 'zipcode))
 	(order-disp-str
 	 (cl-who:with-html-output-to-string (*standard-output* nil)
-	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Customer name - ~A" (slot-value temp-customer 'name))))))
-	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Address - ~A" (slot-value temp-customer 'address))))))
-	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Phone - ~A" (slot-value temp-customer 'phone))))))
-	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Email - ~A" (slot-value temp-customer 'email))))))
+	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Customer name - ~A" name)))))
+	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Address - ~A, ~A, ~A, ~A " address city state pincode)))))
+	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Phone - ~A" phone)))))
+	   (:tr (:td (:span :class "label label-default" (cl-who:str (format nil "Email - ~A" email)))))
 	   (cl-who:str (ui-list-shopcart-for-email products shopcart))
 	   (:hr)
 	   (:tr (:td
@@ -1349,6 +1398,9 @@
 
 	   (setf (slot-value temp-customer 'name) custname)
 	   (setf (slot-value temp-customer 'address) shipaddress)
+	   (setf (slot-value temp-customer 'city) shipcity)
+	   (setf (slot-value temp-customer 'state) shipstate)
+	   (setf (slot-value temp-customer 'zipcode) shipzipcode)
 	   (setf (slot-value temp-customer 'phone) phone)
 	   (setf (slot-value temp-customer 'email) email)
 	   	   
@@ -1366,16 +1418,13 @@
 	     (setf (gethash "GUEST-SMS" temp-ht) (symbol-function 'send-order-sms-guest-customer))
 	     (setf (gethash "STANDARD-EMAIL" temp-ht) (symbol-function 'send-order-email-standard-customer))
 	     (setf (gethash "STANDARD-SMS" temp-ht) (symbol-function 'send-order-sms-standard-customer))
-
-	     (hunchentoot:log-message* :info (format nil "Email - ~A" email))
-
 	     
 	       ;; Send order SMS to guest customer if phone is provided. (Phone is required field for Guest customer, hence SMS will always be sent)
-	       (when (and (equal cust-type "GUEST") phone) (funcall (gethash (format nil "~A-SMS" cust-type) temp-ht) order-id phone))
+	       (when (and (equal cust-type "GUEST") phone) (funcall (gethash (format nil "~A-SMS" cust-type) temp-ht) order-id  phone))
 	       ;; Send order email to guest customer if email is provided. 
-	       (when (and (equal cust-type "GUEST") email)  (funcall (gethash (format nil "~A-EMAIL" cust-type) temp-ht) order-id email temp-customer  products odts))
+	       (when (and (equal cust-type "GUEST") (> (length email) 0))  (funcall (gethash (format nil "~A-EMAIL" cust-type) temp-ht) order-id email temp-customer  products odts))
 	       ;; If STANDARD customer has email, then send order email 
-	       (when (and (equal cust-type "STANDARD") email) (funcall (gethash (format nil "~A-EMAIL" cust-type) temp-ht) order-id email products odts))
+	       (when (and (equal cust-type "STANDARD") (> (length email) 0)) (funcall (gethash (format nil "~A-EMAIL" cust-type) temp-ht) order-id email products odts))
 	       ;; If standard customer has phone, then send SMS 
 	       (when (and (equal cust-type "STANDARD") phone) (funcall (gethash (format nil "~A-SMS" cust-type) temp-ht) order-id phone))
 	     
@@ -1437,20 +1486,46 @@
       (with-standard-customer-page "Shopping cart finalize"
 	(:div :class "row"
 	      (:div :class "col-xs-12"
-	      (:h4 (cl-who:str (format nil "Order Date: ~A" odate)))))
+		    (cl-who:str (format nil "Order Date: ~A" odate))))
       (:div :class "row"
 	    (:div :class "col-xs-12"
-		  (:h4 (cl-who:str (format nil "Request Date: ~A" reqdate)))))
+		 (cl-who:str (format nil "Request Date: ~A" reqdate))))
       (:div :class "row"
 	    (:div :class "col-xs-12"
-		  (:h4 (cl-who:str (format nil "Payment Mode: ~A" payment-mode)))))
-      (if (equal cust-type "GUEST") 
-      (cl-who:htm (:div :class "row"
-	    (:div :class "col-xs-12"
-		  (:h4 (cl-who:str (format nil "Phone: ~A" phone)))))
-      (:div :class "row"
-	    (:div :class "col-xs-12"
-		  (:h4 (cl-who:str (format nil "Email: ~A" email)))))))
+		(cl-who:str (format nil "Payment Mode: ~A" payment-mode))))
+	(if (equal cust-type "GUEST") 
+	    (cl-who:htm (:div :class "row"
+			      (:div :class "col-xs-12"
+				    (:h4 (cl-who:str (format nil "Phone: ~A" phone)))))
+			;;If email is given by the guest customer during shopping
+			(when (> (length email) 0)
+			  (cl-who:htm (:div :class "row"
+					    (:div :class "col-xs-12"
+						  (cl-who:str (format nil "Email: ~A" email))))))
+			;; Shipping address
+			(:div :class "row"
+			      (:div :class "col-xs-12"
+				    (cl-who:str (format nil "Shipping Address: ~A, ~A, ~A, ~A" shipaddress shipcity shipstate shipzipcode))))
+					
+			;; billing address
+			(when (not billsameasshipchecked)
+			  (cl-who:htm
+			   (:div :class "row"
+			      (:div :class "col-xs-12"
+				    (cl-who:str (format nil "Billing Address: ~A, ~A, ~A, ~A" billaddress billcity billstate billzipcode))))))
+			
+						
+			;; GST Number and Organization
+			(when (and claimitcchecked (> (length gstnumber) 0))
+			  (cl-who:htm
+			   (:div :class "row"
+			      (:div :class "col-xs-12"
+				    (cl-who:str (format nil "GST Number: ~A/" gstnumber))
+				    (cl-who:str (format nil "GST Organization: ~A" gstorgname))
+				    ))))
+
+			))
+			
 
       (:div :class "row"
 	    (:div :class "col-xs-12"
@@ -1461,7 +1536,7 @@
 		    ((and (equal payment-mode "OPY") (or (equal company-type "BASIC") (equal company-type "PROFESSIONAL"))) (cl-who:str (make-payment-request-html (format nil "~A" shopcart-total)   (format nil "~A" wallet-id) "live" order-cxt)))
 		    ((and (equal payment-mode "OPY") (equal company-type "TRIAL")) (cl-who:str (make-payment-request-html (format nil "~A" shopcart-total)   (format nil "~A" wallet-id) "test" order-cxt)))
 		    (T (with-html-form "placeorderform" "dodmyorderaddaction"  
-			       (:span :class "input-group-btn" (:button :class "btn btn-lg btn-primary btn-block" :type "submit" "Place Order" )))))))      
+			       (:span :class "input-group-btn" (:button :class "btn btn-lg btn-primary" :type "submit" "Place Order" )))))))      
       
       (:hr)
       (:div :class "row"
@@ -1615,53 +1690,52 @@
 				   (let ((prd-id (slot-value odt 'prd-id)))
 				     (search-prd-in-list prd-id prd-cache ))) lstshopcart)))
 	  (if (> lstcount 0)
-	      (with-standard-customer-page (:title "My Shopping Cart")
+	      (with-standard-customer-page "My Shopping Cart"
 	    				; Need to select the order details instance here instead of product instance. Also, ui-list-shop-cart should be based on order details instances. 
 					; This function is responsible for displaying the shopping cart. 
 
-					   (:div :class "row"
-						 (:div :class "col-xs-6" 
-						       (:h4 (cl-who:str (format nil "Shopping Cart (~A Items)" (length products)))))
-						 (:div :class "col-sm-6" :align "right"
-						       (cl-who:htm  (:a :class "btn btn-primary" :role "button" :href "/hhub/dodcustindex" "Back To Shopping"  ))))
-					   (:hr)
-
-					   (:div :class "rowfluid"
-						 (:div :class "col-xs-12" 
-						       (cl-who:str (ui-list-shopcart products lstshopcart))))
+		(:div :class "row"
+		      (:div :class "col-xs-6" 
+			    (:h4 (cl-who:str (format nil "Shopping Cart (~A Items)" (length products)))))
+		      (:div :class "col-sm-6" :align "right"
+			    (cl-who:htm  (:a :class "btn btn-primary" :role "button" :href "/hhub/dodcustindex" "Back To Shopping"  ))))
+		(:hr)
+		
+		(:div :class "rowfluid"
+		      (:div :class "col-xs-12" 
+			    (cl-who:str (ui-list-shopcart products lstshopcart))))
 		(:hr)
 	  (:div :class "row" 
 		(:div :class "col-xs-12" :align "right" 
-				 (:h2 (:span :class "label label-default" (cl-who:str (format nil "Total = Rs ~$" total))))))
-	  (:hr)
-	  (if (equal cust-type "STANDARD") 
-	      (cl-who:htm 
-	       (:div :class "row"
-		     (:div :class "col-xs-12" :align "right"
-			   (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustorderaddpage?paymentmode=PRE") "Checkout"))))
-			 ;else
-	     
-	      (progn
-		(when (and singlevendor-p vendor-payment-api-key)
-		  (cl-who:htm
-		   (:div :class "row"
-			 (:div :class "col-xs-12" :align "right"
-			       (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustorderaddpage?paymentmode=OPY") "Online Payment")))
-		   (:div :class "row"
+		      (:h2 (:span :class "label label-default" (cl-who:str (format nil "Total = Rs ~$" total))))))
+		(:hr)
+		(if (equal cust-type "STANDARD") 
+		    (cl-who:htm 
+		     (:div :class "row"
+			   (:div :class "col-xs-12" :align "right"
+				 (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustorderaddpage?paymentmode=PRE") "Checkout"))))
+					;else
+		    
+		    (progn
+		      (when (and singlevendor-p vendor-payment-api-key)
+			(cl-who:htm
+			 (:div :class "row"
+			       (:div :class "col-xs-12" :align "right"
+				     (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustorderaddpage?paymentmode=OPY") "Online Payment")))
+			 (:div :class "row"
 			 (:div :class "col-xs-12" :align "right" 
 			       (:h5 "OR")))))
-		(cl-who:htm (:div :class "row"
-		     (:div :class "col-xs-12" :align "right"
-			   (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustorderaddpage?paymentmode=COD") "Cash On Delivery")))
-		     (:hr)))))
-	      ;else
+		      (cl-who:htm
+		       (:div :class "row"
+			     (:div :class "col-xs-12" :align "right"
+				   (:a :class "btn btn-primary" :role "button" :href (format nil "dodcustorderaddpage?paymentmode=COD") "Cash On Delivery")))
+		       (:hr)))))
+					;else
 	      (with-standard-customer-page (:title "My Shopping Cart")
 		(:div :class "row"
 		      (:div :class "col-xs-12"
 			    (:h4 (cl-who:str (format nil "~A items in shopping cart" lstcount))) 
-			    (:a :class "btn btn-primary" :onclick "window.history.back();"  :role "button" :href "#"  (:span :class "glyphicon glyphicon-arrow-left")  )))))
-			    )))
-
+			    (:a :class "btn btn-primary" :onclick "window.history.back();"  :role "button" :href "#"  (:span :class "glyphicon glyphicon-arrow-left")))))))))
    
 
 
