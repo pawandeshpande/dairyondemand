@@ -28,7 +28,7 @@
 		    (:hr))
 	      (:div :class "row"
 		  (:div :class "col-lg-12" 
-			 (:p :class="copyright text-muted small" "Copyright &copy; HighriseHub 2021. All Rights Reserved")))))))
+			 (:p :class "copyright text-muted small" "Copyright &copy; HighriseHub 2021. All Rights Reserved")))))))
       ;;  (modal-dialog (format nil "hhubcookiepolicy-modal") "Accept Cookies" (modal.hhub-cookie-policy))))
 
 
@@ -240,9 +240,9 @@
 			   ((and active (equal obj "N")) (cl-who:htm (:li (:span :style "color: lightgray;" (cl-who:str (format nil "~a  &#10005;" feature))))))
 			   (active (cl-who:htm (:li (:span (cl-who:str (format nil "~A - ~A" feature obj))))))))   plans pricing-features features-active)))
        (:div  :class  "generic_price_btn clearfix"  
-	      (if (equal name "Trial") (cl-who:htm (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal")  :href "#"  "Sign Up - 30 Days Free!"))
+	      (if (equal name "Trial") (cl-who:htm (:a :class ""  :href (format nil "hhubnewcompanyreqpage?cmp-type=~A" name)  "Sign Up - 30 Days Free!"))
 		  ;else
-	      (cl-who:htm (:a :class "" :data-toggle "modal" :data-target (format nil "#requestcompany-modal~A" name )  :href "#"  "Sign Up")))
-	      (modal-dialog (format nil "requestcompany-modal~A" name) "Add/Edit Group" (com-hhub-transaction-request-new-company name)))))))
+		  (cl-who:htm (:a :class "" :href (format nil "hhubnewcompanyreqpage?cmp-type=~A" name) "Sign Up"))))))))
+
 	
-    
+   
