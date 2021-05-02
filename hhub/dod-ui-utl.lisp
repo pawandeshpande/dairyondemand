@@ -17,11 +17,6 @@
   (cdr (assoc field object)))
 
 
-(defun with-html-checkbox (stream name checked &optional value)
-    (cl-who:with-html-output (stream)
-      (:input :type "checkbox" :name name :checked checked :value value)))
-
-
 
 (defun dod-controller-new-company-registration-email-sent ()
   (with-standard-customer-page  "New Company Registration Request"
@@ -330,8 +325,50 @@ individual tiles. It also supports search functionality by including the searchr
   (defmacro with-html-form ( form-name form-action  &body body) 
     :documentation "Arguments: form-action - the form's action, body - any additional hidden form input elements. This macro supports validator.js"  
     `(cl-who:with-html-output (*standard-output* nil) 
-       (:form :class ,form-name :id ,form-name :name ,form-name  :method "POST" :action ,form-action :data-toggle "validator" 
+       (:form :class ,form-name :id ,form-name :name ,form-name  :enctype "multipart/form-data" :method "POST" :action ,form-action :role "form" :data-toggle "validator" :novalidate "true" 
 	      ,@body))))
+
+
+(eval-when (:compile-toplevel :load-toplevel :execute)     
+  (defmacro with-html-div-row ( &body body) 
+    :documentation "A HTML Div element having class as 'row' and also having colum sizing" 
+    `(cl-who:with-html-output (*standard-output* nil) 
+       (:div :class "row"
+	     ,@body))))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)     
+  (defmacro with-html-div-col ( &body body) 
+    :documentation "A HTML Div element having class as 'row' and also having colum sizing" 
+    `(cl-who:with-html-output (*standard-output* nil) 
+       (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
+	     ,@body))))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)     
+  (defmacro with-html-input-text (name label placeholder  value brequired validation-error-msg tabindex &body other-attributes)
+    `(cl-who:with-html-output (*standard-output* nil)
+       (:div :class "form-group"
+	     (:label :for ,name ,label)
+	     (:input :class "form-control"  :type "text" :id ,name :name ,name :placeholder ,placeholder :required ,brequired :value ,value :tabindex ,tabindex :data-error  ,validation-error-msg ,@other-attributes)
+	     (:div :class "help-block with-errors")))))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)     
+  (defmacro with-html-input-textarea (name label placeholder brequired validation-error-msg tabindex rows &body other-attributes)
+    `(cl-who:with-html-output (*standard-output* nil)
+       (:div :class "form-group"
+	     (:label :for ,name ,label)
+	     (:textarea :class "form-control" :name ,name :id ,name :placeholder ,placeholder  :tabindex ,tabindex :required ,brequired  :rows ,rows :data-error ,validation-error-msg :onkeyup "countChar(this, 400)" ,@other-attributes )
+	     (:div :class "help-block with-errors")))))
+
+
+
+(eval-when (:compile-toplevel :load-toplevel :execute)     
+  (defmacro with-html-checkbox (name value bchecked  &optional (brequired nil) &body body)
+    `(cl-who:with-html-output (*standard-output* nil)
+       (:div :class "form-check"
+	     (:input  :type "checkbox" :name ,name :checked ,bchecked :required ,brequired :value ,value)
+	     ,@body))))
+
+
 
 
 (defun copy-hash-table (hash-table)
