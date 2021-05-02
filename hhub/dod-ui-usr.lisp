@@ -90,7 +90,7 @@
 
 
 (defun dod-controller-add-user-action ()
-  (if (is-dod-session-valid?)
+  (with-opr-session-check 
       (let*  ((userid (hunchentoot:parameter "userid"))
 	      (usertenantid (parse-integer (hunchentoot:parameter "usertenantid")))
 	      (fullname (hunchentoot:parameter "fullname"))
@@ -107,8 +107,6 @@
 	      (userrole-instance (select-user-role-by-userid userid usertenantid))
 	      (roletobeupdated (select-role-by-name userrole-name))
 	      (role-row-id (if roletobeupdated (slot-value roletobeupdated 'row-id))))
-	 
-	      
 
 	(unless (and  
 		 (or (null fullname) (zerop (length fullname)))
@@ -123,14 +121,34 @@
 		     (setf (slot-value userrole-instance 'role-id) role-row-id) 
 		     (update-user user)
 		     (update-user-role userrole-instance))
-	      ;else
+					;else
 	      (progn 
 		(create-dod-user fullname username encryptedpass salt  email phone  usertenantid)
 		(let ((user-id  (slot-value (select-user-by-phonenumber phone usertenantid) 'row-id))
 		      (role-id (slot-value roletobeupdated 'row-id))) 
 		(create-user-role user-id role-id usertenantid)))))
-	(hunchentoot:redirect  "/hhub/sadminhome"))
-      (hunchentoot:redirect "/hhub/opr-login.html")))
+	(hunchentoot:redirect  "/hhub/sadminhome"))))
+
+
+
+(defun create-user-with-role (fullname username email phone password userrole-name usertenantid) 
+  (let*  ((confirmpass password)
+	  (salt-octet (secure-random:bytes 56 secure-random:*generator*))
+	  (salt (flexi-streams:octets-to-string  salt-octet))
+	  (encryptedpass (check&encrypt password confirmpass salt))
+	  (roletobeupdated (select-role-by-name userrole-name)))
+    (unless (and  
+	     (or (null fullname) (zerop (length fullname)))
+	     (or (null username) (zerop (length username)))
+	     (or (null phone) (zerop (length phone)))
+	     (or (null email) (zerop (length email))))		
+      
+      (progn 
+	(create-dod-user fullname username encryptedpass salt  email phone  usertenantid)
+	(let ((user-id  (slot-value (select-user-by-phonenumber phone usertenantid) 'row-id))
+	      (role-id (slot-value roletobeupdated 'row-id))) 
+	  (create-user-role user-id role-id usertenantid))))))
+
 
 
 (defun get-login-userid ()
