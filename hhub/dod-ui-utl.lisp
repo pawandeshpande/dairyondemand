@@ -25,7 +25,8 @@
 		   (with-html-form "form-customerchangepin" "hhubcustpassreset"  
 					;(:div :class "account-wall"
 		     (:h1 :class "text-center login-title"  "New Store details have been sent. You will be contacted soon. ")
-		     (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-home")))))))
+		     (:a :class "btn btn-primary"  :role "button" :href "https://www.highrisehub.com"  (:span :class "glyphicon glyphicon-home"))
+		     (hhub-html-page-footer))))))
   
 
 
@@ -150,14 +151,14 @@
 		(:div :id "dod-main-container"
 		      (:a :id "scrollup" "" )
 		      (:div :id "hhub-error" :class "hhub-error-alert" :style "display:none;" )
-		      
+		      (:div :id "hhub-success" :class "hhub-success-alert" :style "display:none;" )
 		      (:div :id "busy-indicator")
 		      (:script :src "/js/hhubbusy.js")
 		      (if hunchentoot:*session* (,nav-func)) 
 					;(if (is-dod-cust-session-valid?) (with-customer-navigation-bar))
 		      (:div :class "container theme-showcase" :role "main" 
 			    (:div :class "sidebar-nav" 
-			    (:div :id "header"  ,@body))))
+			    (:div :id "hhubmaincontent"  ,@body))))
 		      ;; rangeslider
 		      ;; bootstrap core javascript
 		(:script :src "/js/bootstrap.js")
@@ -325,7 +326,7 @@ individual tiles. It also supports search functionality by including the searchr
   (defmacro with-html-form ( form-name form-action  &body body) 
     :documentation "Arguments: form-action - the form's action, body - any additional hidden form input elements. This macro supports validator.js"  
     `(cl-who:with-html-output (*standard-output* nil) 
-       (:form :class ,form-name :id ,form-name :name ,form-name  :enctype "multipart/form-data" :method "POST" :action ,form-action :role "form" :data-toggle "validator" :novalidate "true" 
+       (:form :class ,form-name :id ,form-name :name ,form-name  :method "POST" :action ,form-action :data-toggle "validator" 
 	      ,@body))))
 
 
