@@ -11,9 +11,9 @@ let app = express();
 
 let subscribers = [];
 
-let VAPID_SUBJECT = "mailto: support@highrisehub.com";
-let VAPID_PUBLIC_KEY =  "BBjBF5eKGs32lJVJ5DHaco9jRzIqwzKXhVdIaekVzx3_LW6KlLTsguiN3J2Tb3VQF1dJl8gLyubwCttsr_xu5jU";
-let VAPID_PRIVATE_KEY = "3esFVr1Yjak8uB4fF0z-0UI3YmywyuC_3KqNZsh3F2Y";
+let VAPID_SUBJECT = process.env.VAPID_SUBJECT;
+let VAPID_PUBLIC_KEY =  process.env.VAPID_PUBLIC_KEY; 
+let VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY; 
 
 const options = {
   // 1 hour in seconds.
