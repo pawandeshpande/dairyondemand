@@ -370,7 +370,7 @@
 
 (defun dod-controller-cust-orders-calendar ()
   (with-cust-session-check
-    (with-standard-customer-page (:title "list dod customer orders")   
+    (with-standard-customer-page  "list dod customer orders"   
 				 (:link :href "/css/calendar.css" :rel "stylesheet")
 				 (:ul :class "nav nav-pills" 
 				      (:li :role "presentation" :class "active" (:a :href "dodmyorders" (:span :class "glyphicon glyphicon-th-list")))
