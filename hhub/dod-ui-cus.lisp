@@ -187,9 +187,9 @@
     (let ((company-website (get-login-customer-company-website)))
       (progn 
 	(hunchentoot:remove-session hunchentoot:*session*)
-	(if company-website (hunchentoot:redirect (format nil "http://~A" company-website)) 
+	(if (> (length company-website) 0) (hunchentoot:redirect (format nil "http://~A" company-website)) 
 	    ;else
-	    (hunchentoot:redirect (hunchentoot:redirect "https://www.highrisehub.com"))))))
+	    (hunchentoot:redirect "https://www.highrisehub.com")))))
 
 
 
