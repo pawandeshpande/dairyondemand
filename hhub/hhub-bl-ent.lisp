@@ -3,25 +3,34 @@
 
 
 ;; Level 1 
+;; A business server is the highest level of business abstraction on the hardware
+;; level as it is tied to a single IP address 
+
 (defclass BusinessServer () 
   ((id)
    (name)
    (ipaddress)
    (BusinessContexts)))
 
-;; Level 2 
+;; Level 2
+;; A business context comes after Business server. Inside a business server, there will be multiple
+;; business contexts. Under each logical business context, several business object repositories will
+;; exist. 
 (defclass BusinessContext ()
   ((id)
    (name)
    (BusinessObjectRepositories)))
 
-;; Level 3 
+;; Level 3
+;; Under a business context there will be several business object repositories. Under each
+;; business object repository, there will be several business objects. 
 (defclass BusinessObjectRepository () ;; Equivalent of a business objects repository
   ((id)
    (name)
    (BusinessObjects)))
 
-;; Level 4 
+;; Level 4
+;; Each business object will have an ID and several of its own fields/properties/slots. 
 (defclass BusinessObject ()  ;; This is the domain model entity in DDD
   ((id)))
 

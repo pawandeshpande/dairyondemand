@@ -177,7 +177,7 @@
 		(:div :class "row" 
 		      (:div :class "col-sm-12" (cl-who:str (if (> (length address) 20)  (subseq (slot-value customer 'address) 0 20) address))))
 		(:div :class "row"
-		      (:div :class "col-sm-12" (:a :data-toggle "modal" :data-target (format nil "#hhubvendorderdetails~A-modal" (cl-who:str order-id))  :href "#"  (:span :class "label label-info" (cl-who:str order-id))))
-		      (modal-dialog (format nil "hhubvendorderdetails~A-modal" (cl-who:str order-id)) "Vendor Order Details" (modal.vendor-order-details vorder-instance company)))))))
+		      (:div :class "col-sm-12" (:a :data-toggle "modal" :data-target (format nil "#hhubvendorderdetails~A-modal"  order-id)  :href "#"  (:span :class "label label-info" (format nil "~A" (cl-who:str order-id)))))
+		      (modal-dialog (format nil "hhubvendorderdetails~A-modal" order-id) "Vendor Order Details" (modal.vendor-order-details vorder-instance company)))))))
 
 

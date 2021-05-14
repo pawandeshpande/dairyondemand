@@ -127,7 +127,8 @@
 	 (cmpzipcode (slot-value object 'zipcode))
 	 (cmpcountry (slot-value object 'country))
 	 (cmpwebsite (slot-value object 'website))
-	 (temp-str-email (format nil temp-str custname phone email cmpname cmpaddress cmpcity cmpstate cmpzipcode cmpcountry cmpwebsite )))
+	 (cmptype (slot-value object 'cmp-type))
+	 (temp-str-email (format nil temp-str custname phone email cmpname cmpaddress cmpcity cmpstate cmpzipcode cmpcountry cmpwebsite cmptype )))
   (hhubsendmail *HHUBSUPPORTEMAIL*  "Highrisehub - New company registration request" temp-str-email)))
 
 (defun send-contactus-email (firstname lastname businessname email subject message)

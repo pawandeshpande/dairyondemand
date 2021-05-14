@@ -4,7 +4,7 @@
 
 (defun dod-controller-vendor-pushsubscribe-page ()
   (with-vend-session-check
-    (with-standard-vendor-page
+    (with-standard-vendor-page "Push Subscription for Vendor"
       (cl-who:with-html-output (*standard-output* nil)
       (:div :class "row"
 	    (:h3 "Subscribe to Push Notification on your Browser"))
@@ -321,7 +321,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
     ;list all the completed orders for Today. 
     (let* ((todaysorders (dod-get-cached-completed-orders-today))
 	   (total (if todaysorders (reduce #'+ (mapcar (lambda (ord) (slot-value ord 'order-amt)) todaysorders)))))
-    (with-standard-vendor-page (:title "Welcome to DAS Platform- Vendor")
+    (with-standard-vendor-page "Welcome to DAS Platform- Vendor"
       (:div :class "row"
 	    (:div :class "col-xs-12 col-sm-4 col-md-4 col-lg-4" 
 		  "Completed orders "
@@ -345,7 +345,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
       (let* ((vendor-company (get-login-vendor-company))
 	     (cmplist (hunchentoot:session-value :login-vendor-tenants)))
 	   
-	(with-standard-vendor-page (:title "Welcome to DAS Platform - Vendor")
+	(with-standard-vendor-page "Welcome to DAS Platform - Vendor"
 	  (:a :class "btn btn-primary" :role "button" :href "dodvendsearchtenantpage" (:span :class "glyphicon glyphicon-shopping-cart") " Add New Group  ")
 	  (:hr)
 	  (:h5 (cl-who:str (format nil "Currently Logged Into Group - ~A" (slot-value vendor-company 'name))))
@@ -361,7 +361,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 
 (defun dod-controller-cmpsearch-for-vend-page ()
   (if (is-dod-vend-session-valid?)
-      (with-standard-vendor-page (:title "Welcome to DAS platform") 
+      (with-standard-vendor-page  "Welcome to DAS platform" 
 	(:div :class "row"
 	      (:h2 "Search Apartment/Group")
 	      (:div :id "custom-search-input"

@@ -30,7 +30,7 @@
   (cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
     (:div :id "searchresult"  :class "container" 
 	  (:div :class "row-fluid"  (mapcar (lambda (product)
-					      (cl-who:htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-4" 
+					      (cl-who:htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-3" 
 							 (:div :class "product-box"   (product-card product (prdinlist-p (slot-value product 'row-id)  lstshopcart))))))
 					    data)))))
 
