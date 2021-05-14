@@ -307,7 +307,7 @@ individual tiles. It also supports search functionality by including the searchr
     ; searchresult div will be used to store the search result. 
     (:div :id "searchresult"  :class "container" 
     (:div :class "row-fluid"  (mapcar (lambda (item)
-					(cl-who:htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-4" 
+					(cl-who:htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-3" 
 						    (funcall displayfunc item))))  listdata)))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
