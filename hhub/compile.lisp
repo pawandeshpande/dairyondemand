@@ -81,5 +81,12 @@
 	  (path "~/dairyondemand/hhub/"))
       
       (mapcar (lambda (file)
-		(compile-file  (concatenate 'string path file) :verbose *compile-verbose*)) filelist))))
+		(format t "_____________________________________________________________~C~C" #\return #\linefeed)
+		(format t "~A~C~C" (concatenate 'string path file) #\return #\linefeed)
+		(format t "~A" (time (load (compile-file 
+					       (concatenate 'string path file)
+		  :verbose *compile-verbose*
+		  :print *compile-print*))))
+		(format t "_____________________________________________________________~C~C" #\return #\linefeed))
+		filelist))))
   
