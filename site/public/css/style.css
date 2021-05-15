@@ -263,6 +263,8 @@ body {
   text-align: center;
 }
 
+
+
 .product-box{
 
 position: relative;
@@ -273,8 +275,8 @@ background-color: #ffffff;
 border: 0.1rem solid rgba(0, 0, 0, 0.1);
 border-color: #0080fd;
 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-width: 200px; 
-height: 330px;
+width: 250px; 
+height: 300px;
  transition: all 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 }; 
 
@@ -304,6 +306,10 @@ height: 330px;
 };
 
 
+
+
+
+
 .product-name { 
     display: block;
     width: 200px;
@@ -312,21 +318,6 @@ height: 330px;
     overflow: hidden;
     font-family: "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Tahoma, sans-serif;
     font-size: 16px;
-    font-style: normal;
-    font-variant: normal;
-    font-weight: 500;
-    line-height: 20px;
-    border: none;
-}
-
-.vendor-name { 
-    display: block;
-    width: 200px;
-    height: 20px;
-    margin-bottom: 5px;
-    overflow: hidden;
-    font-family: "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Tahoma, sans-serif;
-    font-size: 12px;
     font-style: normal;
     font-variant: normal;
     font-weight: 500;
@@ -364,19 +355,21 @@ height:140px;
 
 };
 
-.order1-box{
+.vendor-product-box {
+
 position: relative;
 display: inline-block;
 border-radius: 5px;
-padding: 20px;
-background-color: #f9ffff;
-border: 1px solid;
-width: 150px; 
-height: 120px; 
+padding: 10px;
+background-color: #ffffff;
+border: 1px dotted;
 border-color: #0080fd;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  transition: all 0.3s ease-in-out;
-}; 
+box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+width: 150px; 
+height: 140px;
+
+};
+
 
 
 .wallet-box{
@@ -400,7 +393,7 @@ padding: 20px;
 background-color: #f9ffff;
 border: 1px solid;
 border-color: #0080fd;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   transition: all 0.3s ease-in-out;
 }; 
 
@@ -449,7 +442,7 @@ transition: all 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 .stampbox.rotated
 {
     content:"";
-    position:absolute;
+    position:relative;
     top:100px;
     left:100px;
     z-index:100;

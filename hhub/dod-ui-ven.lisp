@@ -330,7 +330,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
       (:div :class  "col-xs-12 col-sm-4 col-md-4 col-lg-4"  :align "right" 
 	    (:h2 (:span :class "label label-default" (cl-who:str (format nil "Total = Rs ~$" total))))))
       (:hr)
-      (cl-who:str (display-as-tiles todaysorders 'vendor-order-card ))))))
+      (cl-who:str (display-as-tiles todaysorders 'vendor-order-card "order-box" ))))))
 
 
  
@@ -902,7 +902,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 				       (:div :class "col-xs-4 col-sm-4 col-md-4 col-lg-4" :align "right" 
 					     (:span :class "badge" (cl-who:str (format nil " ~d " (length vendor-products)))))) 
 				   (:hr)
-				   (cl-who:str (display-as-tiles vendor-products  'product-card-for-vendor))))))
+				   (cl-who:str (display-as-tiles vendor-products  'product-card-for-vendor "product-box"))))))
    
 
 
@@ -981,12 +981,12 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 	  (:h3 "Welcome " (cl-who:str (format nil "~A" (get-login-vendor-name))))
 	  (:hr)
 	  (:form :class "form-venorders" :method "POST" :action "dodvendindex"
-		 (:div :class "row" :style "display: none"
+		 (with-html-div-row :style "display: none"
 		       (:div :class "btn-group" :role "group" :aria-label "..."
 			     (:button  :name "btnpendord" :type "submit" :class "btn btn-default active" "Orders" )
 			     (:button  :name "btnordcomp" :type "submit" :class "btn btn-default" "Completed Orders")))
 					; (:hr)
-					(:div :class "row" :style "display: none"
+					(with-html-div-row :style "display: none"
 					      (:div :class "col-sm-12 col-xs-12 col-md-12 col-lg-12" 
 						    (:input :type "text" :name "reqdate" :placeholder "yyyy/mm/dd")
 						    (:button :class "btn btn-primary" :type "submit" :name "btnordprd" "Get Orders by Products")
@@ -1010,13 +1010,13 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 							   (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvendindex?context=ctxordcus" "Printer Friendly View")
 							   (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=pendingorders" "Export To Excel")
 							   (:hr))
-					       (cl-who:str (display-as-tiles dodorders 'vendor-order-card))))
+					       (cl-who:str (display-as-tiles dodorders 'vendor-order-card "order-box"))))
 				       ((equal context "completedorders") (let ((vorders (dod-get-cached-completed-orders)))
 									    (progn (cl-who:htm (cl-who:str (format nil "Completed orders"))
 											       (:span :class "badge" (cl-who:str (format nil " ~d " (length vorders)))) 
 											       (:a :class "btn btn-primary btn-xs" :role "button" :href "dodvenexpexl?type=completedorders" "Export To Excel")
 											       (:hr))
-										   (cl-who:str(display-as-tiles vorders 'vendor-order-card))))))))))
+										   (cl-who:str(display-as-tiles vorders 'vendor-order-card "order-box"))))))))))
   
 
 
@@ -1087,9 +1087,9 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
       (progn 
 	(hunchentoot:remove-session hunchentoot:*session*)
 	;;(deleteHHUBBusinessSession (hunchentoot:session-value :login-vendor-business-session-id)) 
-	(if company-website (hunchentoot:redirect (format nil "http://~A" company-website)) 
+	(if (> (length company-website) 0)  (hunchentoot:redirect (format nil "http://~A" company-website)) 
 					;else
-	    (hunchentoot:redirect (hunchentoot:redirect "/index.html"))))))
+	   (hunchentoot:redirect "https://www.highrisehub.com")))))
 
 
 
@@ -1122,7 +1122,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 	 (lowwalletbalance (< balance total)))
     
         (cl-who:with-html-output (*standard-output* nil)
-	  (:div :class "row" 
+	  (with-html-div-row 
 	       (:div :class "col-md-12" :align "right" 
 		     (if (and lowwalletbalance (equal payment-mode "PRE")) 
 			 (cl-who:htm (:h2 (:span :class "label label-danger" (cl-who:str (format nil "Low wallet Balance = Rs ~$" balance))))))
@@ -1159,7 +1159,7 @@ Phase2: User should copy those URLs in Products.csv and then upload that file."
 	      (lowwalletbalance (< balance total)))
 	 (if order (display-order-header-for-vendor  order)) 
 	 (if odtlst (ui-list-vend-orderdetails header odtlst) "No order details")
-	 (cl-who:htm(:div :class "row" 
+	 (cl-who:htm(with-html-div-row 
 		   (:div :class "col-md-12" :align "right" 
 			 (if (and lowwalletbalance (equal payment-mode "PRE")) 
 			     (cl-who:htm (:h2 (:span :class "label label-danger" (cl-who:str (format nil "Low wallet Balance = Rs ~$" balance))))))

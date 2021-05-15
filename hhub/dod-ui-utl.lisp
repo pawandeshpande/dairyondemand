@@ -299,16 +299,18 @@
 		   (mapcar (lambda (item)
 			     (cl-who:htm (:tr (:td (cl-who:str (funcall incr))) (funcall rowdisplayfunc item))))  listdata)))))))
 
+
 ;; Can this function be converted into a macro?
-(defun display-as-tiles (listdata displayfunc) 
+(defun display-as-tiles (listdata displayfunc tile-css-class) 
 :documentation "This is a generic function which will display items in list as tiles. You need to pass the list data, and a display function which will display 
 individual tiles. It also supports search functionality by including the searchresult div. To implement the search functionality refer to livesearch examples. For tiles sizingrefer to style.css. " 
   (cl-who:with-html-output-to-string (*standard-output* nil)
     ; searchresult div will be used to store the search result. 
     (:div :id "searchresult"  :class "container" 
-    (:div :class "row-fluid"  (mapcar (lambda (item)
-					(cl-who:htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-3" 
-						    (funcall displayfunc item))))  listdata)))))
+	  (:div :class "row-fluid"
+		(mapcar (lambda (item)
+			  (cl-who:htm (:div :class "col-xs-12 col-sm-6 col-md-4 col-lg-3" 
+					    (:div :class tile-css-class (funcall displayfunc item)))))  listdata)))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro with-html-search-form (search-form-action search-placeholder &body body) 
@@ -369,6 +371,12 @@ individual tiles. It also supports search functionality by including the searchr
 	     (:input  :type "checkbox" :name ,name :checked ,bchecked :required ,brequired :value ,value)
 	     ,@body))))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)     
+  (defmacro with-html-panel (panel-class panel-header-text &body body)
+    `(cl-who:with-html-output (*standard-output* nil)
+       (:div :class ,panel-class
+	     (:div :class "panel-heading" ,panel-header-text)
+	     (:div :class "panel-body" ,@body)))))
 
 
 

@@ -182,23 +182,35 @@
 	 (payment-mode (slot-value order-instance 'payment-mode))
 	 (shipped-date (slot-value order-instance 'shipped-date)))
     (cl-who:with-html-output (*standard-output* nil)
-      (:div :class "jumbotron"
-	    (:div :class "row" 
-		  (:div :class "col-md-4"
-			(:h5 "Order No:") (:h5 (cl-who:str (slot-value order-instance 'row-id)))
-			(:h5 "Payment Mode:") (:h5 (cl-who:str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
-							      ((equal payment-mode "COD") "Cash On Demand"))))
-			(if (equal payment-mode "PRE") (cl-who:htm (:h5 "Wallet Balance:") (:h5 (cl-who:str balance))))
-			(:h5 "Customer:") (:h5 (cl-who:str (slot-value customer 'name)))
-			(if (equal customer-type "STANDARD") (cl-who:htm (:h5 "Address:") (:h5 (cl-who:str (slot-value customer 'address))))))
-		  (:div :class "col-md-4"
-			(:h5 "Phone:") (:h5 (cl-who:str (slot-value customer 'phone)))
-			(:h5 "Status: " ) (:h5 (cl-who:str (slot-value order-instance 'status)))
-			(:h5 "Order Date:") (:h5 (cl-who:str (get-date-string (slot-value order-instance 'ord-date))))
-			(:h5 "Requested On:")(:h5 (cl-who:str (get-date-string (slot-value order-instance 'req-date))))
-			(:h5 "Shipped On:")(:h5 (if shipped-date (cl-who:str (get-date-string shipped-date)))))
-		  (:div :class "col-md-4" 
-			(if (equal (slot-value order-instance 'order-fulfilled) "Y")
-			    (cl-who:htm (:div :class "stampbox rotated" "FULFILLED")))
-			(if (equal customer-type "GUEST") (cl-who:htm (:h5 "Comments") (:h5 (cl-who:str (slot-value order-instance 'comments)))))
-			(:h5 "Customer Type:")(:h5 (cl-who:str (slot-value customer 'cust-type)))))))))
+      (with-html-panel "panel panel-default" "Order Header"
+	  (with-html-div-row 
+	    (with-html-div-col 
+	      (:h6 (:span "Order No: ") (cl-who:str (slot-value order-instance 'row-id))))
+	    (with-html-div-col
+	      (:h6 (:span "Payment Mode: ") (cl-who:str (cond ((equal payment-mode "PRE") "Prepaid Wallet")
+							      ((equal payment-mode "COD") "Cash On Demand")))))
+	    (with-html-div-col
+	      (if (equal payment-mode "PRE") (cl-who:htm (:h6 (:span "Wallet Balance:")  (cl-who:str balance)))))
+	    (with-html-div-col
+	      (:h6 (:span "Customer: ") (cl-who:str (slot-value customer 'name)))))
+	(with-html-div-row
+	  (with-html-div-col
+	    (if (equal customer-type "STANDARD") (cl-who:htm (:h6 (:span "Address:")  (cl-who:str (slot-value customer 'address))))))
+	  (with-html-div-col
+	    (:h6 (:span "Phone: ") (cl-who:str (slot-value customer 'phone))))
+	  (with-html-div-col
+	    (:h6 (:span "Status: " ) (cl-who:str (slot-value order-instance 'status))))
+	  (with-html-div-col
+	    (:h6 (:span "Order Date: ") (cl-who:str (get-date-string (slot-value order-instance 'ord-date))))))
+	(with-html-div-row 
+	  (with-html-div-col
+	    (:h6 (:span "Requested On:") (cl-who:str (get-date-string (slot-value order-instance 'req-date)))))
+	  (with-html-div-col
+	    (:h6 (:span "Shipped On:") (if shipped-date (cl-who:str (get-date-string shipped-date))))))
+	(with-html-div-row
+	  (with-html-div-col
+	    (if (equal (slot-value order-instance 'order-fulfilled) "Y")
+		(cl-who:htm (:div :class "stampbox rotated" "FULFILLED")))
+			      (if (equal customer-type "GUEST") (cl-who:htm (:h6 :style "{word-break: break-all}" (:span "Comments: ")  (cl-who:str (slot-value order-instance 'comments)))))
+	    (:h6 (:span "Customer Type:") (cl-who:str (slot-value customer 'cust-type))))))))))
+
