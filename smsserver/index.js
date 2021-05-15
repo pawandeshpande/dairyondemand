@@ -36,7 +36,7 @@ app.get('/sms/sendsms', (req, res) => {
     console.log("SenderID = " + req.query.senderid);
     var params = {
         Message: req.query.message,
-        PhoneNumber: req.query.number,
+        PhoneNumber: "+91" + req.query.number,
         MessageAttributes: {
             'AWS.SNS.SMS.SenderID': {
                 'DataType': 'String',
