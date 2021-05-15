@@ -46,17 +46,17 @@
 	   (prd-vendor (product-vendor product-instance)))
       (cl-who:with-html-output (*standard-output* nil)
 	(with-html-form "form-shopcart" "dodcustupdatecart"    
-	  (:div :class "row"
+	  (with-html-div-row
 			 (:div  :class "col-xs-6" (:a :href "#" (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
 		    			;Remove button.
 			 (:div :class "col-xs-6" :align "right"
 			       (cl-who:htm (:a :data-toggle "tooltip" :title "Remove from shopcart"  :href (format nil "dodcustremshctitem?action=remitem&id=~A" prd-id) (:span :class "glyphicon glyphicon-remove")))))
 					;Product name and other details
-		   (:div :class "row"
+		   (with-html-div-row
 			 (:div :class "col-xs-12"
 			       (:h5 :class "product-name"  (cl-who:str prd-name) )
 			       (:p  (cl-who:str (format nil "  ~A. Fulfilled By: ~A" qty-per-unit (name prd-vendor)))))
-			 (:div :class "row"
+			 (with-html-div-row
 			 (:div :class "col-sm-12"
 			       (:div  (:h3(:span :class "label label-default" (cl-who:str (format nil "Rs. ~$ X ~A = Rs. ~$"  unit-price prdqty subtotal))))))))))))
 
@@ -91,14 +91,14 @@
 	 (subtotal (* prdqty unit-price))
 	 (prd-vendor (product-vendor product-instance)))
     (cl-who:with-html-output (*standard-output* nil)
-      (:div :class "row"
+      (with-html-div-row
 	    (:div  :class "col-xs-6" (:a :href "#" (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " "))))
 					;Product name and other details
-      (:div :class "row"
+      (with-html-div-row
 	    (:div :class "col-xs-12"
 		  (:h5 :class "product-name"  (cl-who:str prd-name) )
 		  (:p  (cl-who:str (format nil "  ~A. Fulfilled By: ~A" qty-per-unit (name prd-vendor))))))
-      (:div :class "row"
+      (with-html-div-row
 	    (:div :class "col-sm-12"
 		  (:h3(:span :class "label label-default" (cl-who:str (format nil "Rs. ~$ X ~A = Rs. ~$"  unit-price prdqty subtotal)))))))))
 
@@ -108,7 +108,7 @@
     (let ((catg-name (slot-value prdcatg-instance 'catg-name))
 	  (row-id (slot-value prdcatg-instance 'row-id)))
 	(cl-who:with-html-output (*standard-output* nil)
-		(:div :class "row"
+		(with-html-div-row
 		(:div :class "col-sm-12" (:a :href (format nil "dodproducts?id=~A" row-id) (cl-who:str catg-name)))))))
 		
 
@@ -123,7 +123,7 @@
 	 (prd-name (slot-value product 'prd-name)))
 
  (cl-who:with-html-output (*standard-output* nil)
-   (:div :class "row" 
+   (with-html-div-row 
 	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 	       (:form :id (format nil "form-vendorprod~A" mode) :data-toggle "validator"  :role "form" :method "POST" :action "dodvenaddproductaction" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
@@ -167,7 +167,7 @@
 	 (prd-name (slot-value product 'prd-name))
 	 (prd-id (slot-value product 'row-id)))
  (cl-who:with-html-output (*standard-output* nil)
-   (:div :class "row" 
+   (with-html-div-row 
 	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "hhubcadprdrejectaction" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
@@ -194,7 +194,7 @@
 	 (prd-name (slot-value product 'prd-name))
 	 (prd-id (slot-value product 'row-id)))
  (cl-who:with-html-output (*standard-output* nil)
-   (:div :class "row" 
+   (with-html-div-row 
 	 (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 	       (:form :id (format nil "form-vendorprod")  :role "form" :method "POST" :action "hhubcadprdapproveaction" :enctype "multipart/form-data" 
 					;(:div :class "account-wall"
@@ -228,9 +228,7 @@
 	  (subscribe-flag (slot-value product-instance 'subscribe-flag)))
 	    
 	(cl-who:with-html-output (*standard-output* nil)
-	  (:div :class "product-box" 
-	  (:div :style "background-color:#E2DBCD; border-bottom: solid 1px; margin-bottom: 3px;" :class "row"
-		
+	  (:div :style "background-color:#e6f9ff; width: 250; border-bottom: solid 1px; margin-bottom: 3px;" :class "row"
 		(if (equal active-flag "Y")
 		    (cl-who:htm (:div :class "col-xs-2" :data-toggle "tooltip" :title "Turn Off" 
 		      (:a   :href (format nil "dodvenddeactivateprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-off"))))
@@ -247,30 +245,30 @@
 		(:div :class "col-xs-4" :align "right" "")
 		(:div :class "col-xs-2" :align "right"
 		      (:a :onclick "return DeleteConfirm();"  :href (format nil "dodvenddelprod?id=~A" prd-id) (:span :class "glyphicon glyphicon-remove"))))
-	  (:div :class "row"
+	  (with-html-div-row
 		(if (<= units-in-stock 0) 
 		    (cl-who:htm (:div :class "stampbox rotated" "NO STOCK" ))
 		    ;else
 		    (cl-who:htm (:div :class "col-xs-12" (:h5 (:span :class "badge" (cl-who:str (format nil "In stock ~A  units"  units-in-stock ))))))))
 		      
-	  (:div :class "row"
+	  (with-html-div-row
 		(:div :class "col-xs-5" 
 		      (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
 		(:div :class "col-xs-3" (:h3 (:span :class "label label-default" (cl-who:str (format nil "Rs. ~$"  unit-price))))))
 	
-	  (:div :class "row"
+	  (with-html-div-row
 		(:div :class "col-xs-6"
 		      (:h5 :class "product-name" (cl-who:str (if (> (length prd-name) 30)  (subseq prd-name  0 30) prd-name))))
 		(:div :class "col-xs-6"
 		      (if (equal subscribe-flag "Y") (cl-who:htm (:div :class "col-xs-6"  (:h5 (:span :class "label label-default" "Can be Subscribed")))))))
-	  (:div :class "row" 
+	  (with-html-div-row 
 		(:div :class "col-xs-12" 
 		      (:h6 (cl-who:str (if (> (length description) 90)  (subseq description  0 90) description)))))
 	  
 	  (if (equal active-flag "N") 
 	      (cl-who:htm (:div :class "stampbox rotated" "INACTIVE" )))
 	  (if (equal approved-flag "N")
-	      (cl-who:htm (:div :class "stampbox rotated" (cl-who:str (format nil "~A" approval-status)))))))))
+	      (cl-who:htm (:div :class "stampbox rotated" (cl-who:str (format nil "~A" approval-status))))))))
 
 
 (defun product-card-for-approval (product-instance)
@@ -293,12 +291,12 @@
 		      (:div :class "col-xs-12" (:h5 (cl-who:str (format nil "~A" company-name)))))
 		 
 
-	  (:div :class "row"
+	  (with-html-div-row
 		(:div :class "col-xs-5" 
 		      (:a :href (format nil "dodprddetailsforvendor?id=~A" prd-id)  (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
 		(:div :class "col-xs-3" (:h3 (:span :class "label label-default" (cl-who:str (format nil "Rs. ~$"  unit-price))))))
 		
-		(:div :class "row"
+		(with-html-div-row
 		      (:div :class "col-xs-6"
 			    (:h5 :class "product-name" (cl-who:str (if (> (length prd-name) 30)  (subseq prd-name  0 30) prd-name))))
 		(:div :class "col-xs-6"
@@ -306,7 +304,7 @@
 			(if (equal approved-flag "N")
 		    (cl-who:htm (:div :class "stampbox rotated" (cl-who:str (format nil "~A" approval-status)))))
 			
-		(:div :class "row"
+		(with-html-div-row
 		      (:div :class "col-xs-6"
 			    (:button :data-toggle "modal" :data-target (format nil "#dodvendrejectprod-modal~A" prd-id)  :href "#"  (:span :class "glyphicon glyphicon-remove") "Reject")
 			    (modal-dialog (format nil "dodvendrejectprod-modal~A" prd-id) "Reject Product" (modal.vendor-product-reject-html  prd-id tenant-id)))
@@ -332,13 +330,13 @@
 	  (subscribe-flag (slot-value product-instance 'subscribe-flag))
 	  (customer-type (get-login-customer-type)))
       (cl-who:with-html-output (*standard-output* nil)
-	(:div :class "row" 
+	(with-html-div-row 
 	      (:div  :class "col-xs-5" (:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) (:img :src  (format nil "~A" prd-image-path) :height "83" :width "100" :alt prd-name " ")))
 	      (:div :class "col-xs-6" 
 		 	(:div  (:h3 (:span :class "label label-default" (cl-who:str (format nil "Rs. ~$"  unit-price)))))))
-	(:div :class "row"
+	(with-html-div-row
 	      (:div :class "col-xs-12" 	(:a :href (format nil "dodprddetailsforcust?id=~A" prd-id) (:h5 :class "product-name"  (cl-who:str prd-name)))))
-	(:div :class "row"
+	(with-html-div-row
 	      (if (equal subscribe-flag "Y") 
 		  (cl-who:htm 
 					;(:form :class "form-subscribe" :method "POST" :action "dodprodsubscribe"
@@ -359,7 +357,7 @@
 	  (:h5 (:span :class "label label-danger" "Out Of Stock")))))))
 
 
-		(:div :class "row" 
+		(with-html-div-row 
 		      (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12" 
 			    (:h6 (cl-who:str (if (> (length description) 150)  (subseq description  0 150) description)))))
 		
@@ -377,7 +375,7 @@
 	  (vendor-id (slot-value prd-vendor 'row-id)))
       (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "container"
-	      (:div :class "row"
+	      (with-html-div-row
 					; Product image only here
 		    (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-6 image-responsive"
 			  (:img :src  (format nil "~A" prd-image-path) :height "300" :width "400" :alt prd-name " "))
@@ -410,7 +408,7 @@
 	  (prd-image-path (slot-value product-instance 'prd-image-path)))
       (cl-who:with-html-output (*standard-output* nil)
 	(:div :class "container"
-	      (:div :class "row"
+	      (with-html-div-row
 					; Product image only here
 		    (:div :class "col-sm-12 col-xs-12 col-md-6 col-lg-6 image-responsive"
 			  (:img :src  (format nil "~A" prd-image-path) :height "300" :width "400" :alt prd-name " "))
