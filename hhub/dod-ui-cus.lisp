@@ -1071,7 +1071,7 @@
 	   (:div :class "row"
 		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 		       (:div :class "form-group" (:label :for "phone" "Phone" )
-			     (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Mobile Phone (+919999999999) " :tabindex "3" :maxlength "13"  :required T )))
+			     (:input :class "form-control" :type "text" :class "form-control" :name "phone" :placeholder "Mobile Phone (9999999999) " :tabindex "3" :maxlength "13"  :required T )))
 			      
 		 (:div :class "col-xs-12 col-sm-12 col-md-6 col-lg-6"
 		       (:div :class "form-group" (:label :for "email" "Email" )
@@ -1089,7 +1089,9 @@
 		       (:div :class "row"
 			     (:div :class "col-xs-12 col-sm-12 col-md-12 col-lg-12"
 				   (:div :class "form-group" (:label :for "shipaddress" "Shipping Address" )
-					 (:textarea :class "form-control" :id "shipaddress" :name "shipaddress" :rows "4" :tabindex "5" ))
+					 (:textarea :class "form-control" :id "shipaddress" :name "shipaddress" :rows "3" :onkeyup "countChar(this, 400)" :tabindex "5" ))
+				   (:div :id "charcount" :class "form-group")
+					
 				   
 				   (:div :class "form-group" (:label :for "shipzipcode" "Pincode" )
 					 (:input :class "form-control" :type "text" :class "form-control" :inputmode "numeric" :maxlength "6" :id "shipzipcode" :name "shipzipcode" :placeholder "Pincode" :tabindex "8"  :oninput "this.value=this.value.replace(/[^0-9]/g,'');"  ))
@@ -1463,9 +1465,9 @@
 	   (gstnumber (hunchentoot:parameter "gstnumber"))
 	   (gstorgname (hunchentoot:parameter "gstorgname"))
 	   (reqdate (get-date-from-string (hunchentoot:parameter "reqdate")))
-	   (phone (hunchentoot:parameter "phone"))
+	   (phone  (hunchentoot:parameter "phone"))
 	   (email (hunchentoot:parameter "email"))
-	   (comments (if phone (concatenate 'string phone "+++" email "+++" shipaddress)))
+	   (comments (if phone (format nil "~A, ~A, ~A, ~A, ~A, ~A" phone email shipaddress shipcity shipstate shipzipcode)))
 	   (shopcart-total (get-shop-cart-total odts))
 	   (customer (get-login-customer))
 	   (cust-type (cust-type customer))
@@ -1654,8 +1656,8 @@
 					; Display the My Cart button. 
 		    (:div :class "col-lg-6 col-md-6 col-sm-6" :align "right"
 			  (:a :class "btn btn-primary" :role "button" :href "dodcustshopcart"  (:span :class "glyphicon glyphicon-shopping-cart") " My Cart  " (:span :class "badge" (cl-who:str (format nil " ~A " lstcount)))))))
-       (:hr)       
-       (cl-who:str(ui-list-customer-products lstproducts lstshopcart))))))
+       (:hr)
+       (cl-who:str (ui-list-customer-products lstproducts lstshopcart))))))
 
 
 
