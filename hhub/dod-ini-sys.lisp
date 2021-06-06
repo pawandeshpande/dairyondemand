@@ -183,7 +183,7 @@ the hunchentoot server with ssl settings"
 (setf *HHUBGLOBALLYCACHEDLISTSFUNCTIONS* NIL)
 (setf *HHUBGLOBALBUSINESSFUNCTIONS-HT* NIL)
 ;(setf *HHUBENTITY-WEBPUSHNOTIFYVENDOR-HT* NIL)
-;(setf *HHUBBUSINESSSESSIONS-HT* NIL)
+(setf *HHUBBUSINESSSESSIONS-HT* NIL)
 (setf *HHUBBUSINESSDOMAIN* NIL)))
 
 ;;;;*********** Globally Cached lists and their accessor functions *********************************
@@ -306,7 +306,7 @@ the hunchentoot server with ssl settings"
   (hhub-register-business-function "com.hhub.businessfunction.db.getpushnotifysubscriptionforvendor" "com-hhub-businessfunction-db-getpushnotifysubscriptionforvendor")
   ;; Business functions for Creating Push Notify Subscription for Vendor 
   (hhub-register-business-function "com.hhub.businessfunction.bl.createpushnotifysubscriptionforvendor" "com-hhub-businessfunction-bl-createpushnotifysubscriptionforvendor")
-;;  (hhub-register-business-function "com.hhub.businessfunction.tempstorage.createpushnotifysubscriptionforvendor" "com-hhub-businessfunction-tempstorage-createpushnotifysubscriptionforvendor")
+  (hhub-register-business-function "com.hhub.businessfunction.tempstorage.createpushnotifysubscriptionforvendor" "com-hhub-businessfunction-tempstorage-createpushnotifysubscriptionforvendor")
   (hhub-register-business-function "com.hhub.businessfunction.db.createpushnotifysubscriptionforvendor" "com-hhub-businessfunction-db-createpushnotifysubscriptionforvendor"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -328,17 +328,8 @@ the hunchentoot server with ssl settings"
 			     (let ((site (make-instance 'BusinessContext)))
 			       (setf (slot-value site 'id)  (format nil "~A" (uuid:make-v1-uuid )))
 			       (setf (slot-value site 'name) contextname)
-			       (initBusinessObjectRepositories site)
 			       site)) ListContextNames)))
     contexts))
-
-
-(defmethod initBusinessObjectRepositories ((bc BusinessContext))
-  (let ((br-ht (make-hash-table))
-	(vr (make-instance 'BusinessObjectRepository)))
-    (loadAllVendors vr)
-    (setf (gethash "VendorRepository" br-ht) vr)
-    (setf (slot-value bc 'BusinessObjectRepositories) br-ht)))
 
     
 (defun initBusinessDomain ()
