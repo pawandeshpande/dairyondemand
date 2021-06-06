@@ -212,5 +212,5 @@
 	    (if (equal (slot-value order-instance 'order-fulfilled) "Y")
 		(cl-who:htm (:div :class "stampbox rotated" "FULFILLED")))
 			      (if (equal customer-type "GUEST") (cl-who:htm (:h6 :style "{word-break: break-all}" (:span "Comments: ")  (cl-who:str (slot-value order-instance 'comments)))))
-	    (:h6 (:span "Customer Type:") (cl-who:str (slot-value customer 'cust-type))))))))))
+	    (:h6 (:span "Customer Type:") (cl-who:str (slot-value customer 'cust-type)))))))))
 
