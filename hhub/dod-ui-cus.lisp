@@ -3,6 +3,61 @@
 (clsql:file-enable-sql-reader-syntax)
 
 
+;; Service layer implementation for the pincode check.
+;; We would need to have a BusinessService which takes params
+(defmethod doService ((service AddressService) params)
+  (let* ((repository (cdr (assoc "repository" params :test 'equal)))
+	(bo-key (cdr (assoc "bo-key" params :test 'equal)))
+	(bo-ht  (slot-value repository 'businessobjects))
+	(busobject (gethash bo-key bo-ht))
+	(pincode (slot-value busobject 'pincode)))
+    (getpincodedetails pincode)))
+	
+
+;(defmacro defservicemethod ((instance-name instance-of) params &body body)
+;  `(defmethod doService ((,instance-name ,instance-of) ,params)
+;     (let* ((repository (cdr (assoc "repository" ,params :test 'equal)))
+;	    (bo-key (cdr (assoc "bo-key" ,params :test 'equal)))
+;	    (bo-ht  (slot-value repository 'businessobjects))
+;	    (busobject (gethash bo-key bo-ht)))
+;      ,@body)))
+
+;(defservicemethod (service AddressService) params
+;  (let ((pincode (slot-value busobject 'pincode)))
+;    (getpincodedetails pincode)))
+
+
+
+
+(defun hhub-controller-pincode-check ()
+  (let* ((pincode (hunchentoot:parameter "pincode"))
+	 (address (make-instance 'address))
+	 (bo-key (slot-value address 'id))
+	 (address-repo (make-instance 'BusinessObjectRepository))
+	 (addressservice (make-instance 'AddressService))
+	 (params nil))
+    
+    (setf (slot-value address 'pincode) pincode)
+    (addBO address-repo address)
+    (setf params (acons "repository" address-repo params))
+    (setf params (acons "bo-key" bo-key params))
+    (doservice addressservice params)))
+
+(defun test-pincode-check (pincode)
+  (let* ((address (make-instance 'address))
+	 (bo-key (slot-value address 'id))
+	 (address-repo (make-instance 'BusinessObjectRepository))
+	 (addressservice (make-instance 'AddressService))
+	 (params nil))
+    
+    (setf (slot-value address 'pincode) pincode)
+    (addBO address-repo address)
+    (setf params (acons "repository" address-repo params))
+    (setf params (acons "bo-key" bo-key params))
+    (doservice addressservice params)))
+  
+
+
 (defun getpincodedetails (pincode)
   (let* ((templist '())
 	 (appendlist '())
@@ -35,7 +90,7 @@
 	(json:encode-json-to-string mylist)))))
 
 
-(defun hhub-controller-pincode-check ()
+(defun hhub-controller-pincode-check2 ()
   (let ((pincode (hunchentoot:parameter "pincode")))
     (getpincodedetails pincode)))
 
@@ -1791,8 +1846,9 @@
 	  (setf (hunchentoot:session-value :login-prd-cache )  (select-products-by-company customer-company))
 	  (setf (hunchentoot:session-value :login-prdcatg-cache) (select-prdcatg-by-company customer-company))
 	  (unless (equal customer-tenant-id *HHUB-DEMO-TENANT-ID*)
-	    (hunchentoot:set-cookie "community-url" :value (format nil "https://www.highrisehub.com/hhub/dascustloginasguest?tenant-id=~A" (get-login-cust-tenant-id)) :expires (+ (get-universal-time) 10000000) :path "/")
-	    (hunchentoot:set-cookie "community-name" :value customer-company-name :path "/" :expires (+ (get-universal-time) 10000000))) 
+	    (progn
+	      (hunchentoot:set-cookie "community-url" :value (format nil "https://www.highrisehub.com/hhub/dascustloginasguest?tenant-id=~A" (get-login-cust-tenant-id)) :expires (+ (get-universal-time) 10000000) :path "/")
+	      (hunchentoot:set-cookie "community-name" :value customer-company-name :path "/" :expires (+ (get-universal-time) 10000000)))) 
 	  ))
       )
 

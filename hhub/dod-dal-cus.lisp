@@ -4,6 +4,30 @@
 
 
 
+(defclass address (BusinessObject)
+  ((street)
+   (locality)
+   (city)
+   (state)
+   (pincode)
+   (country)
+   (longitude)
+   (latitude)))
+  
+(defclass AddressService (BusinessService)
+  ())
+
+(defclass CustomerService (BusinessService)
+  ())
+
+(defclass customerDBService (DBAdapterService)
+  ())
+
+(defclass customerRepository (BusinessObjectRepository)
+  ())
+
+
+
 (clsql:def-view-class dod-cust-profile ()
   ((row-id
     :db-kind :key
@@ -115,6 +139,15 @@
   
   
   (:BASE-TABLE dod_cust_profile))
+
+
+
+(clsql:def-view-class GuestCustomer (dod-cust-profile)
+  ())
+
+(clsql:def-view-class StandardCustomer (dod-cust-profile)
+  ())
+
 
 
 ;;;;; Create class for DOD_CUST_WALLET table
