@@ -97,6 +97,17 @@ corresponding universal time."
     (declare (ignore sec min hr dow dst-p tz))
       (format nil "~4,'0d/~2,'0d/~2,'0d" yr mon day)))
 
+(defun current-date-string-ddmmyyyy ()
+  "Returns current date as a string in DD-MM-YYYY format"
+  (multiple-value-bind (sec min hr day mon yr dow dst-p tz)
+                       (get-decoded-time)
+    (declare (ignore sec min hr dow dst-p tz))
+    (format nil "~2,'0d-~2,'0d-~4,'0d" day mon yr )))
+
+
+
+
+
 (defun get-date-string (dateobj)
   "Returns current date as a string in DD/MM/YYYY format."
   (multiple-value-bind (yr mon day)
